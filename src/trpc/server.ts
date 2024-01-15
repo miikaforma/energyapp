@@ -11,8 +11,8 @@ import { type TRPCErrorResponse } from "@trpc/server/rpc";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
-import { appRouter, type AppRouter } from "@/energyapp/server/api/root";
-import { createTRPCContext } from "@/energyapp/server/api/trpc";
+import { appRouter, type AppRouter } from "@energyapp/server/api/root";
+import { createTRPCContext } from "@energyapp/server/api/trpc";
 import { transformer } from "./shared";
 
 /**

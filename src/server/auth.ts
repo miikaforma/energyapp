@@ -4,10 +4,11 @@ import {
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import KeycloakProvider from 'next-auth/providers/keycloak';
 
-import { env } from "@/energyapp/env";
-import { db } from "@/energyapp/server/db";
+import { env } from "@energyapp/env";
+import { db } from "@energyapp/server/db";
+import { Adapter } from "next-auth/adapters";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -30,6 +31,16 @@ declare module "next-auth" {
   // }
 }
 
+const prismaAdapter = PrismaAdapter(db);
+
+const CustomPrismaAdapter: Adapter<boolean> = {
+  ...prismaAdapter,
+  linkAccount: (account) => {
+    delete account["not-before-policy"];
+    return prismaAdapter.linkAccount(account);
+  },
+};
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -45,11 +56,12 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   },
-  adapter: PrismaAdapter(db),
+  adapter: CustomPrismaAdapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    KeycloakProvider({
+      clientId: env.KEYCLOAK_CLIENT_ID,
+      clientSecret: env.KEYCLOAK_CLIENT_SECRET,
+      issuer: env.KEYCLOAK_ISSUER,
     }),
     /**
      * ...add more providers here.

@@ -1,9 +1,9 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { type NextRequest } from "next/server";
 
-import { env } from "@/energyapp/env";
-import { appRouter } from "@/energyapp/server/api/root";
-import { createTRPCContext } from "@/energyapp/server/api/trpc";
+import { env } from "@energyapp/env";
+import { appRouter } from "@energyapp/server/api/root";
+import { createTRPCContext } from "@energyapp/server/api/trpc";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when

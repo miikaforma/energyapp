@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Chart from "react-apexcharts";
 
-export default async function ExampleChart() {
+export default function ExampleChart() {
     const [options, setOptions] = useState({
         chart: {
             id: "basic-bar"

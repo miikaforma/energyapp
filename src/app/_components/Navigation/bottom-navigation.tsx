@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link'
 import { Session } from 'next-auth';
 
-export default async function BottomNav({ children, session }: { children: ReactNode, session: Session | null }) {
+export default function BottomNav({ children, session }: { children: ReactNode, session: Session | null }) {
     const pathname = usePathname()
 
     let currentRoute = "/";

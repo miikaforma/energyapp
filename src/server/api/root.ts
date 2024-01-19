@@ -1,6 +1,7 @@
 import { postRouter } from "@energyapp/server/api/routers/post";
 import { createTRPCRouter } from "@energyapp/server/api/trpc";
 import { spotPriceRouter } from "./routers/spotPrice";
+import { melcloudRouter } from "./routers/melcloud";
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { spotPriceRouter } from "./routers/spotPrice";
 export const appRouter = createTRPCRouter({
   post: postRouter,
   spotPrice: spotPriceRouter,
+  melCloud: melcloudRouter,
 });
 
 // export type definition of API

@@ -45,61 +45,127 @@ model energies {
   @@index([time(sort: Desc)])
 }
 
-// Necessary for Next auth
 model account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_expires_in        Int?
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  refresh_expires_in Int?
+  user               user    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model user {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      account[]
-    sessions      session[]
-    posts         post[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      account[]
+  posts         post[]
+  sessions      session[]
+  accesses      access[]
 }
 
 model verification_token {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
 
 model post {
+  id          Int      @id @default(autoincrement())
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  createdBy   user     @relation(fields: [createdById], references: [id])
+
+  @@index([name])
+}
+
+/// This table has subclasses and requires additional setup for migrations. Visit https://pris.ly/d/table-inheritance for more info.
+model melcloud {
+  time                          DateTime @default(now()) @db.Timestamptz(6)
+  device_id                     Int
+  device_type                   Int      @db.SmallInt
+  power                         Boolean
+  offline                       Boolean
+  room_temperature              Float    @db.Real
+  set_temperature               Float    @db.Real
+  last_communication            String
+  actual_fan_speed              Int      @db.SmallInt
+  fan_speed                     Int      @db.SmallInt
+  automatic_fan_speed           Boolean?
+  vane_vertical_direction       Int      @db.SmallInt
+  vane_vertical_swing           Boolean?
+  vane_horizontal_direction     Int      @db.SmallInt
+  vane_horizontal_swing         Boolean?
+  operation_mode                Int      @db.SmallInt
+  in_standby_mode               Boolean
+  heating_energy_consumed_rate1 Float?   @db.Real
+  heating_energy_consumed_rate2 Float?   @db.Real
+  cooling_energy_consumed_rate1 Float?   @db.Real
+  cooling_energy_consumed_rate2 Float?   @db.Real
+  auto_energy_consumed_rate1    Float?   @db.Real
+  auto_energy_consumed_rate2    Float?   @db.Real
+  dry_energy_consumed_rate1     Float?   @db.Real
+  dry_energy_consumed_rate2     Float?   @db.Real
+  fan_energy_consumed_rate1     Float?   @db.Real
+  fan_energy_consumed_rate2     Float?   @db.Real
+  other_energy_consumed_rate1   Float?   @db.Real
+  other_energy_consumed_rate2   Float?   @db.Real
+  current_energy_consumed       Float?   @db.Real
+  current_energy_mode           Int?     @db.SmallInt
+  energy_correction_model       Float?   @db.Real
+  energy_correction_active      Boolean?
+  wifi_signal_strength          Float?   @db.Real
+  wifi_adapter_status           String?
+  has_error                     Boolean?
+
+  @@unique([time, device_id])
+  @@index([time(sort: Desc)])
+}
+
+
+enum accessType {
+  WATTIVAHTI_CONSUMPTION
+  WATTIVAHTI_PRODUCTION
+  SOLARMAN
+  MELCLOUD
+}
+
+model access {
     id        Int      @id @default(autoincrement())
-    name      String
+    accessId      String
+    accessName String?
+    type      accessType
+    email     String
+    password  String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    createdBy   user   @relation(fields: [createdById], references: [id])
-    createdById String
+    user   user   @relation(fields: [userId], references: [id])
+    userId String
 
-    @@index([name])
+    @@index([accessId])
 }

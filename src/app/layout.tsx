@@ -3,15 +3,18 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
-import Link from "next/link";
 
 import { TRPCReactProvider } from "@energyapp/trpc/react";
 import { getServerAuthSession } from "@energyapp/server/auth";
 import BottomNav from "./_components/Navigation/bottom-navigation";
-import { CssBaseline, Toolbar } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 
 import ThemeRegistry from "./_components/ThemeRegistry/ThemeRegistry";
 import MenuAppBar from "./_components/MenuAppBar/AppBar";
+import SessionProvider from "./_components/session-provider";
+import AuthUpdater from "./_components/auth-updater";
+
+import AntdTheme from "./_components/ThemeRegistry/AntdTheme";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,16 +39,21 @@ export default async function RootLayout({
       <body className={`font-sans ${inter.variable} dark`}>
         <TRPCReactProvider cookies={cookies().toString()}>
           <AppRouterCacheProvider>
-            <ThemeRegistry >
-                <CssBaseline />
-                <MenuAppBar session={session} />
-                <BottomNav session={session}>
-                  {children}
-                </BottomNav>
-            </ThemeRegistry>
+            <AntdTheme>
+              <ThemeRegistry>
+                <SessionProvider>
+                  <CssBaseline />
+                  <AuthUpdater />
+                  <MenuAppBar session={session} />
+                  <BottomNav session={session}>
+                    {children}
+                  </BottomNav>
+                </SessionProvider>
+              </ThemeRegistry>
+            </AntdTheme>
           </AppRouterCacheProvider>
         </TRPCReactProvider>
       </body>
-    </html>
+    </html >
   );
 }

@@ -1,14 +1,32 @@
-export default function DashboardLayout({
-    children, // will be a page or nested layout
-  }: {
-    children: React.ReactNode
-  }) {
-    return (
-      <section>
-        {/* Include shared UI here e.g. a header or sidebar */}
-        <nav></nav>
-   
+import ConsumptionNavigation from "@energyapp/app/_components/RadioGroups/consumption-navigation";
+import { getServerAuthSession } from "@energyapp/server/auth";
+import { ReactNode } from "react";
+import { api } from "@energyapp/trpc/server";
+
+export default async function ConsumptionLayout({
+  children, // will be a page or nested layout
+}: {
+  children: ReactNode,
+}) {
+  const userAccesses = await api.access.getUserAccesses.query();
+
+  const hasMelcloud = userAccesses.some(access => access.type === "MELCLOUD");
+  const hasWattivahtiConsumption = userAccesses.some(access => access.type === "WATTIVAHTI_CONSUMPTION");
+
+  const hasBothTypes = hasMelcloud && hasWattivahtiConsumption;
+
+  
+
+  return (
+    <main className="flex min-h-screen-nhf flex-col items-center justify-center app-main-background text-white">
+      {hasBothTypes && (
+        <div className="text-center">
+          <ConsumptionNavigation />
+        </div>
+      )}
+      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         {children}
-      </section>
-    )
-  }
+      </div>
+    </main>
+  )
+}

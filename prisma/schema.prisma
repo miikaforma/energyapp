@@ -79,9 +79,8 @@ model user {
   emailVerified DateTime?
   image         String?
   accounts      account[]
-  posts         post[]
   sessions      session[]
-  accesses      access[]
+  accesses      userAccess[]
 }
 
 model verification_token {
@@ -90,17 +89,6 @@ model verification_token {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-model post {
-  id          Int      @id @default(autoincrement())
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdById String
-  createdBy   user     @relation(fields: [createdById], references: [id])
-
-  @@index([name])
 }
 
 /// This table has subclasses and requires additional setup for migrations. Visit https://pris.ly/d/table-inheritance for more info.
@@ -154,18 +142,36 @@ enum accessType {
   MELCLOUD
 }
 
-model access {
+model userAccess {
     id        Int      @id @default(autoincrement())
     accessId      String
-    accessName String?
     type      accessType
-    email     String
-    password  String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     user   user   @relation(fields: [userId], references: [id])
     userId String
+
+    serviceAccess   serviceAccess   @relation(fields: [accessId], references: [accessId])
+
+    @@index([accessId])
+}
+
+model serviceAccess {
+    id                  Int      @id @default(autoincrement())
+    accessId            String @unique
+    accessName          String?
+    type                accessType
+    email               String?
+    password            String?
+    token               String?
+    tokenExpiresAt      DateTime?
+    refreshToken        String?
+    refreshTokenExpiresAt DateTime?
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
+
+    userAccesses userAccess[]
 
     @@index([accessId])
 }

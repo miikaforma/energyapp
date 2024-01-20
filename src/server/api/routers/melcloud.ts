@@ -24,7 +24,7 @@ async function hasDeviceAccess(ctx: any, deviceId: string) {
     });
   }
 
-  const access = ctx.db.access.findFirst({
+  const access = ctx.db.userAccess.findFirst({
     where: {
       accessId: deviceId,
       userId: ctx.session.user.id,
@@ -32,7 +32,6 @@ async function hasDeviceAccess(ctx: any, deviceId: string) {
     },
     select: {
       accessId: true,
-      accessName: true,
     }
   })
 
@@ -47,16 +46,26 @@ async function hasDeviceAccess(ctx: any, deviceId: string) {
 export const melcloudRouter = createTRPCRouter({
   getDevices: protectedProcedure
     .query(async ({ input, ctx }) => {
-      return ctx.db.access.findMany({
+      const userAccesses = await ctx.db.userAccess.findMany({
         where: {
           userId: ctx.session.user.id,
           type: 'MELCLOUD',
         },
         select: {
           accessId: true,
-          accessName: true,
-        }
+          serviceAccess: {
+            select: {
+              accessName: true,
+            },
+          },
+        },
       });
+
+      // Map over userAccesses and restructure each object
+      return userAccesses.map(userAccess => ({
+        accessId: userAccess.accessId,
+        accessName: userAccess.serviceAccess.accessName,
+      }));
     }),
   getDailyConsumptions: protectedProcedure
     .input(z.object({ deviceId: z.string(), startTime: zodDay, endTime: zodDay }))

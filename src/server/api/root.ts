@@ -1,7 +1,7 @@
-import { postRouter } from "@energyapp/server/api/routers/post";
+import { accessRouter } from "@energyapp/server/api/routers/access";
 import { createTRPCRouter } from "@energyapp/server/api/trpc";
-import { spotPriceRouter } from "./routers/spotPrice";
-import { melcloudRouter } from "./routers/melcloud";
+import { spotPriceRouter } from "@energyapp/server/api/routers/spotPrice";
+import { melcloudRouter } from "@energyapp/server/api/routers/melcloud";
 
 /**
  * This is the primary router for your server.
@@ -9,7 +9,7 @@ import { melcloudRouter } from "./routers/melcloud";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
+  access: accessRouter,
   spotPrice: spotPriceRouter,
   melCloud: melcloudRouter,
 });

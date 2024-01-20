@@ -13,14 +13,19 @@ const CUSTOM_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) G
 const APP_VERSION = "1.31.0.0";
 
 export async function getAccessTokenByDeviceId(deviceId: string) {
-    const access = await db.access.findFirst({
+    const access = await db.serviceAccess.findUnique({
         where: {
             accessId: deviceId,
+            type: 'MELCLOUD',
         },
     });
 
     if (!access) {
-        throw new Error('No access found');
+        throw new Error('No service access found');
+    }
+
+    if (!access.email || !access.password) {
+        throw new Error(`Service access doesn't have email or password`);
     }
 
     const accessToken = await getAccessToken(access.email, access.password);
@@ -60,7 +65,6 @@ export async function getEnergyReport(deviceId: string, fromDate: Dayjs, toDate:
     });
 
     const accessToken = await getAccessTokenByDeviceId(deviceId);
-    info(accessToken);
 
     const response = await fetch(`${API_URL}/EnergyCost/Report`, {
         method: 'POST',
@@ -80,13 +84,6 @@ export async function getEnergyReport(deviceId: string, fromDate: Dayjs, toDate:
     return data;
 }
 
-interface TokenInfo {
-    accessToken: string;
-    expiry: Date;
-}
-
-let accessTokens: { [email: string]: TokenInfo } = {};
-
 const LOGIN_ERRORS: string[] = [
     "The latest terms and conditions have not been uploaded by Mitsubishi in your language. This is an error on our part. Please contact support.",
     "Please check your email address and password are both correct.",
@@ -101,11 +98,18 @@ const LOGIN_ERRORS: string[] = [
 ];
 
 async function getAccessToken(email: string, password: string) {
-    if (accessTokens[email]) {
-        const tokenInfo = accessTokens[email];
-        if (tokenInfo && new Date() < tokenInfo.expiry) {
+    const serviceAccess = await db.serviceAccess.findFirst({
+        where: {
+            type: 'MELCLOUD',
+            email,
+        },
+    });
+
+    if (serviceAccess) {
+        const tokenExpiry = serviceAccess.tokenExpiresAt;
+        if (tokenExpiry && new Date() < tokenExpiry) {
             info(`Using cached access token for ${email}`);
-            return tokenInfo?.accessToken;
+            return serviceAccess.token;
         }
     }
 
@@ -139,6 +143,16 @@ async function getAccessToken(email: string, password: string) {
     const accessToken = data?.LoginData?.ContextKey;
     const expiry = new Date(data?.LoginData?.Expiry);
 
-    accessTokens[email] = { accessToken, expiry };
+    // After fetching the new access token, update the serviceAccess in the database
+    await db.serviceAccess.update({
+        where: {
+            id: serviceAccess?.id,
+        },
+        data: {
+            token: accessToken,
+            tokenExpiresAt: expiry,
+        },
+    });
+
     return accessToken;
 }

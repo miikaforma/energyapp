@@ -11,6 +11,9 @@ export default {
       zIndex: {
         '2000': '2000',
       },
+      minHeight: {
+        'screen-nhf': 'calc(100vh - var(--header-height) - var(--footer-height))',
+      },
     },
     darkMode: 'class',
   },

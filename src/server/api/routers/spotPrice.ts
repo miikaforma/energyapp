@@ -14,6 +14,7 @@ export const spotPriceRouter = createTRPCRouter({
   get: publicProcedure
     .input(z.object({ startTime: dateSchema, endTime: dateSchema }))
     .query(({ input, ctx }) => {
+      console.log({ spotPriceSession: ctx.session });
       return ctx.db.day_ahead_prices.findMany({
         orderBy: { time: "asc" },
         where: {

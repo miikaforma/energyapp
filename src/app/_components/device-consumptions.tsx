@@ -33,15 +33,17 @@ export default function DeviceConsumptions({ devices }: DeviceConsumptionsProps)
 
     return (
         <div>
-            <SelectBox
-                id='deviceSelect'
-                options={devices.map(device => ({
-                    key: device.accessId,
-                    value: device.accessId,
-                    label: device.accessName ?? ''
-                }))}
-                onChange={onDeviceChange}
-            />
+            {devices.length > 1 && (
+                <SelectBox
+                    id='deviceSelect'
+                    options={devices.map(device => ({
+                        key: device.accessId,
+                        value: device.accessId,
+                        label: device.accessName ?? ''
+                    }))}
+                    onChange={onDeviceChange}
+                />
+            )}
             <DateRangePicker startDate={fromDate} endDate={toDate} setStartDate={setFromDate} setEndDate={setToDate} />
             {isFetching && (
                 <div className="text-center mt-10">

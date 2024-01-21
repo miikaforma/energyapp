@@ -18,7 +18,7 @@ export default function ConsumptionNavigation() {
     const [selectedType, setSelectedType] = useState(currentPage ?? 'wattivahti')
     const [selectedRange, setSelectedRange] = useState('day')
 
-    const onTypeChange = (value: SetStateAction<string>) => {
+    const onTypeChange = (value: string) => {
         if (value === 'wattivahti' && selectedRange === 'year') {
             setSelectedRange('day')
         }

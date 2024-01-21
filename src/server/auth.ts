@@ -137,6 +137,7 @@ const updateUserAccesses = async (userId: string, token?: string) => {
   // console.log('decoded', decoded);
 
   const accessIds = decoded['access-id'];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const accessIdSet = new Set(accessIds.map((accessId: any) => `${accessId.id}-${accessId.type}`));
 
   // Fetch all userAccess rows for the user

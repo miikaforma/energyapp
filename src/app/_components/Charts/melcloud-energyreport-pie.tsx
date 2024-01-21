@@ -7,6 +7,7 @@ import {
     Legend,
     type Chart,
     type ChartOptions,
+    TooltipItem,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -62,13 +63,14 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 display: true,
                 position: "bottom",
                 labels: {
-                    // @ts-nocheck
                     generateLabels: function (chart: { data: any; getDatasetMeta: (arg0: number) => any; options: { elements: { arc: any; }; }; }) {
                         const data = chart.data;
                         if (data.labels.length && data.datasets.length) {
                             // Calculate total
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                             const total = data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                             return data.labels.map((label: string, i: string | number) => {
                                 const meta = chart.getDatasetMeta(0);
                                 const ds = data.datasets[0];
@@ -83,6 +85,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                                 const percentage = (ds.data[i] / total * 100).toFixed(2);
 
                                 return {
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                                     text: `${label}: ${parseFloat(ds.data[i].toFixed(1))} kWh (${percentage}%)`,
                                     fillStyle: fill,
                                     strokeStyle: stroke,
@@ -103,7 +106,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
             },
             tooltip: {
                 callbacks: {
-                    label: function (context: { parsed: any; dataset: { data: any[]; }; }) {
+                    label: function (context: TooltipItem<'doughnut'>) {
                         const value = context.parsed;
                         const total = context.dataset.data.reduce((total, num) => total + num, 0);
                         const percentage = ((value / total) * 100).toFixed(1);

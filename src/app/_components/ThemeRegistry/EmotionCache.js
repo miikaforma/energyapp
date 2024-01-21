@@ -14,6 +14,7 @@ export default function NextAppDirEmotionCacheProvider(props) {
   const [registry] = React.useState(() => {
     const cache = createCache(options);
     cache.compat = true;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const prevInsert = cache.insert;
     /**
        * @type {{ name: string; isGlobal: boolean; }[]}
@@ -69,7 +70,6 @@ export default function NextAppDirEmotionCacheProvider(props) {
           <style
             key={name}
             data-emotion={`${registry.cache.key}-global ${name}`}
-            // eslint-disable-next-line react/no-danger
             // @ts-ignore
             dangerouslySetInnerHTML={{ __html: style }}
           />
@@ -77,7 +77,6 @@ export default function NextAppDirEmotionCacheProvider(props) {
         {styles && (
           <style
             data-emotion={dataEmotionAttribute}
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: styles }}
           />
         )}

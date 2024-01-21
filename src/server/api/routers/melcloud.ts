@@ -9,6 +9,7 @@ import {
 } from "@energyapp/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { info } from "console";
+import { IContext } from "@energyapp/shared/interfaces";
 
 const dateSchema = z.string().refine(value => !isNaN(Date.parse(value)), {
   message: "Invalid date format",
@@ -16,15 +17,15 @@ const dateSchema = z.string().refine(value => !isNaN(Date.parse(value)), {
 
 const zodDay = z.custom<Dayjs>((val: unknown) => dayjs(val as string).isValid(), 'Invalid date');
 
-async function hasDeviceAccess(ctx: any, deviceId: string) {
-  if (!ctx.session.user) {
+async function hasDeviceAccess(ctx: IContext, deviceId: string) {
+  if (!ctx.session?.user) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'Not authenticated',
     });
   }
 
-  const access = ctx.db.userAccess.findFirst({
+  const access = await ctx.db.userAccess.findFirst({
     where: {
       accessId: deviceId,
       userId: ctx.session.user.id,
@@ -73,7 +74,7 @@ export const melcloudRouter = createTRPCRouter({
       // Check if the user has access to the device
       await hasDeviceAccess(ctx, input.deviceId);
 
-      info(`Fetching energy report for ${input.deviceId} from ${input.startTime} to ${input.endTime}`);
+      info(`Fetching energy report for ${input.deviceId} from ${input.startTime.toISOString()} to ${input.endTime.toISOString()}`);
 
       return getEnergyReport(input.deviceId, input.startTime, input.endTime);
     }),

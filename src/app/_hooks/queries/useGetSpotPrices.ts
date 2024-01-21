@@ -76,7 +76,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     }
 
     // Prefetch previous
-    utils.spotPrice.get.prefetch({
+    void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
@@ -84,7 +84,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
         staleTime: Infinity,
     });
     // Prefetch next
-    utils.spotPrice.get.prefetch({
+    void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)

@@ -19,7 +19,7 @@ export default function ProductionNavigation() {
     const [selectedRange, setSelectedRange] = useState('day')
     // const navigate = useNavigate()
 
-    const onTypeChange = (value: SetStateAction<string>) => {
+    const onTypeChange = (value: string) => {
         if (value === 'wattivahti' && selectedRange === 'year') {
             setSelectedRange('day')
         }

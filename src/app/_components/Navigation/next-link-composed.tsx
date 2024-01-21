@@ -93,7 +93,7 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link(props,
     return <MuiLink className={className} href={href} ref={ref} {...other} />;
   }
 
-  const linkAs = linkAsProp || as;
+  const linkAs = linkAsProp ?? as;
   const nextjsProps = {
     to: href,
     linkAs,

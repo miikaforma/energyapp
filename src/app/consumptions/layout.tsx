@@ -10,8 +10,8 @@ export default async function ConsumptionLayout({
 }) {
   const userAccesses = await api.access.getUserAccesses.query();
 
-  const hasMelcloud = userAccesses.some(access => access.type === "MELCLOUD");
-  const hasWattivahtiConsumption = userAccesses.some(access => access.type === "WATTIVAHTI_CONSUMPTION");
+  const hasMelcloud = userAccesses.some((access: { type: string }) => access.type === "MELCLOUD");
+  const hasWattivahtiConsumption = userAccesses.some((access: { type: string }) => access.type === "WATTIVAHTI_CONSUMPTION");
 
   const hasBothTypes = hasMelcloud && hasWattivahtiConsumption;
 

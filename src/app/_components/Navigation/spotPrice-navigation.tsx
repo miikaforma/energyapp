@@ -15,7 +15,7 @@ export default function SpotPriceNavigation() {
         }
     }
 
-    const onRangeChange = (value: SetStateAction<string>) => {
+    const onRangeChange = (value: string) => {
         router.push(`/spotPrices/${value}`)
     }
 

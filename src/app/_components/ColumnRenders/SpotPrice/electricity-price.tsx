@@ -6,11 +6,11 @@ import { ISettings, ISpotPrice } from "@energyapp/shared/interfaces";
 export function ElectricityPrice(spotPrice: ISpotPrice,
     settings: ISettings) {
 
-    const time = spotPrice.time as Dayjs;
+    const time = spotPrice.time! as Dayjs;
 
     const parsedPrice = addTransfer(addTax(addMargin(spotPrice.price_with_tax, settings.margin), settings.addElectricityTax), getTransfer(time, settings))
 
-    let color = parsedPrice < 15 ? 'green' : parsedPrice < 20 ? 'yellow' : parsedPrice < 30 ? 'orange' : 'red';
+    const color = parsedPrice < 15 ? 'green' : parsedPrice < 20 ? 'yellow' : parsedPrice < 30 ? 'orange' : 'red';
 
     return (
         <Tag color={color} key={parsedPrice}>

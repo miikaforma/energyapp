@@ -9,9 +9,9 @@ export default function ConsumptionNavigation() {
     const pathname = usePathname()
     let currentPage = 'wattivahti'
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2] as string;
+            currentPage = pathArray[2]! as string;
         }
     }
 

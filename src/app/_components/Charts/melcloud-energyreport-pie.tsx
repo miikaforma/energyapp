@@ -5,18 +5,25 @@ import {
     ArcElement,
     Tooltip,
     Legend,
+    Chart,
+    ChartOptions,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 const totalValuePlugin = {
     id: 'totalValue',
-    beforeDraw: (chart) => {
+    beforeDraw: (chart: Chart) => {
         const ctx = chart.ctx;
         ctx.save();
         ctx.font = '16px Arial'; // Adjust font size and family to your needs
         ctx.fillStyle = 'white'; // Change the color to white
-        const totalValue = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-        const text = `${totalValue.toFixed(1)} kWh`;
+        const totalValue = chart.data?.datasets[0]?.data.reduce((a, b) => {
+            if (typeof a === 'number' && typeof b === 'number') {
+                return a + b;
+            }
+            return a;
+        }, 0) ?? 0;
+        const text = `${(totalValue as number).toFixed(1)} kWh`;
         const textX = Math.round((chart.width - ctx.measureText(text).width) / 2) + 5;
         const chartHeight = chart.chartArea.bottom - chart.chartArea.top;
         const textY = chart.chartArea.top + (chartHeight / 2) - (parseInt(ctx.font) / 2) + 5; // Adjust the y-coordinate
@@ -55,6 +62,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 display: true,
                 position: "bottom",
                 labels: {
+                    // @ts-nocheck
                     generateLabels: function (chart: { data: any; getDatasetMeta: (arg0: number) => any; options: { elements: { arc: any; }; }; }) {
                         const data = chart.data;
                         if (data.labels.length && data.datasets.length) {
@@ -104,7 +112,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 }
             },
         },
-    };
+    } as ChartOptions<'doughnut'>;
 
     const { labels, values, backgroundColors, borderColors } = dataMapper({
         totalHeatingConsumed, totalCoolingConsumed, totalAutoConsumed, totalDryConsumed, totalFanConsumed, totalOtherConsumed
@@ -136,10 +144,10 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
 }
 
 const dataMapper = ({ totalHeatingConsumed, totalCoolingConsumed, totalAutoConsumed, totalDryConsumed, totalFanConsumed, totalOtherConsumed }: MelCloudEnergyReportTotals) => {
-    let labels = []
-    let values = []
-    let backgroundColors = []
-    let borderColors = []
+    const labels = []
+    const values = []
+    const backgroundColors = []
+    const borderColors = []
 
     // Heating
     if (totalHeatingConsumed > 0) {

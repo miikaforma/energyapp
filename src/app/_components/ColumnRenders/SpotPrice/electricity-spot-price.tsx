@@ -9,7 +9,7 @@ interface ElectricitySpotPriceProps {
 }
 
 export function ElectricitySpotPrice({ spotPrice, tooltipStyles, tagStyles }: ElectricitySpotPriceProps) {
-    let color = spotPrice.price_with_tax < 10 ? 'green' : spotPrice.price_with_tax < 15 ? 'yellow' : spotPrice.price_with_tax < 20 ? 'orange' : 'red';
+    const color = spotPrice.price_with_tax < 10 ? 'green' : spotPrice.price_with_tax < 15 ? 'yellow' : spotPrice.price_with_tax < 20 ? 'orange' : 'red';
 
     return (
         <Tooltip

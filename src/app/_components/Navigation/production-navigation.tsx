@@ -9,9 +9,9 @@ export default function ProductionNavigation() {
     const pathname = usePathname()
     let currentPage = 'wattivahti'
     if (pathname) {
-        let pathArray = pathname.split('/');
-        if (pathArray.length > 1) {
-            currentPage = pathArray[pathArray.length - 1] as string;
+        const pathArray = pathname.split('/');
+        if (pathArray.length > 2) {
+            currentPage = pathArray[2]! as string;
         }
     }
 

@@ -20,7 +20,7 @@ export default function BottomNav({ children, session }: { children: ReactNode, 
 
     let currentRoute = "/";
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 1 && pathArray[1]) {
             currentRoute = '/' + pathArray[1];
         }

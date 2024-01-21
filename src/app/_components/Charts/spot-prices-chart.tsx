@@ -12,6 +12,10 @@ import {
     TooltipPositionerFunction,
     ActiveElement,
     Point,
+    ChartOptions,
+    ChartData,
+    DefaultDataPoint,
+    ChartDataset,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
@@ -142,7 +146,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
                 max: max,
             },
         },
-    };
+    } as ChartOptions<'bar'>;
 
     let datasetLabel = 'Sähkö (c/kWh)'
     switch (timePeriod) {
@@ -166,7 +170,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
                 backgroundColor: bgColors1,
             },
         ],
-    };
+    } as ChartData<'bar'>;
 
     if (timePeriod === TimePeriod.Hour) {
         mappedData.datasets.push({
@@ -174,7 +178,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
             data: totalPrices,
             backgroundColor: bgColors2,
             hidden: true,
-        })
+        } as ChartDataset<'bar'>)
     }
 
     return (
@@ -199,8 +203,8 @@ const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: 
     }
 
     let labels: string[] = []
-    let electricityPrices: number[] = []
-    let totalPrices: number[] = []
+    let electricityPrices: DefaultDataPoint<'bar'> = []
+    let totalPrices: DefaultDataPoint<'bar'> = []
     let bgColors1: string[] = []
     let bgColors2: string[] = []
 

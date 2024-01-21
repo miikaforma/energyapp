@@ -9,9 +9,9 @@ export default function SpotPriceNavigation() {
     const pathname = usePathname()
     let currentPage = 'hourly'
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2] as string;
+            currentPage = pathArray[2]! as string;
         }
     }
 

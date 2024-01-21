@@ -1,15 +1,14 @@
 'use client';
 
 import { api } from "@energyapp/trpc/react";
-import { Button, Col, Radio, Row, Space, Table } from "antd";
+import { Button, Col, Row, Space, Table } from "antd";
 import { CaretRightFilled } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
-import { SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
-import { ElectricityPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-price";
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { ISpotPrice } from "@energyapp/shared/interfaces";

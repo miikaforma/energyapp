@@ -24,7 +24,7 @@ export function dateToSpotTimeString(date: Date | dayjs.Dayjs | null | undefined
         case TimePeriod.Year:
             return dayjs(date).format('YYYY')
         case TimePeriod.Month:
-            return dayjs(date).format('YYYY-MM')
+            return dayjs(date).format('YYYY - MMMM')
         case TimePeriod.Day:
             return dayjs(date).format('DD.MM.YYYY - dddd')
         case TimePeriod.Hour:

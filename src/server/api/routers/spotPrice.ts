@@ -29,6 +29,14 @@ export const spotPriceRouter = createTRPCRouter({
           return getDailySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
+        case TimePeriod.Month:
+          return getMonthlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
+            return spotPricesToResponse(input.timePeriod, prices);
+          });
+        case TimePeriod.Year:
+          return getYearlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
+            return spotPricesToResponse(input.timePeriod, prices);
+          });
         default:
           return Promise.reject("Not implemented");
       }
@@ -89,6 +97,62 @@ const getHourlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Pro
 
 const getDailySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
   return ctx.db.average_kwh_price_day_by_day.findMany({
+    orderBy: { date: "asc" },
+    where: {
+      date: {
+        gte: startTime,
+        lte: endTime,
+      },
+    },
+  }).then((prices) => {
+    return prices.map((price) => {
+      const time = dayjs(price.date);
+      const tzTime = time.tz('Europe/Helsinki');
+
+      return {
+        time: time,
+        currency: 'EUR',
+        price: parseFloat((price.avg_price ?? 0).toFixed(2)),
+        price_with_tax: parseFloat((price.avg_price_with_tax ?? 0).toFixed(2)),
+        year: tzTime.year(),
+        month: tzTime.month() + 1,
+        day: tzTime.date(),
+        hour: tzTime.hour(),
+      } as ISpotPrice;
+    });
+  })
+}
+
+const getMonthlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
+  return ctx.db.average_kwh_price_month_by_month.findMany({
+    orderBy: { date: "asc" },
+    where: {
+      date: {
+        gte: startTime,
+        lte: endTime,
+      },
+    },
+  }).then((prices) => {
+    return prices.map((price) => {
+      const time = dayjs(price.date);
+      const tzTime = time.tz('Europe/Helsinki');
+
+      return {
+        time: time,
+        currency: 'EUR',
+        price: parseFloat((price.avg_price ?? 0).toFixed(2)),
+        price_with_tax: parseFloat((price.avg_price_with_tax ?? 0).toFixed(2)),
+        year: tzTime.year(),
+        month: tzTime.month() + 1,
+        day: tzTime.date(),
+        hour: tzTime.hour(),
+      } as ISpotPrice;
+    });
+  })
+}
+
+const getYearlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
+  return ctx.db.average_kwh_price_year_by_year.findMany({
     orderBy: { date: "asc" },
     where: {
       date: {

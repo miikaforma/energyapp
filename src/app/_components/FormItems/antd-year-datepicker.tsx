@@ -3,29 +3,29 @@ import { Button, DatePicker, Space } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { CaretLeftFilled, CaretRightFilled } from "@ant-design/icons";
 
-const dateFormat = 'MMMM YYYY';
+const dateFormat = 'YYYY';
 
-interface MonthDatePickerProps {
+interface YearDatePickerProps {
     value: Dayjs,
     onChange: (value: Dayjs) => void,
     disabledNextDays?: number
 }
 
-export function MonthDatePicker({ value, onChange }: MonthDatePickerProps) {
+export function YearDatePicker({ value, onChange }: YearDatePickerProps) {
     const [nextDisabled, setNextDisabled] = useState(false);
 
     useEffect(() => {
-        setNextDisabled(value && dayjs(value).endOf('month').isSame(dayjs().endOf('month')));
+        setNextDisabled(value && dayjs(value).endOf('year').isSame(dayjs().endOf('year')));
     }, [value])
 
     const nextClick = () => {
         const current = dayjs(value)
-        onChange(current.endOf('month').add(1, 'day'));
+        onChange(current.endOf('year').add(1, 'day'));
     }
 
     const previousClick = () => {
         const current = dayjs(value)
-        onChange(current.startOf('month').add(-1, 'day'));
+        onChange(current.startOf('year').add(-1, 'day'));
     }
 
     const disabledDate = (current: Dayjs) => {
@@ -49,7 +49,7 @@ export function MonthDatePicker({ value, onChange }: MonthDatePickerProps) {
                     format={dateFormat}
                     // showToday={true}
                     disabledDate={disabledDate}
-                    picker="month"
+                    picker="year"
                 />
                 <Button
                     type="text"

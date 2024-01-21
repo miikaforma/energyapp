@@ -1,27 +1,114 @@
-import Link from "next/link";
+'use client';
 
-import { CreatePost } from "@energyapp/app/_components/create-post";
-import { getServerAuthSession } from "@energyapp/server/auth";
-import { api } from "@energyapp/trpc/server";
+import { api } from "@energyapp/trpc/react";
+import { Button, Col, Row, Space, Table } from "antd";
+import { CaretRightFilled } from "@ant-design/icons";
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
 
-export const metadata = {
-  title: "Subpage Title",
-  description: "This is a description of the subpage.",
-  // other metadata...
-};
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
+import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
+import { TimePeriod } from "@energyapp/shared/enums";
+import { ISpotPrice } from "@energyapp/shared/interfaces";
+import { TemporarySettings } from "@energyapp/shared/contants";
+import { dateToSpotTimeString, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
+import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-summary";
+import useGetSpotPrices from "@energyapp/app/_hooks/queries/useGetSpotPrices";
+import useUpdateSpotPrices from "@energyapp/app/_hooks/mutations/useUpdateSpotPrices";
+import { useSession } from "next-auth/react";
+import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
+import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
+dayjs.extend(isSameOrAfter)
+dayjs.extend(isSameOrBefore)
 
-export default async function Page() {
-  const spotPrices = await api.spotPrice.get.query({ startTime: "2023-12-01T00:00Z", endTime: "2023-12-31T00:00Z" });
-  const session = await getServerAuthSession();
+export default function Page() {
+  const { data: session } = useSession();
+  const timePeriod = TimePeriod.Year;
+  const settings = TemporarySettings;
+
+  const [startDate, setStartDate] = useState(dayjs().add(-5, 'year').startOf("year").hour(0).minute(0).second(0).millisecond(0))
+  const [endDate, setEndDate] = useState(dayjs().endOf("year").hour(23).minute(59).second(59).millisecond(999))
+  // const utils = api.useUtils();
+
+  // Get spot prices
+  const { data: spotResponse, isFetching, prefetch: prefetchSpotPrices } = useGetSpotPrices({
+    timePeriod: timePeriod, startTime: startDate, endTime: endDate
+  });
+  const spotPrices = spotResponse?.prices ?? []
+
+  // Update spot prices
+  const { mutate: updateSpotPrices, isLoading: isUpdating } = useUpdateSpotPrices();
+
+  // Prefetch spot prices when date changes
+  // useEffect(() => {
+  //   prefetchSpotPrices({ utils, timePeriod: timePeriod, startTime: startDate, endTime: endDate });
+  // }, [startDate, endDate])
+
+  // When date is changed from the date picker
+  const onDateChange = (start: Dayjs, end: Dayjs) => {
+    setStartDate(dayjs(start).startOf('year').hour(0).minute(0).second(0).millisecond(0))
+    setEndDate(dayjs(end).endOf('year').hour(23).minute(59).second(59).millisecond(999))
+  }
+
+  // Execute update spot prices
+  const executeUpdateSpotPrices = () => {
+    updateSpotPrices({
+      startTime: startDate,
+      endTime: endDate,
+      timePeriod: timePeriod,
+    });
+  }
+
+  const columns = [
+    {
+      title: '',
+      dataIndex: 'time',
+      key: 'current',
+      width: 30,
+      render: (data: string | number | Date, _: any) => isCurrentYear(data) && <CaretRightFilled />
+    },
+    {
+      title: 'Aika',
+      dataIndex: 'time',
+      key: 'time',
+      render: (data: Dayjs, _: any) => dateToSpotTimeString(data, timePeriod)
+    },
+    {
+      title: 'Vuoden keskihinta',
+      dataIndex: 'price',
+      key: 'electricity_price',
+      render: (data: number, row: ISpotPrice) => ElectricitySpotPrice({ spotPrice: row })
+    },
+    // {
+    //   title: 'Sähkön keskinta',
+    //   dataIndex: 'price',
+    //   key: 'full_price',
+    //   render: (data: number, row: ISpotPrice) => ElectricityPrice(row, settings)
+    // },
+  ]
 
   return (
-    <main className="flex min-h-screen-nhf flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Test <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-      </div>
-    </main>
+    <Space direction="vertical" className="text-center">
+      <Row>
+        <Col span={24}><YearRangeDatePicker startYear={startDate} endYear={endDate} onChange={onDateChange} /></Col>
+      </Row>
+      <SpotPriceSummary spotResponse={spotResponse} settings={settings} />
+      <SpotPricesChart spotPriceResponse={spotResponse} startDate={startDate} endDate={endDate} settings={settings} />
+      <Table
+        rowClassName={(record, index) => isCurrentYear(record.time) ? 'table-row-current' : ''}
+        rowKey={'time'}
+        size={'small'}
+        dataSource={spotPrices}
+        columns={columns}
+        pagination={false}
+      />
+      {session && (
+        <Row>
+          {<Col xs={24} style={{ textAlign: 'right' }}>{(<Button loading={isUpdating} onClick={executeUpdateSpotPrices}>Hae hinnat uudelleen</Button>)}</Col>}
+        </Row>
+      )}
+    </Space>
   );
 }
-

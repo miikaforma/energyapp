@@ -8,9 +8,13 @@
 }
 
 .app-main-background {
-    @apply bg-gradient-to-b from-slate-900 to-zinc-800;
+    @apply bg-gradient-to-br from-neutral-900 to-zinc-900;
 }
 
 .app-alternative-background {
     @apply bg-gradient-to-b from-[#2e026d] to-[#15162c];
+}
+
+.table-row-current {
+    color: #00a6cc;
 }

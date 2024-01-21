@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -8,11 +8,17 @@ import {
     Title,
     Tooltip,
     Legend,
+    ChartType,
+    TooltipPositionerFunction,
+    ActiveElement,
+    Point,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import {calculateElectricityPrice, calculateTotalPrice} from "../utils/spotPriceHelpers.jsx";
-import {isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentYear} from "../utils/timeHelpers.jsx";
-import dayjs from "dayjs";
+import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
+import { isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
+import dayjs, { Dayjs } from "dayjs";
+import { ISettings, ISpotPrice, ISpotPriceResponse } from '@energyapp/shared/interfaces';
+import { TimePeriod } from '@energyapp/shared/enums';
 
 ChartJS.register(
     CategoryScale,
@@ -23,8 +29,16 @@ ChartJS.register(
     Legend
 );
 
+declare module 'chart.js' {
+    // Extend tooltip positioner map
+    interface TooltipPositionerMap {
+        top: TooltipPositionerFunction<ChartType>;
+    }
+}
+
 // Create a custom tooltip positioner to put at the bottom of the chart area
-Tooltip.positioners.top = function(items) {
+Tooltip.positioners.top = function (items: readonly ActiveElement[]) {
+    // @ts-ignore
     const pos = Tooltip.positioners.average(items);
 
     // Happens when nothing is found
@@ -42,40 +56,50 @@ Tooltip.positioners.top = function(items) {
     };
 };
 
-export default function SpotPricesChart({data, startDate, endDate, settings, timeType = 1}) {
-    if (!data) {
-        return <p>Ladataan...</p>
-    }
+interface SpotPriceChartProps {
+    spotPriceResponse?: ISpotPriceResponse
+    startDate: Dayjs
+    endDate: Dayjs
+    settings: ISettings
+    style?: CSSProperties
+}
 
-    const title = (tooltipItems) => {
+export default function SpotPricesChart({ spotPriceResponse, startDate, endDate, settings, style }: SpotPriceChartProps) {
+    if (!spotPriceResponse) return null;
+
+    const timePeriod = spotPriceResponse.timePeriod;
+    const data = spotPriceResponse.prices;
+
+    const title = (tooltipItems: any[]) => {
         const tooltipItem = tooltipItems[0];
         const row = data[tooltipItem.dataIndex];
+        if (!row) return '';
 
         const date = dayjs(row.time)
-        switch (timeType) {
-            case 1:
+        switch (timePeriod) {
+            case TimePeriod.Hour:
             default:
                 return `${date.hour()}:00 - ${date.hour()}:59`;
-            case 2:
+            case TimePeriod.Day:
                 return `${date.format('DD.MM.YYYY - dddd')}`;
-            case 3:
+            case TimePeriod.Month:
                 return `${date.format('YYYY - MMMM')}`;
-            case 4:
+            case TimePeriod.Year:
                 return `${date.format('YYYY')}`;
         }
     }
 
-    const { labels, electricityPrices, totalPrices, bgColors1, bgColors2, min, max } = mapper(data, settings, timeType);
+    const { labels, electricityPrices, totalPrices, bgColors1, bgColors2, min, max } = mapper({ data, settings, timePeriod });
 
-    let graphTitle = `Spottihinnat ${new Date(startDate).toLocaleDateString('fi-FI')}`
-    switch (timeType) {
-        case 2:
+    let graphTitle = `Spottihinnat ${dayjs(startDate).format('DD.MM.YYYY')}`
+    switch (timePeriod) {
+        case TimePeriod.Day:
             graphTitle = `Spottihinnat - ${dayjs(startDate).format('MMMM YYYY')}`
             break;
-        case 3:
+        case TimePeriod.Month:
             graphTitle = `Spottihinnat - ${dayjs(startDate).format('YYYY')}`
             break;
-        case 4:
+        case TimePeriod.Year:
             graphTitle = `Spottihinnat - (${dayjs(startDate).format('YYYY')} - ${dayjs(endDate).format('YYYY')})`
             break;
     }
@@ -121,14 +145,14 @@ export default function SpotPricesChart({data, startDate, endDate, settings, tim
     };
 
     let datasetLabel = 'Sähkö (c/kWh)'
-    switch (timeType) {
-        case 2:
+    switch (timePeriod) {
+        case TimePeriod.Day:
             datasetLabel = 'Keskihinta (c/kWh)';
             break;
-        case 3:
+        case TimePeriod.Month:
             datasetLabel = 'Keskihinta (c/kWh)';
             break;
-        case 4:
+        case TimePeriod.Year:
             datasetLabel = 'Keskihinta (c/kWh)';
             break;
     }
@@ -144,7 +168,7 @@ export default function SpotPricesChart({data, startDate, endDate, settings, tim
         ],
     };
 
-    if (timeType === 1) {
+    if (timePeriod === TimePeriod.Hour) {
         mappedData.datasets.push({
             label: 'Hinta (c/kWh)',
             data: totalPrices,
@@ -153,69 +177,77 @@ export default function SpotPricesChart({data, startDate, endDate, settings, tim
         })
     }
 
-    return <Bar
-        options={options}
-        data={mappedData}
-    />;
+    return (
+        <div className='text-center'>
+            {/* <div className="text-sm mb-3 mt-3">{deviceName} {fromDate.format('DD.MM.YYYY')} - {toDate.format('DD.MM.YYYY')}</div> */}
+            <div id="canvas-container" style={{ height: '40vh', width: 'calc(100vw - (2 * 16px))', position: 'relative' }}>
+                <Bar
+                    style={style}
+                    options={options}
+                    data={mappedData}
+                />
+            </div>
+        </div>
+    )
 }
 
-const mapper = (data, settings, timeType) => {
+const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: ISettings, timePeriod: TimePeriod }) => {
     if (!data || !data.length) return {
         labels: [],
         values: [],
         prices: [],
     }
 
-    let labels = []
-    let electricityPrices = []
-    let totalPrices = []
-    let bgColors1 = []
-    let bgColors2 = []
+    let labels: string[] = []
+    let electricityPrices: number[] = []
+    let totalPrices: number[] = []
+    let bgColors1: string[] = []
+    let bgColors2: string[] = []
 
     let min = 0
     let max = 30
 
     data.map(row => {
-        const electricityPrice = calculateElectricityPrice(row, settings)
-        const totalPrice = calculateTotalPrice(row, settings)
+        const electricityPrice = row.price_with_tax
+        const totalPrice = calculateTotalPrice({ data: row, settings })
 
-        electricityPrices.push(electricityPrice.toFixed(2))
-        totalPrices.push(totalPrice.toFixed(2))
+        electricityPrices.push(parseFloat(electricityPrice.toFixed(2)))
+        totalPrices.push(parseFloat(totalPrice.toFixed(2)))
 
         const parsedTime = dayjs(row.time)
-        switch (timeType) {
-            case 1: {
-                labels.push(`${new Date(row.time).getHours().toString().padStart(2, '0')}`)
+        switch (timePeriod) {
+            case TimePeriod.Hour: {
+                labels.push(`${dayjs(row.time).hour().toString().padStart(2, '0')}`)
                 // labels.push(`klo ${new Date(row.time).getHours().toString().padStart(2, '0')} - ${(new Date(row.time).getHours() + 1).toString().padStart(2, '0')}`)
                 break;
             }
-            case 2: {
+            case TimePeriod.Day: {
                 labels.push(parsedTime.format('DD'))
                 break;
             }
-            case 3: {
+            case TimePeriod.Month: {
                 labels.push(parsedTime.format('MMM'))
                 break;
             }
-            case 4: {
+            case TimePeriod.Year: {
                 labels.push(parsedTime.format('YYYY'))
                 break;
             }
         }
 
         let isCurrent = false
-        switch (timeType) {
-            case 1:
+        switch (timePeriod) {
+            case TimePeriod.Hour:
             default:
                 isCurrent = isCurrentHour(row.time)
                 break;
-            case 2:
+            case TimePeriod.Day:
                 isCurrent = isCurrentDay(row.time)
                 break;
-            case 3:
+            case TimePeriod.Month:
                 isCurrent = isCurrentMonth(row.time)
                 break;
-            case 4:
+            case TimePeriod.Year:
                 isCurrent = isCurrentYear(row.time)
                 break;
         }

@@ -36,7 +36,7 @@ export default function BottomNav({ children, session }: { children: ReactNode, 
                 value={currentRoute}
                 sx={{ overflowX: 'auto' }}
             >
-                <BottomNavigationAction sx={{ minWidth: "60px" }} label="Tuntihinnat" href="/" value="/" icon={<EuroIcon />} LinkComponent={Link} />
+                <BottomNavigationAction sx={{ minWidth: "60px" }} label="Tuntihinnat" href="/spotPrices" value="/spotPrices" icon={<EuroIcon />} LinkComponent={Link} />
                 {session && <BottomNavigationAction sx={{ minWidth: "60px" }} label="Kulutus" href="/consumptions" value="/consumptions" icon={<ElectricBoltIcon />} LinkComponent={Link} />}
                 {session && <BottomNavigationAction sx={{ minWidth: "60px" }} label="Tuotto" href="/productions" value="/productions" icon={<SolarPowerIcon />} LinkComponent={Link} />}
                 <BottomNavigationAction sx={{ minWidth: "60px" }} label="Tilastot" href="/statistics" value="/statistics" icon={<StackedLineChartIcon />} LinkComponent={Link} />

@@ -10,14 +10,13 @@ export default function ConsumptionNavigation() {
     let currentPage = 'wattivahti'
     if (pathname) {
         let pathArray = pathname.split('/');
-        if (pathArray.length > 1) {
-            currentPage = pathArray[pathArray.length - 1] as string;
+        if (pathArray.length > 2) {
+            currentPage = pathArray[2] as string;
         }
     }
 
     const [selectedType, setSelectedType] = useState(currentPage ?? 'wattivahti')
     const [selectedRange, setSelectedRange] = useState('day')
-    // const navigate = useNavigate()
 
     const onTypeChange = (value: SetStateAction<string>) => {
         if (value === 'wattivahti' && selectedRange === 'year') {

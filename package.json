@@ -13,6 +13,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ant-design/nextjs-registry": "^1.0.0",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",
     "@emotion/server": "^11.11.0",
@@ -24,6 +25,7 @@
     "@prisma/client": "^5.7.1",
     "@t3-oss/env-nextjs": "^0.7.1",
     "@tanstack/react-query": "^4.36.1",
+    "@tanstack/react-query-devtools": "^4.36.1",
     "@trpc/client": "^10.43.6",
     "@trpc/next": "^10.43.6",
     "@trpc/react-query": "^10.43.6",
@@ -37,10 +39,12 @@
     "flowbite-react": "^0.7.2",
     "next": "^14.1.0",
     "next-auth": "^4.24.5",
+    "nordpool": "^5.1.0",
     "react": "18.2.0",
     "react-apexcharts": "^1.4.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1",
     "react-tailwindcss-datepicker": "^1.6.6",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",

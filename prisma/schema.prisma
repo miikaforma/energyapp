@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -73,9 +74,9 @@ model session {
 }
 
 model user {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?      @unique
   emailVerified DateTime?
   image         String?
   accounts      account[]
@@ -134,44 +135,58 @@ model melcloud {
   @@index([time(sort: Desc)])
 }
 
+model userAccess {
+  id            Int           @id @default(autoincrement())
+  accessId      String
+  type          accessType
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userId        String
+  serviceAccess serviceAccess @relation(fields: [accessId], references: [accessId])
+  user          user          @relation(fields: [userId], references: [id])
+
+  @@index([accessId])
+}
+
+model serviceAccess {
+  id                    Int          @id @default(autoincrement())
+  accessId              String       @unique
+  accessName            String?
+  type                  accessType
+  email                 String?
+  password              String?
+  token                 String?
+  tokenExpiresAt        DateTime?
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  userAccesses          userAccess[]
+
+  @@index([accessId])
+}
+
+view average_kwh_price_day_by_day {
+  date               DateTime @db.Timestamptz(6) @unique
+  avg_price          Float?
+  avg_price_with_tax Float?
+}
+
+view average_kwh_price_month_by_month {
+  date               DateTime @db.Timestamptz(6) @unique
+  avg_price          Float?
+  avg_price_with_tax Float?
+}
+
+view average_kwh_price_year_by_year {
+  date               DateTime @db.Timestamptz(6) @unique
+  avg_price          Float?
+  avg_price_with_tax Float?
+}
 
 enum accessType {
   WATTIVAHTI_CONSUMPTION
   WATTIVAHTI_PRODUCTION
   SOLARMAN
   MELCLOUD
-}
-
-model userAccess {
-    id        Int      @id @default(autoincrement())
-    accessId      String
-    type      accessType
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    user   user   @relation(fields: [userId], references: [id])
-    userId String
-
-    serviceAccess   serviceAccess   @relation(fields: [accessId], references: [accessId])
-
-    @@index([accessId])
-}
-
-model serviceAccess {
-    id                  Int      @id @default(autoincrement())
-    accessId            String @unique
-    accessName          String?
-    type                accessType
-    email               String?
-    password            String?
-    token               String?
-    tokenExpiresAt      DateTime?
-    refreshToken        String?
-    refreshTokenExpiresAt DateTime?
-    createdAt           DateTime @default(now())
-    updatedAt           DateTime @updatedAt
-
-    userAccesses userAccess[]
-
-    @@index([accessId])
 }

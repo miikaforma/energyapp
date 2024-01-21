@@ -1,4 +1,4 @@
-import ConsumptionNavigation from "@energyapp/app/_components/RadioGroups/consumption-navigation";
+import ConsumptionNavigation from "@energyapp/app/_components/Navigation/consumption-navigation";
 import { getServerAuthSession } from "@energyapp/server/auth";
 import { ReactNode } from "react";
 import { api } from "@energyapp/trpc/server";

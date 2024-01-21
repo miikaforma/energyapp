@@ -1,4 +1,4 @@
-import { ISettings, ISpotPrice } from "@energyapp/shared/interfaces";
+import { type ISettings, type ISpotPrice } from "@energyapp/shared/interfaces";
 import { addMargin, addTax, addTransfer, getTransfer } from "@energyapp/utils/calculationHelpers";
 
 export function calculateTotalPrice({ data, settings }: { data: ISpotPrice; settings: ISettings }) {

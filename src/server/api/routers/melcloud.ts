@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getEnergyReport } from "@energyapp/server/integration/melcloud";
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 import {
   createTRPCRouter,

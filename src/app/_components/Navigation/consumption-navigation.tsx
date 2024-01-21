@@ -2,7 +2,7 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { SetStateAction, useState } from "react"
+import { type SetStateAction, useState } from "react"
 
 export default function ConsumptionNavigation() {
     const router = useRouter()
@@ -11,7 +11,7 @@ export default function ConsumptionNavigation() {
     if (pathname) {
         const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2]! as string;
+            currentPage = pathArray[2]! ;
         }
     }
 

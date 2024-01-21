@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { Session } from 'next-auth';
+import { type Session } from 'next-auth';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 

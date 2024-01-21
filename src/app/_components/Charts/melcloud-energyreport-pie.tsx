@@ -1,12 +1,12 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { Doughnut } from "react-chartjs-2";
 import {
     Chart as ChartJS,
     ArcElement,
     Tooltip,
     Legend,
-    Chart,
-    ChartOptions,
+    type Chart,
+    type ChartOptions,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -73,7 +73,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                                 const meta = chart.getDatasetMeta(0);
                                 const ds = data.datasets[0];
                                 const arc = meta.data[i];
-                                const custom = (arc && arc.custom) || {};
+                                const custom = (arc?.custom) || {};
                                 const arcOpts = chart.options.elements.arc;
                                 const fill = custom.backgroundColor ? custom.backgroundColor : (ds.backgroundColor[i] || arcOpts.backgroundColor);
                                 const stroke = custom.borderColor ? custom.borderColor : (ds.borderColor[i] || arcOpts.borderColor);

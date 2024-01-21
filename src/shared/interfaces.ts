@@ -1,9 +1,9 @@
-import { Dayjs } from "dayjs";
-import { Currency, TimePeriod } from "@energyapp/shared/enums";
+import { type Dayjs } from "dayjs";
+import { type Currency, type TimePeriod } from "@energyapp/shared/enums";
 
-import { Prisma, PrismaClient } from "@prisma/client";
-import { Session } from "next-auth";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { type Prisma, type PrismaClient } from "@prisma/client";
+import { type Session } from "next-auth";
+import { type DefaultArgs } from "@prisma/client/runtime/library";
 
 export interface IContext {
   session: Session | null;

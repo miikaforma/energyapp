@@ -1,7 +1,7 @@
 import { db } from "@energyapp/server/db";
 import { info } from "console";
 import dayjs from "dayjs";
-import { Dayjs } from "dayjs";
+import { type Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 

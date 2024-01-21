@@ -1,9 +1,9 @@
 'use client';
 
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { ChangeEvent, useState } from "react";
 import { CSSProperties } from 'react';
-import Datepicker, { DateType, DateValueType } from "react-tailwindcss-datepicker";
+import Datepicker, { DateType, type DateValueType } from "react-tailwindcss-datepicker";
 
 interface SelectBoxProps {
     startDate: Dayjs;

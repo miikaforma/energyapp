@@ -1,7 +1,7 @@
 'use client';
 
-import { ChangeEvent, useState } from "react";
-import { CSSProperties } from 'react';
+import { type ChangeEvent, useState } from "react";
+import { type CSSProperties } from 'react';
 
 interface SelectBoxProps {
     id: string;

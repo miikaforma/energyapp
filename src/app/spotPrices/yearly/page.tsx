@@ -3,7 +3,7 @@
 import { api } from "@energyapp/trpc/react";
 import { Button, Col, Row, Space, Table } from "antd";
 import { CaretRightFilled } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
@@ -11,7 +11,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
-import { ISpotPrice } from "@energyapp/shared/interfaces";
+import { type ISpotPrice } from "@energyapp/shared/interfaces";
 import { TemporarySettings } from "@energyapp/shared/contants";
 import { dateToSpotTimeString, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
 import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-summary";

@@ -1,7 +1,7 @@
 import { TimePeriod } from "@energyapp/shared/enums";
 import { api } from "@energyapp/trpc/react";
 import { TRPCClientError } from "@trpc/client";
-import { Dayjs } from "dayjs";
+import { type Dayjs } from "dayjs";
 import toast from "react-hot-toast";
 
 interface IUseGetSpotPrices {

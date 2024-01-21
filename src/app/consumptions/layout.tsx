@@ -1,6 +1,6 @@
 import ConsumptionNavigation from "@energyapp/app/_components/Navigation/consumption-navigation";
 import { getServerAuthSession } from "@energyapp/server/auth";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { api } from "@energyapp/trpc/server";
 
 export default async function ConsumptionLayout({

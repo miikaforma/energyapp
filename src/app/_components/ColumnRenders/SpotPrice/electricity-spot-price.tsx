@@ -1,6 +1,6 @@
-import { ISpotPrice } from "@energyapp/shared/interfaces";
+import { type ISpotPrice } from "@energyapp/shared/interfaces";
 import { Tag, Tooltip } from "antd";
-import { CSSProperties } from "react";
+import { type CSSProperties } from "react";
 
 interface ElectricitySpotPriceProps {
     spotPrice: ISpotPrice

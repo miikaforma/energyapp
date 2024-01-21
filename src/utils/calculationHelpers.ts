@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "dayjs"
+import dayjs, { type Dayjs } from "dayjs"
 
 export function addVAT(price: number, vat: number) {
     if (!vat || vat <= 0 /*|| Math.sign(price) === -1*/) {

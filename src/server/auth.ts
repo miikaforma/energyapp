@@ -9,7 +9,7 @@ import KeycloakProvider from 'next-auth/providers/keycloak';
 
 import { env } from "@energyapp/env";
 import { db } from "@energyapp/server/db";
-import { Adapter, AdapterAccount } from "next-auth/adapters";
+import { type Adapter, type AdapterAccount } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 
 /**
@@ -39,7 +39,7 @@ const CustomPrismaAdapter: Adapter = {
   ...prismaAdapter,
   linkAccount: (account: AdapterAccount) => {
     delete account["not-before-policy"];
-    return prismaAdapter.linkAccount && prismaAdapter.linkAccount(account);
+    return prismaAdapter.linkAccount?.(account);
   },
 };
 

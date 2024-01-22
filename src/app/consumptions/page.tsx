@@ -12,5 +12,5 @@ export default async function Consumptions() {
     if (hasMelcloud) {
         redirect(`/consumptions/melcloud`)
     }
-    redirect(`/notfound`)
+    redirect(`/_not-found`)
 }

@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+ENV SKIP_ENV_VALIDATION=true
 RUN npx prisma generate
 RUN npm run build
 

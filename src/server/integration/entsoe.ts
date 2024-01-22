@@ -1,4 +1,5 @@
 import dayjs, { type Dayjs } from "dayjs";
+import { env } from "@energyapp/env";
 
 interface UpdateParams {
     startDate: Dayjs;
@@ -15,7 +16,7 @@ export const updateFromEntsoe = async ({ startDate, endDate }: UpdateParams): Pr
     console.debug({ data })
 
     try {
-        const response = await fetch(`${process.env.ENTSOE_ENDPOINT}/dayahead`, {
+        const response = await fetch(`${env.ENTSOE_ENDPOINT}/dayahead`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

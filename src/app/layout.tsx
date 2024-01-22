@@ -31,6 +31,12 @@ export const metadata: Metadata = {
   title: "EnergyApp",
   description: "Sovellus spottihintojen, sähkönkulutuksen ja sähköntuotannon seurantaan.",
   icons: [{ rel: "icon", type: "image/svg+xml", url: "/electricity-icon.svg" }],
+  generator: "Next.js",
+  manifest: "/manifest.json",
+  keywords: ["energyapp", "spottihinnat", "tuntihinnat", "sähkönkulutus", "sähköntuotanto", "seuranta"],
+  authors: [
+    { name: "Miika" },
+  ]
 };
 
 export const viewport: Viewport = {

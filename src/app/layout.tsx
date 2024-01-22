@@ -47,7 +47,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerAuthSession();
-  const userAccesses: IUserAccessResponse[] = await api.access.getUserAccesses.query();
+  const userAccesses: IUserAccessResponse[] = session ? await api.access.getUserAccesses.query()
+    .catch(() => []) : [];
 
   return (
     <html lang="en">

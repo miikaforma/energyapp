@@ -7,6 +7,7 @@ import {
     Legend,
     type Chart,
     type ChartOptions,
+    type Plugin,
     TooltipItem,
     DefaultDataPoint,
 } from 'chart.js';
@@ -32,10 +33,10 @@ const totalValuePlugin = {
         ctx.fillText(text, textX, textY);
         ctx.restore();
     },
-};
+} as Plugin<'doughnut'>;
 
 // ChartJS.register(ChartDataLabels);
-ChartJS.register(ArcElement, Tooltip, Legend, totalValuePlugin);
+ChartJS.register(ArcElement, Tooltip, Legend/*, totalValuePlugin*/);
 
 interface MelCloudEnergyReportTotals {
     totalHeatingConsumed: number
@@ -142,6 +143,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 <Doughnut
                     options={options}
                     data={mappedData}
+                    plugins={[totalValuePlugin]}
                 />
             </div>
         </div>

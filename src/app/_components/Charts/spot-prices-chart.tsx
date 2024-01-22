@@ -16,6 +16,7 @@ import {
     type ChartData,
     type DefaultDataPoint,
     type ChartDataset,
+    TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
@@ -74,9 +75,9 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
     const timePeriod = spotPriceResponse.timePeriod;
     const data = spotPriceResponse.prices;
 
-    const title = (tooltipItems: any[]) => {
+    const title = (tooltipItems: TooltipItem<'bar'>[]) => {
         const tooltipItem = tooltipItems[0];
-        const row = data[tooltipItem.dataIndex];
+        const row = data[tooltipItem?.dataIndex ?? 0];
         if (!row) return '';
 
         const date = dayjs(row.time)

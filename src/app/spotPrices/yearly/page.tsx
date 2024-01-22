@@ -67,13 +67,13 @@ export default function Page() {
       dataIndex: 'time',
       key: 'current',
       width: 30,
-      render: (data: string | number | Date, _: any) => isCurrentYear(data) && <CaretRightFilled />
+      render: (data: string | number | Date) => isCurrentYear(data) && <CaretRightFilled />
     },
     {
       title: 'Aika',
       dataIndex: 'time',
       key: 'time',
-      render: (data: Dayjs, _: any) => dateToSpotTimeString(data, timePeriod)
+      render: (data: Dayjs) => dateToSpotTimeString(data, timePeriod)
     },
     {
       title: 'Vuoden keskihinta',

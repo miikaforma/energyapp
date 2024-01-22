@@ -66,13 +66,13 @@ export default function Page() {
       dataIndex: 'time',
       key: 'current',
       width: 30,
-      render: (data: string | number | Date, _: any) => isCurrentDay(data) && <CaretRightFilled />
+      render: (data: string | number | Date) => isCurrentDay(data) && <CaretRightFilled />
     },
     {
       title: 'Aika',
       dataIndex: 'time',
       key: 'time',
-      render: (data: Dayjs, _: any) => dateToSpotTimeString(data, timePeriod)
+      render: (data: Dayjs) => dateToSpotTimeString(data, timePeriod)
     },
     {
       title: 'Päivän keskihinta',

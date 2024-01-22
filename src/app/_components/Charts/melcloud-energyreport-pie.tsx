@@ -8,6 +8,7 @@ import {
     type Chart,
     type ChartOptions,
     TooltipItem,
+    DefaultDataPoint,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -63,6 +64,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 display: true,
                 position: "bottom",
                 labels: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     generateLabels: function (chart: { data: any; getDatasetMeta: (arg0: number) => any; options: { elements: { arc: any; }; }; }) {
                         const data = chart.data;
                         if (data.labels.length && data.datasets.length) {
@@ -147,10 +149,10 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
 }
 
 const dataMapper = ({ totalHeatingConsumed, totalCoolingConsumed, totalAutoConsumed, totalDryConsumed, totalFanConsumed, totalOtherConsumed }: MelCloudEnergyReportTotals) => {
-    const labels = []
-    const values = []
-    const backgroundColors = []
-    const borderColors = []
+    const labels: string[] = []
+    const values: DefaultDataPoint<'doughnut'> = []
+    const backgroundColors: string[] = []
+    const borderColors: string[] = []
 
     // Heating
     if (totalHeatingConsumed > 0) {

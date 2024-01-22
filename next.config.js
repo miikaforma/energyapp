@@ -13,7 +13,6 @@ const config = {
         removeConsole: process.env.NODE_ENV !== "development", // Remove console.log in production
     },
     output: "standalone", // Output PWA as a standalone app (no browser chrome)
-    distDir: ".next",     // Output directory for the build process
 };
 
 // Configuration object tells the next-pwa plugin 

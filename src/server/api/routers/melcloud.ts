@@ -9,7 +9,7 @@ import {
 } from "@energyapp/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { info } from "console";
-import { IContext } from "@energyapp/shared/interfaces";
+import { IContext, IUserAccess } from "@energyapp/shared/interfaces";
 
 const dateSchema = z.string().refine(value => !isNaN(Date.parse(value)), {
   message: "Invalid date format",
@@ -60,7 +60,7 @@ export const melcloudRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })  as unknown as IUserAccess[];
 
       // Map over userAccesses and restructure each object
       return userAccesses.map(userAccess => ({

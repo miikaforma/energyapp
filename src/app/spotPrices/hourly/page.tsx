@@ -119,7 +119,7 @@ export default function Page() {
       dataIndex: 'time',
       key: 'current',
       width: 30,
-      render: (data: string | number | Date, _: any) =>
+      render: (data: string | number | Date) =>
         <>
           {isCurrentHour(data) && <CaretRightFilled />}
         </>
@@ -129,7 +129,7 @@ export default function Page() {
       dataIndex: 'time',
       key: 'time',
       width: 90,
-      render: (data: Dayjs, _: any) => dateToSpotTimeString(data, timePeriod)
+      render: (data: Dayjs) => dateToSpotTimeString(data, timePeriod)
     },
     {
       title: 'Spot-hinta',

@@ -2,6 +2,7 @@ import {
   createTRPCRouter,
   protectedProcedure,
 } from "@energyapp/server/api/trpc";
+import { IUserAccess } from "@energyapp/shared/interfaces";
 
 export const accessRouter = createTRPCRouter({
   getUserAccesses: protectedProcedure
@@ -19,10 +20,10 @@ export const accessRouter = createTRPCRouter({
             },
           },
         },
-      });
+      }) as unknown as IUserAccess[];
 
       // Map over userAccesses and restructure each object
-      return userAccesses.map(userAccess => ({
+      return userAccesses.map((userAccess) => ({
         accessId: userAccess.accessId,
         type: userAccess.type,
         accessName: userAccess.serviceAccess.accessName,

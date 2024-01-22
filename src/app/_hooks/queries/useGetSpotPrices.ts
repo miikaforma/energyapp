@@ -1,7 +1,7 @@
 import { TimePeriod } from "@energyapp/shared/enums";
 import { api } from "@energyapp/trpc/react";
 import { TRPCClientError } from "@trpc/client";
-import { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import toast from "react-hot-toast";
 
 interface IUseGetSpotPrices {
@@ -43,10 +43,10 @@ const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices)
 }
 
 const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetchGetSpotPrices) => {
-    let previousStart = null;
-    let previousEnd = null;
-    let nextStart = null;
-    let nextEnd = null;
+    let previousStart: Dayjs = dayjs();
+    let previousEnd: Dayjs = dayjs();
+    let nextStart: Dayjs = dayjs();
+    let nextEnd: Dayjs = dayjs();
 
     switch (timePeriod) {
         case TimePeriod.Hour:
@@ -76,7 +76,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     }
 
     // Prefetch previous
-    utils.spotPrice.get.prefetch({
+    void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
@@ -84,7 +84,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
         staleTime: Infinity,
     });
     // Prefetch next
-    utils.spotPrice.get.prefetch({
+    void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)

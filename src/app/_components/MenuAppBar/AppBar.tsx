@@ -9,17 +9,13 @@ import IconButton from '@mui/material/IconButton';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import { Session } from 'next-auth';
+import { type Session } from 'next-auth';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 
 export default function MenuAppBar({ session}: { session: Session | null }) {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-  };
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -31,7 +27,7 @@ export default function MenuAppBar({ session}: { session: Session | null }) {
 
   const handleLogout = async () => {
     setAnchorEl(null);
-    await router.push("/api/auth/signout");
+    router.push("/api/auth/signout");
   };
 
   return (

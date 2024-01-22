@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, DatePicker, Space } from 'antd';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import { CaretLeftFilled, CaretRightFilled } from "@ant-design/icons";
 
 const dateFormat = 'MMMM YYYY';

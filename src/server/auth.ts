@@ -9,7 +9,7 @@ import KeycloakProvider from 'next-auth/providers/keycloak';
 
 import { env } from "@energyapp/env";
 import { db } from "@energyapp/server/db";
-import { Adapter, AdapterAccount } from "next-auth/adapters";
+import { type Adapter, type AdapterAccount } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 
 /**
@@ -39,7 +39,7 @@ const CustomPrismaAdapter: Adapter = {
   ...prismaAdapter,
   linkAccount: (account: AdapterAccount) => {
     delete account["not-before-policy"];
-    return prismaAdapter.linkAccount && prismaAdapter.linkAccount(account);
+    return prismaAdapter.linkAccount?.(account);
   },
 };
 
@@ -137,6 +137,7 @@ const updateUserAccesses = async (userId: string, token?: string) => {
   // console.log('decoded', decoded);
 
   const accessIds = decoded['access-id'];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
   const accessIdSet = new Set(accessIds.map((accessId: any) => `${accessId.id}-${accessId.type}`));
 
   // Fetch all userAccess rows for the user

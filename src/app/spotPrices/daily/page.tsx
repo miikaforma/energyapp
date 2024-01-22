@@ -3,7 +3,7 @@
 import { api } from "@energyapp/trpc/react";
 import { Button, Col, Row, Space, Table } from "antd";
 import { CaretRightFilled } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
@@ -11,7 +11,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
-import { ISpotPrice } from "@energyapp/shared/interfaces";
+import { type ISpotPrice } from "@energyapp/shared/interfaces";
 import { TemporarySettings } from "@energyapp/shared/contants";
 import { dateToSpotTimeString, isCurrentDay, isCurrentHour } from "@energyapp/utils/timeHelpers";
 import { MonthDatePicker } from "@energyapp/app/_components/FormItems/antd-month-datepicker";
@@ -66,13 +66,13 @@ export default function Page() {
       dataIndex: 'time',
       key: 'current',
       width: 30,
-      render: (data: string | number | Date, _: any) => isCurrentDay(data) && <CaretRightFilled />
+      render: (data: string | number | Date) => isCurrentDay(data) && <CaretRightFilled />
     },
     {
       title: 'Aika',
       dataIndex: 'time',
       key: 'time',
-      render: (data: Dayjs, _: any) => dateToSpotTimeString(data, timePeriod)
+      render: (data: Dayjs) => dateToSpotTimeString(data, timePeriod)
     },
     {
       title: 'Päivän keskihinta',

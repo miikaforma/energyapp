@@ -2,16 +2,16 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { SetStateAction, useState } from "react"
+import { type SetStateAction, useState } from "react"
 
 export default function ProductionNavigation() {
     const router = useRouter()
     const pathname = usePathname()
     let currentPage = 'wattivahti'
     if (pathname) {
-        let pathArray = pathname.split('/');
-        if (pathArray.length > 1) {
-            currentPage = pathArray[pathArray.length - 1] as string;
+        const pathArray = pathname.split('/');
+        if (pathArray.length > 2) {
+            currentPage = pathArray[2]! ;
         }
     }
 
@@ -19,7 +19,7 @@ export default function ProductionNavigation() {
     const [selectedRange, setSelectedRange] = useState('day')
     // const navigate = useNavigate()
 
-    const onTypeChange = (value: SetStateAction<string>) => {
+    const onTypeChange = (value: string) => {
         if (value === 'wattivahti' && selectedRange === 'year') {
             setSelectedRange('day')
         }

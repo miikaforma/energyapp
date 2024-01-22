@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  energyapp:
+    hostname: '0.0.0.0'
+    image: miikaforma/energyapp:latest
+    ports:
+      - 5247:3000
+    # deploy:
+    #   restart_policy:
+    #     condition: any
+    #     delay: 5s

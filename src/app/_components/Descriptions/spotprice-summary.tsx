@@ -1,5 +1,5 @@
 import { Descriptions } from "antd";
-import { ISettings, ISpotPriceResponse } from "@energyapp/shared/interfaces";
+import { type ISettings, type ISpotPriceResponse } from "@energyapp/shared/interfaces";
 import { ElectricitySpotPrice } from "../ColumnRenders/SpotPrice/electricity-spot-price";
 import { dateToShortSpotTimeString } from "@energyapp/utils/timeHelpers";
 import useMediaQuery from "@mui/material/useMediaQuery";

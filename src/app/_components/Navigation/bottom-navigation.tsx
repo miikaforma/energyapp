@@ -10,17 +10,17 @@ import SolarPowerIcon from '@mui/icons-material/SolarPower';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Paper from '@mui/material/Paper';
 import StackedLineChartIcon from '@mui/icons-material/StackedLineChart';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link'
-import { Session } from 'next-auth';
+import { type Session } from 'next-auth';
 
 export default function BottomNav({ children, session }: { children: ReactNode, session: Session | null }) {
     const pathname = usePathname()
 
     let currentRoute = "/";
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 1 && pathArray[1]) {
             currentRoute = '/' + pathArray[1];
         }

@@ -1,7 +1,7 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { db } from "@energyapp/server/db";
 
-import { Prices, Result } from 'nordpool';
+import { Prices, type Result } from 'nordpool';
 const prices = new Prices();
 
 interface UpdateParams {
@@ -13,7 +13,7 @@ export const updateFromNordpool = async ({ startDate, endDate }: UpdateParams): 
     console.debug({ startDate, endDate })
 
     const results = await prices.hourly({ area: 'FI', currency: 'EUR', date: dayjs(endDate).toDate() })
-    if (!results || !results.length) {
+    if (!results?.length) {
         return false;
     }
 

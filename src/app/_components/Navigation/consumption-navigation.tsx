@@ -2,23 +2,23 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { SetStateAction, useState } from "react"
+import { type SetStateAction, useState } from "react"
 
 export default function ConsumptionNavigation() {
     const router = useRouter()
     const pathname = usePathname()
     let currentPage = 'wattivahti'
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2] as string;
+            currentPage = pathArray[2]! ;
         }
     }
 
     const [selectedType, setSelectedType] = useState(currentPage ?? 'wattivahti')
     const [selectedRange, setSelectedRange] = useState('day')
 
-    const onTypeChange = (value: SetStateAction<string>) => {
+    const onTypeChange = (value: string) => {
         if (value === 'wattivahti' && selectedRange === 'year') {
             setSelectedRange('day')
         }

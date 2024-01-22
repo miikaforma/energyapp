@@ -7,7 +7,7 @@ const useUpdateSpotPrices = () => {
 
     return api.spotPrice.update.useMutation({
         onSuccess: (data) => {
-            utils.spotPrice.get.invalidate().then(_ => {
+            void utils.spotPrice.get.invalidate().then(_ => {
                 toast.success('Hinnat päivitetty onnistuneesti.');
             });
         },

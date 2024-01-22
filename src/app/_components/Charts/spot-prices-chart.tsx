@@ -1,5 +1,5 @@
 'use client';
-import React, { CSSProperties } from 'react';
+import React, { type CSSProperties } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -8,16 +8,21 @@ import {
     Title,
     Tooltip,
     Legend,
-    ChartType,
-    TooltipPositionerFunction,
-    ActiveElement,
+    type ChartType,
+    type TooltipPositionerFunction,
+    type ActiveElement,
     Point,
+    type ChartOptions,
+    type ChartData,
+    type DefaultDataPoint,
+    type ChartDataset,
+    TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
 import { isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
-import dayjs, { Dayjs } from "dayjs";
-import { ISettings, ISpotPrice, ISpotPriceResponse } from '@energyapp/shared/interfaces';
+import dayjs, { type Dayjs } from "dayjs";
+import { type ISettings, type ISpotPrice, type ISpotPriceResponse } from '@energyapp/shared/interfaces';
 import { TimePeriod } from '@energyapp/shared/enums';
 
 ChartJS.register(
@@ -70,9 +75,9 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
     const timePeriod = spotPriceResponse.timePeriod;
     const data = spotPriceResponse.prices;
 
-    const title = (tooltipItems: any[]) => {
+    const title = (tooltipItems: TooltipItem<'bar'>[]) => {
         const tooltipItem = tooltipItems[0];
-        const row = data[tooltipItem.dataIndex];
+        const row = data[tooltipItem?.dataIndex ?? 0];
         if (!row) return '';
 
         const date = dayjs(row.time)
@@ -142,7 +147,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
                 max: max,
             },
         },
-    };
+    } as ChartOptions<'bar'>;
 
     let datasetLabel = 'Sähkö (c/kWh)'
     switch (timePeriod) {
@@ -166,7 +171,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
                 backgroundColor: bgColors1,
             },
         ],
-    };
+    } as ChartData<'bar'>;
 
     if (timePeriod === TimePeriod.Hour) {
         mappedData.datasets.push({
@@ -174,7 +179,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
             data: totalPrices,
             backgroundColor: bgColors2,
             hidden: true,
-        })
+        } as ChartDataset<'bar'>)
     }
 
     return (
@@ -192,17 +197,17 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
 }
 
 const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: ISettings, timePeriod: TimePeriod }) => {
-    if (!data || !data.length) return {
+    if (!data?.length) return {
         labels: [],
         values: [],
         prices: [],
     }
 
-    let labels: string[] = []
-    let electricityPrices: number[] = []
-    let totalPrices: number[] = []
-    let bgColors1: string[] = []
-    let bgColors2: string[] = []
+    const labels: string[] = []
+    const electricityPrices: DefaultDataPoint<'bar'> = []
+    const totalPrices: DefaultDataPoint<'bar'> = []
+    const bgColors1: string[] = []
+    const bgColors2: string[] = []
 
     let min = 0
     let max = 30

@@ -1,14 +1,14 @@
-import { Dayjs } from "dayjs";
-import { Currency, TimePeriod } from "@energyapp/shared/enums";
+import { type Dayjs } from "dayjs";
+import { type Currency, type TimePeriod } from "@energyapp/shared/enums";
 
-import { Prisma, PrismaClient } from "@prisma/client";
-import { Session } from "next-auth";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { type Prisma, type PrismaClient } from "@prisma/client";
+import { type Session } from "next-auth";
+import { type DefaultArgs } from "@prisma/client/runtime/library";
 
 export interface IContext {
-  session: Session | null;
-  headers: Headers;
-  db: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>;
+    session: Session | null;
+    headers: Headers;
+    db: PrismaClient;
 }
 
 export interface ISettings {
@@ -42,4 +42,12 @@ export interface ISpotPrice {
     month: number;
     day: number;
     hour: number;
+}
+
+export interface IUserAccess {
+    accessId: string;
+    type: string;
+    serviceAccess: {
+        accessName: string
+    }
 }

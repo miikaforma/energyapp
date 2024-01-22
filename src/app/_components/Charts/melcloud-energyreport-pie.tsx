@@ -1,22 +1,31 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { Doughnut } from "react-chartjs-2";
 import {
     Chart as ChartJS,
     ArcElement,
     Tooltip,
     Legend,
+    type Chart,
+    type ChartOptions,
+    TooltipItem,
+    DefaultDataPoint,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 const totalValuePlugin = {
     id: 'totalValue',
-    beforeDraw: (chart) => {
+    beforeDraw: (chart: Chart) => {
         const ctx = chart.ctx;
         ctx.save();
         ctx.font = '16px Arial'; // Adjust font size and family to your needs
         ctx.fillStyle = 'white'; // Change the color to white
-        const totalValue = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-        const text = `${totalValue.toFixed(1)} kWh`;
+        const totalValue = chart.data?.datasets[0]?.data.reduce((a, b) => {
+            if (typeof a === 'number' && typeof b === 'number') {
+                return a + b;
+            }
+            return a;
+        }, 0) ?? 0;
+        const text = `${(totalValue as number).toFixed(1)} kWh`;
         const textX = Math.round((chart.width - ctx.measureText(text).width) / 2) + 5;
         const chartHeight = chart.chartArea.bottom - chart.chartArea.top;
         const textY = chart.chartArea.top + (chartHeight / 2) - (parseInt(ctx.font) / 2) + 5; // Adjust the y-coordinate
@@ -55,17 +64,20 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 display: true,
                 position: "bottom",
                 labels: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     generateLabels: function (chart: { data: any; getDatasetMeta: (arg0: number) => any; options: { elements: { arc: any; }; }; }) {
                         const data = chart.data;
                         if (data.labels.length && data.datasets.length) {
                             // Calculate total
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                             const total = data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                             return data.labels.map((label: string, i: string | number) => {
                                 const meta = chart.getDatasetMeta(0);
                                 const ds = data.datasets[0];
                                 const arc = meta.data[i];
-                                const custom = (arc && arc.custom) || {};
+                                const custom = (arc?.custom) || {};
                                 const arcOpts = chart.options.elements.arc;
                                 const fill = custom.backgroundColor ? custom.backgroundColor : (ds.backgroundColor[i] || arcOpts.backgroundColor);
                                 const stroke = custom.borderColor ? custom.borderColor : (ds.borderColor[i] || arcOpts.borderColor);
@@ -75,6 +87,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                                 const percentage = (ds.data[i] / total * 100).toFixed(2);
 
                                 return {
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                                     text: `${label}: ${parseFloat(ds.data[i].toFixed(1))} kWh (${percentage}%)`,
                                     fillStyle: fill,
                                     strokeStyle: stroke,
@@ -95,7 +108,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
             },
             tooltip: {
                 callbacks: {
-                    label: function (context: { parsed: any; dataset: { data: any[]; }; }) {
+                    label: function (context: TooltipItem<'doughnut'>) {
                         const value = context.parsed;
                         const total = context.dataset.data.reduce((total, num) => total + num, 0);
                         const percentage = ((value / total) * 100).toFixed(1);
@@ -104,7 +117,7 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 }
             },
         },
-    };
+    } as ChartOptions<'doughnut'>;
 
     const { labels, values, backgroundColors, borderColors } = dataMapper({
         totalHeatingConsumed, totalCoolingConsumed, totalAutoConsumed, totalDryConsumed, totalFanConsumed, totalOtherConsumed
@@ -136,10 +149,10 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
 }
 
 const dataMapper = ({ totalHeatingConsumed, totalCoolingConsumed, totalAutoConsumed, totalDryConsumed, totalFanConsumed, totalOtherConsumed }: MelCloudEnergyReportTotals) => {
-    let labels = []
-    let values = []
-    let backgroundColors = []
-    let borderColors = []
+    const labels: string[] = []
+    const values: DefaultDataPoint<'doughnut'> = []
+    const backgroundColors: string[] = []
+    const borderColors: string[] = []
 
     // Heating
     if (totalHeatingConsumed > 0) {

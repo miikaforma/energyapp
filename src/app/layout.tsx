@@ -16,7 +16,7 @@ import AuthUpdater from "./_components/auth-updater";
 
 import AntdTheme from "@energyapp/app/_components/ThemeRegistry/AntdTheme";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { Metadata, Viewport } from "next";
+import { type Metadata, type Viewport } from "next";
 
 import { Toaster } from "react-hot-toast";
 

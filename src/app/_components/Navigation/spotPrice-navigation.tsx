@@ -2,20 +2,20 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { SetStateAction } from "react"
+import { type SetStateAction } from "react"
 
 export default function SpotPriceNavigation() {
     const router = useRouter()
     const pathname = usePathname()
     let currentPage = 'hourly'
     if (pathname) {
-        let pathArray = pathname.split('/');
+        const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2] as string;
+            currentPage = pathArray[2]! ;
         }
     }
 
-    const onRangeChange = (value: SetStateAction<string>) => {
+    const onRangeChange = (value: string) => {
         router.push(`/spotPrices/${value}`)
     }
 

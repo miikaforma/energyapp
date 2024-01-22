@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 
 interface UpdateParams {
     startDate: Dayjs;
@@ -35,11 +35,11 @@ export const updateFromEntsoe = async ({ startDate, endDate }: UpdateParams): Pr
 };
 
 const getFirstDayOfMonth = (time: Dayjs): string => {
-    let newTime = dayjs(time).startOf('month');
+    const newTime = dayjs(time).startOf('month');
     return newTime.format('YYYY-MM-DDT00:00') + 'Z';
 }
 
 const getLastDayOfMonth = (time: Dayjs): string => {
-    let newTime = dayjs(time).endOf('month');
+    const newTime = dayjs(time).endOf('month');
     return newTime.format('YYYY-MM-DDT00:00') + 'Z';
 }

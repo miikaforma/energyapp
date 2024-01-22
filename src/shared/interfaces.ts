@@ -47,7 +47,14 @@ export interface ISpotPrice {
 export interface IUserAccess {
     accessId: string;
     type: string;
+    accessName: string
     serviceAccess: {
         accessName: string
     }
+}
+
+export interface IUserAccessResponse {
+    accessId: string;
+    type: string;
+    accessName: string
 }

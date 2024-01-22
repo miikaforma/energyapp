@@ -19,6 +19,8 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { type Metadata, type Viewport } from "next";
 
 import { Toaster } from "react-hot-toast";
+import { api } from "@energyapp/trpc/server";
+import { IUserAccessResponse } from "@energyapp/shared/interfaces";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +30,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "EnergyApp",
   description: "Sovellus spottihintojen, sähkönkulutuksen ja sähköntuotannon seurantaan.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", type: "image/svg+xml", url: "/electricity-icon.svg" }],
 };
 
 export const viewport: Viewport = {
@@ -36,7 +38,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   width: "device-width",
   viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#2f2f2f" }],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#171719" }],
 };
 
 export default async function RootLayout({
@@ -44,6 +46,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const userAccesses: IUserAccessResponse[] = await api.access.getUserAccesses.query();
   const session = await getServerAuthSession();
 
   return (
@@ -64,7 +67,7 @@ export default async function RootLayout({
                     }} />
                     <AuthUpdater />
                     <MenuAppBar session={session} />
-                    <BottomNav session={session}>
+                    <BottomNav session={session} userAccesses={userAccesses}>
                       {children}
                     </BottomNav>
                   </SessionProvider>

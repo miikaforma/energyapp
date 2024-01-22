@@ -1,9 +1,26 @@
 'use client';
 
+import { useState } from "react";
+import Datepicker, { type DateValueType } from "react-tailwindcss-datepicker";
+
 import dayjs, { type Dayjs } from "dayjs";
-import { ChangeEvent, useState } from "react";
-import { CSSProperties } from 'react';
-import Datepicker, { DateType, type DateValueType } from "react-tailwindcss-datepicker";
+import updateLocale from "dayjs/plugin/updateLocale";
+import 'dayjs/locale/fi';
+
+dayjs.extend(updateLocale)
+
+dayjs.updateLocale('fi', {
+  months: [
+    "Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kesäkuu", "Heinäkuu",
+    "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"
+  ],
+  monthsShort: [
+    "Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä",
+    "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"
+  ]
+})
+
+dayjs.locale('fi')
 
 interface SelectBoxProps {
     startDate: Dayjs;

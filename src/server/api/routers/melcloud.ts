@@ -74,7 +74,7 @@ export const melcloudRouter = createTRPCRouter({
       // Check if the user has access to the device
       await hasDeviceAccess(ctx, input.deviceId);
 
-      info(`Fetching energy report for ${input.deviceId} from ${input.startTime.toISOString()} to ${input.endTime.toISOString()}`);
+      info(`Fetching energy report for ${input.deviceId} from ${dayjs(input.startTime).toISOString()} to ${dayjs(input.endTime).toISOString()}`);
 
       return getEnergyReport(input.deviceId, input.startTime, input.endTime);
     }),

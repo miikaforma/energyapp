@@ -2,7 +2,7 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { type SetStateAction, useState } from "react"
+import { useState } from "react"
 
 export default function ConsumptionNavigation() {
     const router = useRouter()
@@ -11,7 +11,7 @@ export default function ConsumptionNavigation() {
     if (pathname) {
         const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2]! ;
+            currentPage = pathArray[2]!;
         }
     }
 
@@ -32,11 +32,13 @@ export default function ConsumptionNavigation() {
                 <Radio.Button key={'wattivahti'} value="wattivahti">WattiVahti</Radio.Button>
                 <Radio.Button key={'melcloud'} value="melcloud">Melcloud</Radio.Button>
             </Radio.Group>
-            <Radio.Group value={selectedRange} onChange={(e) => setSelectedRange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
-                {selectedType === 'solarman' && <Radio.Button key={'year'} value="year">Vuosi</Radio.Button>}
-                <Radio.Button key={'month'} value="month">Kuukausi</Radio.Button>
-                <Radio.Button key={'day'} value="day">Päivä</Radio.Button>
-            </Radio.Group>
+            {selectedType === 'wattivahti' && (
+                <Radio.Group value={selectedRange} onChange={(e) => setSelectedRange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
+                    <Radio.Button key={'year'} value="year">Vuosi</Radio.Button>
+                    <Radio.Button key={'month'} value="month">Kuukausi</Radio.Button>
+                    <Radio.Button key={'day'} value="day">Päivä</Radio.Button>
+                </Radio.Group>
+            )}
         </>
     )
 }

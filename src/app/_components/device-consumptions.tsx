@@ -16,8 +16,8 @@ interface DeviceConsumptionsProps {
 
 export default function DeviceConsumptions({ devices }: DeviceConsumptionsProps) {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>(devices?.[0]?.accessId ?? '');
-    const [fromDate, setFromDate] = useState<dayjs.Dayjs>(dayjs('2024-01-01T00:00:00'));
-    const [toDate, setToDate] = useState<dayjs.Dayjs>(dayjs('2024-01-31T00:00:00'));
+    const [fromDate, setFromDate] = useState<dayjs.Dayjs>(dayjs().hour(0).minute(0).second(0).millisecond(0));
+    const [toDate, setToDate] = useState<dayjs.Dayjs>(dayjs().hour(23).minute(59).second(59).millisecond(999));
 
     const onDeviceChange = (value: string) => {
         setSelectedDeviceId(value);

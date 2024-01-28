@@ -16,12 +16,12 @@ export default async function ConsumptionLayout({
 
   return (
     <main className="flex min-h-screen-nhf flex-col items-center justify-center app-main-background text-white">
-      {hasBothTypes && (
-        <div className="text-center">
-          <ConsumptionNavigation />
-        </div>
-      )}
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+      <div className="container flex flex-col items-center justify-center gap-2 px-4 py-16 ">
+        {hasBothTypes && (
+          <div className="text-center">
+            <ConsumptionNavigation />
+          </div>
+        )}
         {children}
       </div>
     </main>

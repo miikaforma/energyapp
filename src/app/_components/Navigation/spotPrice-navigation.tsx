@@ -2,7 +2,6 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { type SetStateAction } from "react"
 
 export default function SpotPriceNavigation() {
     const router = useRouter()

@@ -11,10 +11,6 @@ import { TRPCError } from "@trpc/server";
 import { info } from "console";
 import { IContext, IUserAccess } from "@energyapp/shared/interfaces";
 
-const dateSchema = z.string().refine(value => !isNaN(Date.parse(value)), {
-  message: "Invalid date format",
-});
-
 const zodDay = z.custom<Dayjs>((val: unknown) => dayjs(val as string).isValid(), 'Invalid date');
 
 async function hasDeviceAccess(ctx: IContext, deviceId: string) {

@@ -167,21 +167,292 @@ model serviceAccess {
 }
 
 view average_kwh_price_day_by_day {
-  date               DateTime @db.Timestamptz(6) @unique
+  date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?
   avg_price_with_tax Float?
 }
 
 view average_kwh_price_month_by_month {
-  date               DateTime @db.Timestamptz(6) @unique
+  date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?
   avg_price_with_tax Float?
 }
 
 view average_kwh_price_year_by_year {
-  date               DateTime @db.Timestamptz(6) @unique
+  date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?
   avg_price_with_tax Float?
+}
+
+view energies_production_hour_by_hour {
+  datetime                  DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String?
+  measure_type              Int?
+  contract_type             Int?     @db.SmallInt
+  source                    String?
+  measure_unit              String?  @db.VarChar(3)
+  value                     Float?   @db.Real
+  energy_basic_fee          Float?   @db.Real
+  energy_fee                Float?
+  price                     Float?
+  spot_energy_fee_no_margin Float?
+  spot_price_no_margin      Float?
+  transfer_basic_fee        Float?   @db.Real
+  transfer_fee              Float?   @db.Real
+  transfer_tax_fee          Float?   @db.Real
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float?
+  spot_price_with_tax       Float?
+}
+
+view energies_production_day_by_day {
+  date                            DateTime @unique @db.Timestamptz(6)
+  metering_point_code             String?
+  avg_energy_basic_fee            Float?
+  avg_transfer_basic_fee          Float?
+  sum_value                       Float?
+  sum_value_night                 Float?
+  sum_value_day                   Float?
+  sum_energy_fee                  Float?
+  avg_energy_price                Float?
+  sum_spot_energy_fee_no_margin   Float?
+  avg_spot_energy_price_no_margin Float?
+  sum_spot_price_no_margin        Float?
+  sum_price                       Float?
+  sum_price_night                 Float?
+  sum_price_day                   Float?
+  avg_price                       Float?
+  sum_transfer_fee                Float?
+  sum_transfer_fee_night          Float?
+  sum_transfer_fee_day            Float?
+  sum_transfer_tax_fee            Float?
+  sum_transfer_tax_fee_night      Float?
+  sum_transfer_tax_fee_day        Float?
+  avg_spot_price                  Float?
+  avg_spot_price_with_tax         Float?
+}
+
+view energies_production_month_by_month {
+  date                            DateTime @unique @db.Timestamptz(6)
+  metering_point_code             String?
+  avg_energy_basic_fee            Float?
+  avg_transfer_basic_fee          Float?
+  sum_value                       Float?
+  sum_value_night                 Float?
+  sum_value_day                   Float?
+  sum_energy_fee                  Float?
+  avg_energy_price                Float?
+  sum_spot_energy_fee_no_margin   Float?
+  avg_spot_energy_price_no_margin Float?
+  sum_spot_price_no_margin        Float?
+  sum_price                       Float?
+  sum_price_night                 Float?
+  sum_price_day                   Float?
+  avg_price                       Float?
+  sum_transfer_fee                Float?
+  sum_transfer_fee_night          Float?
+  sum_transfer_fee_day            Float?
+  sum_transfer_tax_fee            Float?
+  sum_transfer_tax_fee_night      Float?
+  sum_transfer_tax_fee_day        Float?
+  avg_spot_price                  Float?
+  avg_spot_price_with_tax         Float?
+}
+
+view energies_production_year_by_year {
+  date                            DateTime @unique @db.Timestamptz(6)
+  metering_point_code             String?
+  avg_energy_basic_fee            Float?
+  avg_transfer_basic_fee          Float?
+  sum_value                       Float?
+  sum_value_night                 Float?
+  sum_value_day                   Float?
+  sum_energy_fee                  Float?
+  avg_energy_price                Float?
+  sum_spot_energy_fee_no_margin   Float?
+  avg_spot_energy_price_no_margin Float?
+  sum_spot_price_no_margin        Float?
+  sum_price                       Float?
+  sum_price_night                 Float?
+  sum_price_day                   Float?
+  avg_price                       Float?
+  sum_transfer_fee                Float?
+  sum_transfer_fee_night          Float?
+  sum_transfer_fee_day            Float?
+  sum_transfer_tax_fee            Float?
+  sum_transfer_tax_fee_night      Float?
+  sum_transfer_tax_fee_day        Float?
+  avg_spot_price                  Float?
+  avg_spot_price_with_tax         Float?
+}
+
+view energies_consumption_hour_by_hour {
+  time                      DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String
+  measure_type              Int
+  contract_type             Int      @db.SmallInt
+  source                    String?
+  measure_unit              String   @db.VarChar(3)
+  tax_percentage            Float
+  night                     Boolean
+  spot_price                Float
+  spot_price_tax            Float
+  spot_price_with_tax       Float
+  energy_basic_fee          Float
+  transfer_basic_fee        Float
+  energy_consumption        Float
+  energy_consumption_night  Float?
+  energy_consumption_day    Float?
+  energy_consumption_avg    Float
+  energy_fee                Float?
+  energy_fee_night          Float?
+  energy_fee_day            Float?
+  energy_fee_avg            Float?
+  energy_margin             Float?
+  energy_margin_night       Float?
+  energy_margin_day         Float?
+  energy_margin_avg         Float?
+  transfer_fee              Float
+  transfer_fee_night        Float?
+  transfer_fee_day          Float?
+  transfer_fee_avg          Float
+  transfer_tax_fee          Float
+  transfer_tax_fee_night    Float?
+  transfer_tax_fee_day      Float?
+  transfer_tax_fee_avg      Float
+  price                     Float
+  price_night               Float?
+  price_day                 Float?
+  price_avg                 Float
+  energy_fee_spot_no_margin Float
+  price_spot_no_margin      Float
+}
+
+view energies_consumption_day_by_day {
+  time                      DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String
+  measure_type              Int
+  contract_type             Int?      @db.SmallInt
+  source                    String?
+  measure_unit              String?   @db.VarChar(3)
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float
+  spot_price_tax            Float
+  spot_price_with_tax       Float
+  energy_basic_fee          Float
+  transfer_basic_fee        Float
+  energy_consumption        Float
+  energy_consumption_night  Float
+  energy_consumption_day    Float
+  energy_consumption_avg    Float
+  energy_fee                Float
+  energy_fee_night          Float
+  energy_fee_day            Float
+  energy_fee_avg            Float
+  energy_margin             Float?
+  energy_margin_night       Float?
+  energy_margin_day         Float?
+  energy_margin_avg         Float?
+  transfer_fee              Float
+  transfer_fee_night        Float
+  transfer_fee_day          Float
+  transfer_fee_avg          Float
+  transfer_tax_fee          Float
+  transfer_tax_fee_night    Float
+  transfer_tax_fee_day      Float
+  transfer_tax_fee_avg      Float
+  price                     Float
+  price_night               Float
+  price_day                 Float
+  price_avg                 Float
+  energy_fee_spot_no_margin Float
+  price_spot_no_margin      Float
+}
+
+view energies_consumption_month_by_month {
+  time                      DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String
+  measure_type              Int
+  contract_type             Int?      @db.SmallInt
+  source                    String?
+  measure_unit              String?   @db.VarChar(3)
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float
+  spot_price_tax            Float
+  spot_price_with_tax       Float
+  energy_basic_fee          Float
+  transfer_basic_fee        Float
+  energy_consumption        Float
+  energy_consumption_night  Float
+  energy_consumption_day    Float
+  energy_consumption_avg    Float
+  energy_fee                Float
+  energy_fee_night          Float
+  energy_fee_day            Float
+  energy_fee_avg            Float
+  energy_margin             Float?
+  energy_margin_night       Float?
+  energy_margin_day         Float?
+  energy_margin_avg         Float?
+  transfer_fee              Float
+  transfer_fee_night        Float
+  transfer_fee_day          Float
+  transfer_fee_avg          Float
+  transfer_tax_fee          Float
+  transfer_tax_fee_night    Float
+  transfer_tax_fee_day      Float
+  transfer_tax_fee_avg      Float
+  price                     Float
+  price_night               Float
+  price_day                 Float
+  price_avg                 Float
+  energy_fee_spot_no_margin Float
+  price_spot_no_margin      Float
+}
+
+view energies_consumption_year_by_year {
+  time                      DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String
+  measure_type              Int
+  contract_type             Int?      @db.SmallInt
+  source                    String?
+  measure_unit              String?   @db.VarChar(3)
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float
+  spot_price_tax            Float
+  spot_price_with_tax       Float
+  energy_basic_fee          Float
+  transfer_basic_fee        Float
+  energy_consumption        Float
+  energy_consumption_night  Float
+  energy_consumption_day    Float
+  energy_consumption_avg    Float
+  energy_fee                Float
+  energy_fee_night          Float
+  energy_fee_day            Float
+  energy_fee_avg            Float
+  energy_margin             Float?
+  energy_margin_night       Float?
+  energy_margin_day         Float?
+  energy_margin_avg         Float?
+  transfer_fee              Float
+  transfer_fee_night        Float
+  transfer_fee_day          Float
+  transfer_fee_avg          Float
+  transfer_tax_fee          Float
+  transfer_tax_fee_night    Float
+  transfer_tax_fee_day      Float
+  transfer_tax_fee_avg      Float
+  price                     Float
+  price_night               Float
+  price_day                 Float
+  price_avg                 Float
+  energy_fee_spot_no_margin Float
+  price_spot_no_margin      Float
 }
 
 enum accessType {

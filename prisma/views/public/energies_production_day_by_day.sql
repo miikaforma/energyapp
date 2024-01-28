@@ -1,0 +1,29 @@
+SELECT
+  _materialized_hypertable_36.date,
+  _materialized_hypertable_36.metering_point_code,
+  _materialized_hypertable_36.avg_energy_basic_fee,
+  _materialized_hypertable_36.avg_transfer_basic_fee,
+  _materialized_hypertable_36.sum_value,
+  _materialized_hypertable_36.sum_value_night,
+  _materialized_hypertable_36.sum_value_day,
+  _materialized_hypertable_36.sum_energy_fee,
+  _materialized_hypertable_36.avg_energy_price,
+  _materialized_hypertable_36.sum_spot_energy_fee_no_margin,
+  _materialized_hypertable_36.avg_spot_energy_price_no_margin,
+  _materialized_hypertable_36.sum_spot_price_no_margin,
+  _materialized_hypertable_36.sum_price,
+  _materialized_hypertable_36.sum_price_night,
+  _materialized_hypertable_36.sum_price_day,
+  _materialized_hypertable_36.avg_price,
+  _materialized_hypertable_36.sum_transfer_fee,
+  _materialized_hypertable_36.sum_transfer_fee_night,
+  _materialized_hypertable_36.sum_transfer_fee_day,
+  _materialized_hypertable_36.sum_transfer_tax_fee,
+  _materialized_hypertable_36.sum_transfer_tax_fee_night,
+  _materialized_hypertable_36.sum_transfer_tax_fee_day,
+  _materialized_hypertable_36.avg_spot_price,
+  _materialized_hypertable_36.avg_spot_price_with_tax
+FROM
+  _timescaledb_internal._materialized_hypertable_36
+ORDER BY
+  _materialized_hypertable_36.date DESC;

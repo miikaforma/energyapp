@@ -33,6 +33,7 @@ export const env = createEnv({
     KEYCLOAK_ISSUER: z.string().url(),
 
     ENTSOE_ENDPOINT: z.string().url(),
+    WATTIVAHTI_ENDPOINT: z.string().url(),
   },
 
   /**
@@ -57,6 +58,7 @@ export const env = createEnv({
     KEYCLOAK_CLIENT_SECRET: process.env.KEYCLOAK_CLIENT_SECRET,
     KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
     ENTSOE_ENDPOINT: process.env.ENTSOE_ENDPOINT,
+    WATTIVAHTI_ENDPOINT: process.env.WATTIVAHTI_ENDPOINT,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

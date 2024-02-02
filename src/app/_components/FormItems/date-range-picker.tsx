@@ -81,6 +81,7 @@ export default function DateRangePicker({ startDate, endDate, setStartDate, setE
                     },
                 }
             }}
+            readOnly={true}
             containerClassName='relative w-full text-gray-700 z-2000'
         />
     );

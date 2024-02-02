@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { type Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
+import { IEnergyCostReport } from "@energyapp/shared/interfaces";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -80,7 +81,7 @@ export async function getEnergyReport(deviceId: string, fromDate: Dayjs, toDate:
         throw new Error('Network response was not ok');
     }
 
-    const data = await response.json();
+    const data = await response.json() as IEnergyCostReport;
     return data;
 }
 
@@ -97,7 +98,7 @@ const LOGIN_ERRORS: string[] = [
     "Due to high load on our servers, we are temporarily requesting you enter the code below in order to log in."
 ];
 
-async function getAccessToken(email: string, password: string) {
+async function getAccessToken(email: string, password: string): Promise<string | null> {
     const serviceAccess = await db.serviceAccess.findFirst({
         where: {
             type: 'MELCLOUD',

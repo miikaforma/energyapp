@@ -107,3 +107,37 @@ export interface IWattiVahtiConsumption {
     energy_fee_spot_no_margin: number;
     price_spot_no_margin: number;
 }
+
+export interface IEnergyCostReport {
+    Heating: number[];
+    Cooling: number[];
+    Auto: number[];
+    Dry: number[];
+    Fan: number[];
+    Other: number[];
+    TotalHeatingConsumed: number;
+    TotalCoolingConsumed: number;
+    TotalAutoConsumed: number;
+    TotalDryConsumed: number;
+    TotalFanConsumed: number;
+    TotalOtherConsumed: number;
+    LinkedDevicesIncludedInArregateEnergyReport: string;
+    LinkedDevicesNotIncludedInArregateEnergyReport: string;
+    UsageDisclaimerPercentages: string;
+    Status: number;
+    LabelType: number;
+    TempLabels: number[];
+    Labels: number[];
+    HasZone2: boolean;
+    CurrencySymbol: string;
+    FromDate: string;
+    ToDate: string;
+    DeviceName: string;
+    BuildingAddress: null | string;
+    BuildingCity: null | string;
+    BuildingCountry: null | string;
+    CustomerName: null | string;
+    costs: null | string;
+    TotalMinutes: number;
+    MissingMinutes: number;
+}

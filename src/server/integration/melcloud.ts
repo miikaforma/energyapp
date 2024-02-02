@@ -72,7 +72,7 @@ export async function getEnergyReport(deviceId: string, fromDate: Dayjs, toDate:
         headers: {
             'Content-Type': 'application/json',
             'User-Agent': CUSTOM_USER_AGENT,
-            'X-MitsContextKey': accessToken,
+            'X-MitsContextKey': accessToken ?? '',
         },
         body: body,
     });

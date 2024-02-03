@@ -28,7 +28,7 @@ const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices)
     }, {
         staleTime: staleTime,
         select: data => data,
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             prefetchSpotPrices({ utils, timePeriod, startTime, endTime });
         },
         onError: (err: unknown) => {

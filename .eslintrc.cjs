@@ -40,6 +40,9 @@ const config = {
     "@typescript-eslint/no-unsafe-call": "warn",
     "@typescript-eslint/no-redundant-type-constituents": "warn",
   },
+  "ignorePatterns": [
+    "src/app/_fingrid/**/*",
+  ]
 };
 
 module.exports = config;

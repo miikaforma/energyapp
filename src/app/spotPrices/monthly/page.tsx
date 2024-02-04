@@ -12,7 +12,7 @@ import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/S
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type ISpotPrice } from "@energyapp/shared/interfaces";
-import { TemporarySettings } from "@energyapp/shared/contants";
+import { TemporarySettings } from "@energyapp/shared/constants";
 import { dateToSpotTimeString, isCurrentMonth } from "@energyapp/utils/timeHelpers";
 import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-summary";
 import useGetSpotPrices from "@energyapp/app/_hooks/queries/useGetSpotPrices";

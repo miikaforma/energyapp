@@ -14,7 +14,7 @@ import { ElectricityPrice } from "@energyapp/app/_components/ColumnRenders/SpotP
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type ISpotPrice } from "@energyapp/shared/interfaces";
-import { TemporarySettings } from "@energyapp/shared/contants";
+import { TemporarySettings } from "@energyapp/shared/constants";
 import {
   dateToSpotTimeString,
   isCurrentHour,

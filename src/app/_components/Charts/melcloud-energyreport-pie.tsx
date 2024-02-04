@@ -1,4 +1,4 @@
-import dayjs, { type Dayjs } from "dayjs";
+import { type Dayjs } from "dayjs";
 import { Doughnut } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -8,8 +8,8 @@ import {
     type Chart,
     type ChartOptions,
     type Plugin,
-    TooltipItem,
-    DefaultDataPoint,
+    type TooltipItem,
+    type DefaultDataPoint,
 } from 'chart.js';
 // import ChartDataLabels from 'chartjs-plugin-datalabels';
 

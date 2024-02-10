@@ -298,8 +298,8 @@ export async function getEnergyReport(
     info("Yearly data fetched so skipping cache.");
   }
 
-  // const data = await fetchDataFromMelCloud(deviceId, fromDate, toDate);
-  // return data;
+  const data = await fetchDataFromMelCloud(deviceId, fromDate, toDate);
+  return data;
   info("No cached data found.");
   return {} as IEnergyCostReport;
 }

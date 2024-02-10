@@ -612,7 +612,7 @@ function cachedHourlyDataToResponse(
   data.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const labels = data.map((consumption) => {
-    return consumption.time.getHours();
+    return dayjs(consumption.time).tz("Europe/Helsinki").hour();
   });
 
   const start = dayjs(data?.[0]?.time).tz("Europe/Helsinki");
@@ -659,7 +659,7 @@ function cachedDailyDataToResponse(
   data.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const labels = data.map((consumption) => {
-    return consumption.time.getDate();
+    return dayjs(consumption.time).tz("Europe/Helsinki").date();
   });
 
   const start = dayjs(data?.[0]?.time).tz("Europe/Helsinki");
@@ -742,7 +742,7 @@ function cachedDailyDataToMonthlyResponse(
   monthlyData.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const labels = monthlyData.map((consumption) => {
-    return consumption.time.getMonth() + 1;
+    return dayjs(consumption.time).tz("Europe/Helsinki").month() +1;
   });
 
   const start = dayjs(monthlyData?.[0]?.time).tz("Europe/Helsinki");

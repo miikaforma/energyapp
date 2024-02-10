@@ -158,8 +158,6 @@ export async function getEnergyReport(
         endTime,
       );
 
-      console.log(cachedDailyData);
-
       // Check if the cached data is up to date
       const dataPoint = cachedDailyData?.[0];
       if (dataPoint) {
@@ -397,7 +395,7 @@ async function saveHourlyDataToDatabase(
   deviceId: number,
   data: IEnergyCostReport,
 ) {
-  const fromDate = dayjs(data.FromDate).tz("Europe/Helsinki");
+  const fromDate = dayjs.tz(data.FromDate, "Europe/Helsinki");
   // const toDate = dayjs(data.ToDate).tz("Europe/Helsinki");
 
   const consumptions = data.Labels.map((label, index) => {
@@ -477,7 +475,7 @@ async function saveDailyDataToDatabase(
   deviceId: number,
   data: IEnergyCostReport,
 ) {
-  const fromDate = dayjs(data.FromDate).tz("Europe/Helsinki");
+  const fromDate = dayjs.tz(data.FromDate, "Europe/Helsinki");
   // const toDate = dayjs(data.ToDate).tz("Europe/Helsinki");
 
   const consumptions = data.Labels.map((label, index) => {

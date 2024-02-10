@@ -166,6 +166,38 @@ model serviceAccess {
   @@index([accessId])
 }
 
+model melcloud_hourly_energy_consumption {
+  time                          DateTime @default(now()) @db.Timestamptz(6)
+  device_id                     Int
+  heating Float   @db.Real
+  cooling Float   @db.Real
+  auto Float   @db.Real
+  dry Float   @db.Real
+  fan Float   @db.Real
+  other Float   @db.Real
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([time, device_id])
+  @@index([time(sort: Desc)])
+}
+
+model melcloud_daily_energy_consumption {
+  time                          DateTime @default(now()) @db.Timestamptz(6)
+  device_id                     Int
+  heating Float   @db.Real
+  cooling Float   @db.Real
+  auto Float   @db.Real
+  dry Float   @db.Real
+  fan Float   @db.Real
+  other Float   @db.Real
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([time, device_id])
+  @@index([time(sort: Desc)])
+}
+
 view average_kwh_price_day_by_day {
   date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?

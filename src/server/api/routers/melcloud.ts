@@ -64,7 +64,7 @@ export const melcloudRouter = createTRPCRouter({
         accessName: userAccess.serviceAccess.accessName,
       }));
     }),
-  getDailyConsumptions: protectedProcedure
+  getConsumptions: protectedProcedure
     .input(z.object({ deviceId: z.string(), startTime: zodDay, endTime: zodDay }))
     .query(async ({ input, ctx }) => {
       // Check if the user has access to the device

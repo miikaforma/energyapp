@@ -121,14 +121,14 @@ export interface IEnergyCostReport {
     TotalDryConsumed: number;
     TotalFanConsumed: number;
     TotalOtherConsumed: number;
-    LinkedDevicesIncludedInArregateEnergyReport: string;
-    LinkedDevicesNotIncludedInArregateEnergyReport: string;
-    UsageDisclaimerPercentages: string;
-    Status: number;
+    LinkedDevicesIncludedInArregateEnergyReport?: string;
+    LinkedDevicesNotIncludedInArregateEnergyReport?: string;
+    UsageDisclaimerPercentages?: string;
+    // Status: number;
     LabelType: number;
-    TempLabels: number[];
+    TempLabels?: number[];
     Labels: number[];
-    HasZone2: boolean;
+    HasZone2?: boolean;
     CurrencySymbol: string;
     FromDate: string;
     ToDate: string;
@@ -138,6 +138,6 @@ export interface IEnergyCostReport {
     BuildingCountry: null | string;
     CustomerName: null | string;
     costs: null | string;
-    TotalMinutes: number;
-    MissingMinutes: number;
+    TotalMinutes?: number;
+    MissingMinutes?: number;
 }

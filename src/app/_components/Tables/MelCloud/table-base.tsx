@@ -1,5 +1,4 @@
 import { type IEnergyCostReport } from "@energyapp/shared/interfaces";
-import DailyEnergyCostReportTable from "./table-daily";
 import { Table, Tag } from "antd";
 
 const { Column } = Table;

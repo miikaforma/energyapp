@@ -34,7 +34,7 @@ export default function DeviceConsumptions({
   };
 
   const { data: energyReport, isFetching, isLoading } =
-    api.melCloud.getDailyConsumptions.useQuery(
+    api.melCloud.getConsumptions.useQuery(
       {
         deviceId: selectedDeviceId,
         startTime: fromDate,

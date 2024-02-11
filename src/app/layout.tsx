@@ -20,7 +20,7 @@ import { type Metadata, type Viewport } from "next";
 
 import { Toaster } from "react-hot-toast";
 import { api } from "@energyapp/trpc/server";
-import { IUserAccessResponse } from "@energyapp/shared/interfaces";
+import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
 
 const inter = Inter({
   subsets: ["latin"],

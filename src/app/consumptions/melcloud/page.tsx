@@ -13,10 +13,10 @@ export default async function Page() {
   return (
     <>
       <h1 className="text-2xl font-extrabold tracking-tight sm:text-[2rem]">
-        <span className="text-[hsl(280,100%,70%)]">Arvioitu</span> energiankulutus
+        <span className="text-[hsl(280,100%,70%)]">Arvioitu</span>{" "}
+        energiankulutus
       </h1>
       <DeviceConsumptions devices={devices} />
     </>
   );
 }
-

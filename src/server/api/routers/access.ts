@@ -2,7 +2,7 @@ import {
   createTRPCRouter,
   protectedProcedure,
 } from "@energyapp/server/api/trpc";
-import { IUserAccess } from "@energyapp/shared/interfaces";
+import { type IUserAccessResponse, type IUserAccess } from "@energyapp/shared/interfaces";
 
 export const accessRouter = createTRPCRouter({
   getUserAccesses: protectedProcedure
@@ -27,6 +27,8 @@ export const accessRouter = createTRPCRouter({
         accessId: userAccess.accessId,
         type: userAccess.type,
         accessName: userAccess.serviceAccess.accessName,
-      }));
+        availableFrom: userAccess.serviceAccess.availableFrom,
+        availableTo: userAccess.serviceAccess.availableTo,
+      } as IUserAccessResponse));
     }),
 });

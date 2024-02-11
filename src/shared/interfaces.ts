@@ -50,6 +50,8 @@ export interface IUserAccess {
     accessName: string
     serviceAccess: {
         accessName: string
+        availableFrom?: Dayjs
+        availableTo?: Dayjs
     }
 }
 
@@ -57,6 +59,8 @@ export interface IUserAccessResponse {
     accessId: string;
     type: string;
     accessName: string
+    availableFrom?: Dayjs
+    availableTo?: Dayjs
 }
 
 // Wattivahti consumptions

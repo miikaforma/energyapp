@@ -159,6 +159,9 @@ model serviceAccess {
   tokenExpiresAt        DateTime?
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
+  availableFrom         DateTime?
+  availableTo           DateTime?
+  customData            Json?
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
   userAccesses          userAccess[]

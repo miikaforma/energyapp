@@ -9,7 +9,7 @@ import {
 } from "@energyapp/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { info } from "console";
-import { IContext, IUserAccess } from "@energyapp/shared/interfaces";
+import { type IContext, type IUserAccess, type IUserAccessResponse } from "@energyapp/shared/interfaces";
 
 const zodDay = z.custom<Dayjs>((val: unknown) => dayjs(val as string).isValid(), 'Invalid date');
 
@@ -53,6 +53,8 @@ export const melcloudRouter = createTRPCRouter({
           serviceAccess: {
             select: {
               accessName: true,
+              availableFrom: true,
+              availableTo: true,
             },
           },
         },
@@ -62,7 +64,9 @@ export const melcloudRouter = createTRPCRouter({
       return userAccesses.map(userAccess => ({
         accessId: userAccess.accessId,
         accessName: userAccess.serviceAccess.accessName,
-      }));
+        availableFrom: userAccess.serviceAccess.availableFrom,
+        availableTo: userAccess.serviceAccess.availableTo,
+      } as IUserAccessResponse));
     }),
   getConsumptions: protectedProcedure
     .input(z.object({ deviceId: z.string(), startTime: zodDay, endTime: zodDay }))

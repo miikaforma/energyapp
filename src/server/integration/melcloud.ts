@@ -295,7 +295,7 @@ export async function getEnergyReport(
   else {
     info("Yearly data fetched so skipping cache.");
   }
-
+  
   const data = await fetchDataFromMelCloud(deviceId, fromDate, toDate);
   return data;
   info("No cached data found.");
@@ -383,6 +383,8 @@ async function fetchDataFromMelCloud(
   if (data.LabelType === 0) {
     await saveHourlyDataToDatabase(Number(deviceId), data);
   } else if (data.LabelType === 1) {
+    await saveDailyDataToDatabase(Number(deviceId), data);
+  } else if (data.LabelType === 4) {
     await saveDailyDataToDatabase(Number(deviceId), data);
   } else {
     warn(`Unsupported label type: ${data.LabelType}`);
@@ -659,7 +661,8 @@ function cachedDailyDataToResponse(
   data.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const labels = data.map((consumption) => {
-    return dayjs(consumption.time).tz("Europe/Helsinki").date();
+    const date = dayjs(consumption.time).tz("Europe/Helsinki");
+    return data.length > 2 && data.length < 9 ? date.day() : date.date();
   });
 
   const start = dayjs(data?.[0]?.time).tz("Europe/Helsinki");
@@ -682,7 +685,7 @@ function cachedDailyDataToResponse(
     Auto: data.map((consumption) => consumption.auto),
     Other: data.map((consumption) => consumption.other),
     Labels: labels,
-    LabelType: 1,
+    LabelType: data.length > 2 && data.length < 9 ? 4 : 1,
     CurrencySymbol: "kWh",
     BuildingAddress: null,
     BuildingCity: null,
@@ -742,7 +745,7 @@ function cachedDailyDataToMonthlyResponse(
   monthlyData.sort((a, b) => a.time.getTime() - b.time.getTime());
 
   const labels = monthlyData.map((consumption) => {
-    return dayjs(consumption.time).tz("Europe/Helsinki").month() +1;
+    return dayjs(consumption.time).tz("Europe/Helsinki").month() + 1;
   });
 
   const start = dayjs(monthlyData?.[0]?.time).tz("Europe/Helsinki");

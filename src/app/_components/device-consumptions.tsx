@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@energyapp/trpc/react";
 import SelectBox from "@energyapp/app/_components/FormItems/select-box";
 import dayjs from "dayjs";
@@ -8,12 +8,14 @@ import MelCloudEnergyReportPie from "@energyapp/app/_components/Charts/melcloud-
 import DateRangePicker from "@energyapp/app/_components/FormItems/date-range-picker";
 import EnergyCostReportTable from "./Tables/MelCloud/table-base";
 import { AlertWarning } from "./Alerts/alert-warning";
+import { Radio } from "antd";
+import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
+import { MonthDatePicker } from "@energyapp/app/_components/FormItems/antd-month-datepicker";
+import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
+import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
 
 interface DeviceConsumptionsProps {
-  devices: {
-    accessId: string;
-    accessName: string | null;
-  }[];
+  devices: IUserAccessResponse[];
 }
 
 export default function DeviceConsumptions({
@@ -22,30 +24,89 @@ export default function DeviceConsumptions({
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>(
     devices?.[0]?.accessId ?? "",
   );
-    const [fromDate, setFromDate] = useState<dayjs.Dayjs>(
-      dayjs().hour(0).minute(0).second(0).millisecond(0),
-    );
-    const [toDate, setToDate] = useState<dayjs.Dayjs>(
-      dayjs().hour(23).minute(59).second(59).millisecond(999),
-    );
+  const [selectedDevice, setSelectedDevice] =
+    useState<IUserAccessResponse | null>(devices?.[0] ?? null);
+
+  const [fromDate, setFromDate] = useState<dayjs.Dayjs>(
+    dayjs().hour(0).minute(0).second(0).millisecond(0),
+  );
+  const [toDate, setToDate] = useState<dayjs.Dayjs>(
+    dayjs().hour(23).minute(59).second(59).millisecond(999),
+  );
+
+  const [selectedRange, setSelectedRange] = useState("daily");
 
   const onDeviceChange = (value: string) => {
     setSelectedDeviceId(value);
+    setSelectedDevice(devices.find((device) => device.accessId === value) ?? null);
   };
 
-  const { data: energyReport, isFetching, isLoading } =
-    api.melCloud.getConsumptions.useQuery(
-      {
-        deviceId: selectedDeviceId,
-        startTime: fromDate,
-        endTime: toDate,
-      },
-      {
-        enabled: selectedDeviceId !== "",
-        staleTime: Infinity,
-        select: (data) => data,
-      },
-    );
+  const onRangeChange = (value: string) => {
+    setSelectedRange(value);
+  };
+
+  useEffect(() => {
+    if (selectedRange === "yearly") {
+      setFromDate(dayjs().startOf("year"));
+      setToDate(dayjs().endOf("year"));
+    } else if (selectedRange === "monthly") {
+      setFromDate(dayjs().startOf("month"));
+      setToDate(dayjs().endOf("month"));
+    } else if (selectedRange === "daily") {
+      setFromDate(dayjs().hour(0).minute(0).second(0).millisecond(0));
+      setToDate(dayjs().hour(23).minute(59).second(59).millisecond(999));
+    }
+  }, [selectedRange]);
+
+  const onDateChange = (
+    date: string | number | dayjs.Dayjs | Date | null | undefined,
+  ) => {
+    if (selectedRange === "yearly") {
+      setFromDate(
+        dayjs(date).startOf("year").hour(0).minute(0).second(0).millisecond(0),
+      );
+      setToDate(
+        dayjs(date)
+          .endOf("year")
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      );
+    } else if (selectedRange === "monthly") {
+      setFromDate(
+        dayjs(date).startOf("month").hour(0).minute(0).second(0).millisecond(0),
+      );
+      setToDate(
+        dayjs(date)
+          .endOf("month")
+          .hour(23)
+          .minute(59)
+          .second(59)
+          .millisecond(999),
+      );
+    } else if (selectedRange === "daily") {
+      setFromDate(dayjs(date).hour(0).minute(0).second(0).millisecond(0));
+      setToDate(dayjs(date).hour(23).minute(59).second(59).millisecond(999));
+    }
+  };
+
+  const {
+    data: energyReport,
+    isFetching,
+    isLoading,
+  } = api.melCloud.getConsumptions.useQuery(
+    {
+      deviceId: selectedDeviceId,
+      startTime: fromDate,
+      endTime: toDate,
+    },
+    {
+      enabled: selectedDeviceId !== "",
+      staleTime: Infinity,
+      select: (data) => data,
+    },
+  );
 
   const showHeating = (energyReport?.TotalHeatingConsumed ?? 0) > 0;
   const showCooling = (energyReport?.TotalCoolingConsumed ?? 0) > 0;
@@ -70,12 +131,64 @@ export default function DeviceConsumptions({
           onChange={onDeviceChange}
         />
       )}
-      <DateRangePicker
-        startDate={fromDate}
-        endDate={toDate}
-        setStartDate={setFromDate}
-        setEndDate={setToDate}
-      />
+      <Radio.Group
+        value={selectedRange}
+        onChange={(e) => onRangeChange(e.target.value)}
+        style={{ width: "100%", marginBottom: 12 }}
+      >
+        <Radio.Button key={"custom"} value="custom">
+          Mukautettu
+        </Radio.Button>
+        <Radio.Button key={"year"} value="yearly">
+          Vuosi
+        </Radio.Button>
+        <Radio.Button key={"month"} value="monthly">
+          Kuukausi
+        </Radio.Button>
+        <Radio.Button key={"day"} value="daily">
+          Päivä
+        </Radio.Button>
+      </Radio.Group>
+      {selectedRange === "custom" && (
+        <DateRangePicker
+          startDate={fromDate}
+          endDate={toDate}
+          setStartDate={setFromDate}
+          setEndDate={setToDate}
+          minDate={selectedDevice?.availableFrom}
+          maxDate={dayjs()}
+        />
+      )}
+      {selectedRange === "yearly" && (
+        <div className="flex w-full justify-center">
+          <YearDatePicker
+            value={fromDate}
+            onChange={onDateChange}
+            minDate={selectedDevice?.availableFrom}
+            maxDate={dayjs()}
+          ></YearDatePicker>
+        </div>
+      )}
+      {selectedRange === "monthly" && (
+        <div className="flex w-full justify-center">
+          <MonthDatePicker
+            value={fromDate}
+            onChange={onDateChange}
+            minDate={selectedDevice?.availableFrom}
+            maxDate={dayjs()}
+          ></MonthDatePicker>
+        </div>
+      )}
+      {selectedRange === "daily" && (
+        <div className="flex w-full justify-center">
+          <DayDatePicker
+            value={fromDate}
+            onChange={onDateChange}
+            minDate={selectedDevice?.availableFrom}
+            maxDate={dayjs()}
+          ></DayDatePicker>
+        </div>
+      )}
       {isFetching && (
         <div className="mt-10 text-center">
           <div role="status">

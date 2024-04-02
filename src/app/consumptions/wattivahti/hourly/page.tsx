@@ -5,10 +5,13 @@ import { api } from "@energyapp/trpc/react";
 import { Button, Col, Row, Space, Table } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
+
 import { useEffect, useState } from "react";
 
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type IWattiVahtiConsumption } from "@energyapp/shared/interfaces";
 import { dateToSpotTimeString } from "@energyapp/utils/timeHelpers";
@@ -24,6 +27,8 @@ import { SkeletonBarChart } from "@energyapp/app/_components/Skeletons/bar-chart
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function Page() {
     const { data: session } = useSession();
@@ -99,13 +104,20 @@ export default function Page() {
         },
     ]
 
+    const hoursInDay = () => {
+        const startOfDay = dayjs(startDate).tz('Europe/Helsinki').startOf('day')
+        const endOfDay = dayjs(startDate).tz('Europe/Helsinki').endOf('day')
+        const hoursInDay = endOfDay.diff(startOfDay, 'hour')
+        return hoursInDay + 1
+    }
+
     return (
         <Space direction="vertical" className="text-center" style={{ width: 'calc(100vw - 32px)' }}>
             <Row style={{ paddingBottom: 8 }}>
                 <Col flex="auto"><DayDatePicker value={startDate} onChange={onDateChange}></DayDatePicker></Col>
                 <Col flex="none">{(<Button loading={isUpdating} onClick={executeUpdateConsumptions} icon={!isUpdating && <RedoOutlined />}></Button>)}</Col>
             </Row>
-            {!isLoading && (consumptionResponse?.consumptions.length ?? 0) < 24 && <AlertWarning title='Huom!' message='Kaikkia päivän kulutuksia ei ole vielä saatavilla.' type="borderedWithAccent" />}
+            {!isLoading && (consumptionResponse?.consumptions.length ?? 0) < hoursInDay() && <AlertWarning title='Huom!' message='Kaikkia päivän kulutuksia ei ole vielä saatavilla.' type="borderedWithAccent" />}
             <WattiVahtiConsumptionSummary timePeriod={timePeriod} summary={consumptionResponse?.summary} isLoading={isLoading} />
             <WattiVahtiConsumptionsChart wattivahtiResponse={consumptionResponse} startDate={startDate} isLoading={isLoading} endDate={endDate} />
             <Table

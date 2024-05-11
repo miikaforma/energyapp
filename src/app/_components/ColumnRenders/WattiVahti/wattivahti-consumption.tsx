@@ -5,6 +5,9 @@ import { TimePeriod } from "@energyapp/shared/enums";
 export function WattiVahtiConsumption({ consumption, timePeriod }: { consumption: IWattiVahtiConsumption, timePeriod: TimePeriod }) {
     let color = '';
     switch (timePeriod) {
+        case TimePeriod.PT15M:
+            color = consumption.energy_consumption < 0.5 ? 'green' : consumption.energy_consumption < 1.25 ? 'orange' : 'red';
+            break;
         case TimePeriod.Hour:
             color = consumption.energy_consumption < 2 ? 'green' : consumption.energy_consumption < 5 ? 'orange' : 'red';
             break;

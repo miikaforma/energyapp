@@ -7,6 +7,9 @@ export function WattiVahtiConsumptionPrice({ consumption, timePeriod }: { consum
 
     let color = '';
     switch (timePeriod) {
+        case TimePeriod.PT15M:
+            color = price < 0.25 ? 'green' : price < 0.5 ? 'orange' : 'red';
+            break;
         case TimePeriod.Hour:
             color = price < 1 ? 'green' : price < 2 ? 'orange' : 'red';
             break;
@@ -25,10 +28,14 @@ export function WattiVahtiConsumptionPrice({ consumption, timePeriod }: { consum
         ? `Energia: ${consumption.energy_fee.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
         : `Energia: ${(consumption.energy_fee / 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
+    const priceStr = price < 100
+        ? `${(price * 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
+        : `${price.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+
     return (
         <Tooltip placement={'left'} title={energyPriceStr} trigger={'click'}>
             <Tag color={color} key={price}>
-                {price.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                {priceStr}
             </Tag>
         </Tooltip>
     );

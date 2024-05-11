@@ -3,6 +3,7 @@ export enum TimePeriod {
     Month = "month",
     Day = "day",
     Hour = "hour",
+    PT15M = "15min",
 }
 
 export enum Currency {

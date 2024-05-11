@@ -160,43 +160,43 @@ model serviceAccess {
   tokenExpiresAt        DateTime?
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
   availableFrom         DateTime?
   availableTo           DateTime?
   customData            Json?
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
   userAccesses          userAccess[]
 
   @@index([accessId])
 }
 
 model melcloud_hourly_energy_consumption {
-  time                          DateTime @default(now()) @db.Timestamptz(6)
-  device_id                     Int
-  heating Float   @db.Real
-  cooling Float   @db.Real
-  auto Float   @db.Real
-  dry Float   @db.Real
-  fan Float   @db.Real
-  other Float   @db.Real
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  time      DateTime @default(now()) @db.Timestamptz(6)
+  device_id Int
+  heating   Float    @db.Real
+  cooling   Float    @db.Real
+  auto      Float    @db.Real
+  dry       Float    @db.Real
+  fan       Float    @db.Real
+  other     Float    @db.Real
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([time, device_id])
   @@index([time(sort: Desc)])
 }
 
 model melcloud_daily_energy_consumption {
-  time                          DateTime @default(now()) @db.Timestamptz(6)
-  device_id                     Int
-  heating Float   @db.Real
-  cooling Float   @db.Real
-  auto Float   @db.Real
-  dry Float   @db.Real
-  fan Float   @db.Real
-  other Float   @db.Real
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  time      DateTime @default(now()) @db.Timestamptz(6)
+  device_id Int
+  heating   Float    @db.Real
+  cooling   Float    @db.Real
+  auto      Float    @db.Real
+  dry       Float    @db.Real
+  fan       Float    @db.Real
+  other     Float    @db.Real
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([time, device_id])
   @@index([time(sort: Desc)])
@@ -369,9 +369,9 @@ view energies_consumption_day_by_day {
   time                      DateTime @unique @db.Timestamptz(6)
   metering_point_code       String
   measure_type              Int
-  contract_type             Int?      @db.SmallInt
+  contract_type             Int?     @db.SmallInt
   source                    String?
-  measure_unit              String?   @db.VarChar(3)
+  measure_unit              String?  @db.VarChar(3)
   tax_percentage            Float?
   night                     Boolean?
   spot_price                Float
@@ -411,9 +411,9 @@ view energies_consumption_month_by_month {
   time                      DateTime @unique @db.Timestamptz(6)
   metering_point_code       String
   measure_type              Int
-  contract_type             Int?      @db.SmallInt
+  contract_type             String?
   source                    String?
-  measure_unit              String?   @db.VarChar(3)
+  measure_unit              String?
   tax_percentage            Float?
   night                     Boolean?
   spot_price                Float
@@ -453,9 +453,9 @@ view energies_consumption_year_by_year {
   time                      DateTime @unique @db.Timestamptz(6)
   metering_point_code       String
   measure_type              Int
-  contract_type             Int?      @db.SmallInt
+  contract_type             String?
   source                    String?
-  measure_unit              String?   @db.VarChar(3)
+  measure_unit              String?
   tax_percentage            Float?
   night                     Boolean?
   spot_price                Float
@@ -495,39 +495,39 @@ view energies_consumption_15min_by_15min {
   time                      DateTime @unique @db.Timestamptz(6)
   metering_point_code       String
   measure_type              Int
-  contract_type             Int?      @db.SmallInt
+  contract_type             Int      @db.SmallInt
   source                    String?
-  measure_unit              String?   @db.VarChar(3)
-  tax_percentage            Float?
-  night                     Boolean?
+  measure_unit              String   @db.VarChar(3)
+  tax_percentage            Float
+  night                     Boolean
   spot_price                Float
   spot_price_tax            Float
   spot_price_with_tax       Float
   energy_basic_fee          Float
   transfer_basic_fee        Float
   energy_consumption        Float
-  energy_consumption_night  Float
-  energy_consumption_day    Float
+  energy_consumption_night  Float?
+  energy_consumption_day    Float?
   energy_consumption_avg    Float
-  energy_fee                Float
-  energy_fee_night          Float
-  energy_fee_day            Float
-  energy_fee_avg            Float
+  energy_fee                Float?
+  energy_fee_night          Float?
+  energy_fee_day            Float?
+  energy_fee_avg            Float?
   energy_margin             Float?
   energy_margin_night       Float?
   energy_margin_day         Float?
   energy_margin_avg         Float?
   transfer_fee              Float
-  transfer_fee_night        Float
-  transfer_fee_day          Float
+  transfer_fee_night        Float?
+  transfer_fee_day          Float?
   transfer_fee_avg          Float
   transfer_tax_fee          Float
-  transfer_tax_fee_night    Float
-  transfer_tax_fee_day      Float
+  transfer_tax_fee_night    Float?
+  transfer_tax_fee_day      Float?
   transfer_tax_fee_avg      Float
   price                     Float
-  price_night               Float
-  price_day                 Float
+  price_night               Float?
+  price_day                 Float?
   price_avg                 Float
   energy_fee_spot_no_margin Float
   price_spot_no_margin      Float
@@ -537,18 +537,18 @@ view energies_production_15min_by_15min {
   datetime                  DateTime @unique @db.Timestamptz(6)
   metering_point_code       String?
   measure_type              Int?
-  contract_type             Int?      @db.SmallInt
+  contract_type             Int?     @db.SmallInt
   source                    String?
-  measure_unit              String?   @db.VarChar(3)
-  value                     Float?    @db.Real
-  energy_basic_fee          Float?    @db.Real
+  measure_unit              String?  @db.VarChar(3)
+  value                     Float?   @db.Real
+  energy_basic_fee          Float?   @db.Real
   energy_fee                Float?
   price                     Float?
   spot_energy_fee_no_margin Float?
   spot_price_no_margin      Float?
-  transfer_basic_fee        Float?    @db.Real
-  transfer_fee              Float?    @db.Real
-  transfer_tax_fee          Float?    @db.Real
+  transfer_basic_fee        Float?   @db.Real
+  transfer_fee              Float?   @db.Real
+  transfer_tax_fee          Float?   @db.Real
   tax_percentage            Float?
   night                     Boolean?
   spot_price                Float?

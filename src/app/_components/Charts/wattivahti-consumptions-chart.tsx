@@ -14,11 +14,11 @@ import {
     type ChartOptions,
     type ChartData,
     type DefaultDataPoint,
-    TooltipItem,
+    type TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import dayjs, { type Dayjs } from "dayjs";
-import { IWattiVahtiConsumptionResponse, IWattiVahtiConsumption } from '@energyapp/shared/interfaces';
+import { type IWattiVahtiConsumptionResponse, type IWattiVahtiConsumption } from '@energyapp/shared/interfaces';
 import { TimePeriod } from '@energyapp/shared/enums';
 import { SkeletonBarChart } from '@energyapp/app/_components/Skeletons/bar-chart-skeleton';
 
@@ -82,6 +82,8 @@ export default function WattiVahtiConsumptionsChart({ wattivahtiResponse, startD
 
         const date = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M:
+                return `${date.format('HH:mm')}`;
             case TimePeriod.Hour:
             default:
                 return `${date.hour()}:00 - ${date.hour()}:59`;
@@ -192,7 +194,7 @@ const mapper = ({ data, timePeriod }: { data: IWattiVahtiConsumption[], timePeri
     const bgColors2: string[] = []
 
     let min = 0
-    let max = 10
+    let max = timePeriod === TimePeriod.PT15M ? 2 : 10
 
     data.map(row => {
         const consumption = row.energy_consumption
@@ -203,6 +205,10 @@ const mapper = ({ data, timePeriod }: { data: IWattiVahtiConsumption[], timePeri
 
         const parsedTime = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M: {
+                labels.push(`${dayjs(row.time).format('HH:mm')}`)
+                break;
+            }
             case TimePeriod.Hour: {
                 labels.push(`${dayjs(row.time).hour().toString().padStart(2, '0')}`)
                 break;

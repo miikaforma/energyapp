@@ -20,6 +20,18 @@ export const wattivahtiRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
 
       switch (input.timePeriod) {
+        case TimePeriod.PT15M: {
+          const [consumptions, summary] = await Promise.all([
+            getPT15MConsumptions(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()),
+            getHourlyConsumptionSummary(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate())
+          ]);
+
+          return {
+            timePeriod: input.timePeriod,
+            summary,
+            consumptions,
+          } as IWattiVahtiConsumptionResponse;
+        }
         case TimePeriod.Hour: {
           const [consumptions, summary] = await Promise.all([
             getHourlyConsumptions(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()),
@@ -89,6 +101,25 @@ export const wattivahtiRouter = createTRPCRouter({
       });
     }),
 });
+
+const getPT15MConsumptions = (ctx: IContext, startTime: Date, endTime: Date): Promise<IWattiVahtiConsumption[]> => {
+  return ctx.db.energies_consumption_15min_by_15min.findMany({
+    orderBy: { time: "asc" },
+    where: {
+      time: {
+        gte: startTime,
+        lte: endTime,
+      },
+    },
+  }).then((consumptions) => {
+    return consumptions.map((consumption) => {
+      return {
+        ...consumption,
+        time: dayjs(consumption.time),
+      } as IWattiVahtiConsumption;
+    });
+  })
+}
 
 const getHourlyConsumptions = (ctx: IContext, startTime: Date, endTime: Date): Promise<IWattiVahtiConsumption[]> => {
   return ctx.db.energies_consumption_hour_by_hour.findMany({

@@ -40,7 +40,8 @@ const useGetWattiVahtiConsumptions = ({ timePeriod, startTime, endTime }: IUseGe
                 }
                 toast.error('Virhe haettaessa hintoja. Yritä myöhemmin uudelleen.');
             }
-        }
+        },
+        refetchOnWindowFocus: 'always'
     });
 
     return { ...query, prefetch: prefetchWattiVahtiConsumptions }

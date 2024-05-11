@@ -17,6 +17,10 @@ export function isCurrentHour(time: string | number | Date | dayjs.Dayjs | null 
     return dayjs(time).isSame(dayjs(), 'hour')
 }
 
+export function isCurrentPT15M(time: string | number | Date | dayjs.Dayjs | null | undefined) {
+    return dayjs(time).isSame(dayjs(), 'minute')
+}
+
 export function dateToSpotTimeString(date: Date | dayjs.Dayjs | null | undefined, timePeriod: TimePeriod) {
     const time = dayjs(date)
 
@@ -29,6 +33,8 @@ export function dateToSpotTimeString(date: Date | dayjs.Dayjs | null | undefined
             return dayjs(date).format('DD.MM.YYYY - dddd')
         case TimePeriod.Hour:
             return `klo ${time.hour().toString().padStart(2, '0')} - ${time.add(1, 'hour').hour().toString().padStart(2, '0')}`
+        case TimePeriod.PT15M:
+            return `klo ${time.format('HH:mm')} - ${time.add(15, 'minute').format('HH:mm')}`
     }
 }
 
@@ -44,6 +50,8 @@ export function dateToShortSpotTimeString(date: Date | dayjs.Dayjs | null | unde
             return dayjs(date).format('DD.MM.YYYY')
         case TimePeriod.Hour:
             return `klo ${time.hour().toString().padStart(2, '0')} - ${time.add(1, 'hour').hour().toString().padStart(2, '0')}`
+        case TimePeriod.PT15M:
+            return `klo ${time.format('HH:mm')} - ${time.add(15, 'minute').format('HH:mm')}`
     }
 }
 

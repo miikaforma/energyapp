@@ -3,7 +3,7 @@ import { InfoCircleFilled } from "@ant-design/icons";
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 import BoltIcon from '@mui/icons-material/Bolt';
-import { IWattiVahtiConsumption } from "@energyapp/shared/interfaces";
+import { type IWattiVahtiConsumption } from "@energyapp/shared/interfaces";
 import { formatNumberToEuros, formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { TimePeriod } from "@energyapp/shared/enums";
 import dayjs from "dayjs";
@@ -71,6 +71,7 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
         let total = price;
         let quickPrice = price;
         switch (timePeriod) {
+            case TimePeriod.PT15M:
             case TimePeriod.Hour:
                 const daysInMonth = dayjs(summary.time).daysInMonth();
                 transferBasicFee = summary.transfer_basic_fee / daysInMonth;

@@ -48,9 +48,10 @@ export default function ConsumptionNavigation() {
             {selectedType === 'wattivahti' && (
                 <Radio.Group value={selectedRange} onChange={(e) => onRangeChange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
                     {/* <Radio.Button key={'year'} value="yearly">Vuosi</Radio.Button> */}
-                    <Radio.Button key={'month'} value="monthly">Vuosi</Radio.Button>
-                    <Radio.Button key={'day'} value="daily">Kuukausi</Radio.Button>
-                    <Radio.Button key={'hour'} value="hourly">Päivä</Radio.Button>
+                    <Radio.Button key={'month'} value="monthly">Kuukausi</Radio.Button>
+                    <Radio.Button key={'day'} value="daily">Päivä</Radio.Button>
+                    <Radio.Button key={'hour'} value="hourly">Tunti</Radio.Button>
+                    <Radio.Button key={'pt15m'} value="pt15m">15 Minuuttia</Radio.Button>
                 </Radio.Group>
             )}
         </>

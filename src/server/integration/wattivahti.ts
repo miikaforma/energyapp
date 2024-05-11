@@ -9,7 +9,7 @@ interface UpdateParams {
 export const updateFromWattiVahti = async ({ startDate, endDate }: UpdateParams): Promise<boolean> => {
     console.debug({ startDate, endDate })
 
-    const resolutions = ['PT1H', 'PT15M'];
+    const resolutions = ['PT1H', 'PT15MIN'];
     let success = true;
 
     for (const resolution of resolutions) {

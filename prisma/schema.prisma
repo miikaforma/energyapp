@@ -41,8 +41,9 @@ model energies {
   tax_percentage      Float    @default(24) @db.Real
   night               Boolean  @default(false)
   spot_price          Float?   @db.Real
+  resolution_duration String   @db.VarChar(10)
 
-  @@unique([time, metering_point_code, measure_type])
+  @@unique([time, metering_point_code, measure_type, resolution_duration], map: "energies_unique_key")
   @@index([time(sort: Desc)])
 }
 
@@ -488,6 +489,70 @@ view energies_consumption_year_by_year {
   price_avg                 Float
   energy_fee_spot_no_margin Float
   price_spot_no_margin      Float
+}
+
+view energies_consumption_15min_by_15min {
+  time                      DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String
+  measure_type              Int
+  contract_type             Int?      @db.SmallInt
+  source                    String?
+  measure_unit              String?   @db.VarChar(3)
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float
+  spot_price_tax            Float
+  spot_price_with_tax       Float
+  energy_basic_fee          Float
+  transfer_basic_fee        Float
+  energy_consumption        Float
+  energy_consumption_night  Float
+  energy_consumption_day    Float
+  energy_consumption_avg    Float
+  energy_fee                Float
+  energy_fee_night          Float
+  energy_fee_day            Float
+  energy_fee_avg            Float
+  energy_margin             Float?
+  energy_margin_night       Float?
+  energy_margin_day         Float?
+  energy_margin_avg         Float?
+  transfer_fee              Float
+  transfer_fee_night        Float
+  transfer_fee_day          Float
+  transfer_fee_avg          Float
+  transfer_tax_fee          Float
+  transfer_tax_fee_night    Float
+  transfer_tax_fee_day      Float
+  transfer_tax_fee_avg      Float
+  price                     Float
+  price_night               Float
+  price_day                 Float
+  price_avg                 Float
+  energy_fee_spot_no_margin Float
+  price_spot_no_margin      Float
+}
+
+view energies_production_15min_by_15min {
+  datetime                  DateTime @unique @db.Timestamptz(6)
+  metering_point_code       String?
+  measure_type              Int?
+  contract_type             Int?      @db.SmallInt
+  source                    String?
+  measure_unit              String?   @db.VarChar(3)
+  value                     Float?    @db.Real
+  energy_basic_fee          Float?    @db.Real
+  energy_fee                Float?
+  price                     Float?
+  spot_energy_fee_no_margin Float?
+  spot_price_no_margin      Float?
+  transfer_basic_fee        Float?    @db.Real
+  transfer_fee              Float?    @db.Real
+  transfer_tax_fee          Float?    @db.Real
+  tax_percentage            Float?
+  night                     Boolean?
+  spot_price                Float?
+  spot_price_with_tax       Float?
 }
 
 enum accessType {

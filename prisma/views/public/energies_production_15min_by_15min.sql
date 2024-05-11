@@ -1,0 +1,24 @@
+SELECT
+  _materialized_hypertable_80.datetime,
+  _materialized_hypertable_80.metering_point_code,
+  _materialized_hypertable_80.measure_type,
+  _materialized_hypertable_80.contract_type,
+  _materialized_hypertable_80.source,
+  _materialized_hypertable_80.measure_unit,
+  _materialized_hypertable_80.value,
+  _materialized_hypertable_80.energy_basic_fee,
+  _materialized_hypertable_80.energy_fee,
+  _materialized_hypertable_80.price,
+  _materialized_hypertable_80.spot_energy_fee_no_margin,
+  _materialized_hypertable_80.spot_price_no_margin,
+  _materialized_hypertable_80.transfer_basic_fee,
+  _materialized_hypertable_80.transfer_fee,
+  _materialized_hypertable_80.transfer_tax_fee,
+  _materialized_hypertable_80.tax_percentage,
+  _materialized_hypertable_80.night,
+  _materialized_hypertable_80.spot_price,
+  _materialized_hypertable_80.spot_price_with_tax
+FROM
+  _timescaledb_internal._materialized_hypertable_80
+ORDER BY
+  _materialized_hypertable_80.datetime;

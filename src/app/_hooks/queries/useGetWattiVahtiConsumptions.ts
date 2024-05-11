@@ -29,16 +29,16 @@ const useGetWattiVahtiConsumptions = ({ timePeriod, startTime, endTime }: IUseGe
     }, {
         staleTime: staleTime,
         select: data => data,
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             prefetchWattiVahtiConsumptions({ utils, timePeriod, startTime, endTime });
         },
         onError: (err: unknown) => {
             if (err instanceof TRPCClientError) {
                 if (err.data?.code === 'NOT_FOUND') {
-                    toast.error('Valitulle aikavälille ei löytynyt hintoja.');
+                    toast.error('Valitulle aikavälille ei löytynyt kulutuksia.');
                     return;
                 }
-                toast.error('Virhe haettaessa hintoja. Yritä myöhemmin uudelleen.');
+                toast.error('Virhe haettaessa kulutuksia. Yritä myöhemmin uudelleen.');
             }
         },
         refetchOnWindowFocus: 'always'
@@ -65,25 +65,25 @@ const prefetchWattiVahtiConsumptions = ({ utils, timePeriod, startTime, endTime,
     let nextEnd: Dayjs = dayjs();
 
     switch (timePeriod) {
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
             previousStart = startTime.add(-1, 'day');
             previousEnd = startTime.add(-1, 'day');
             nextStart = endTime.add(1, 'day');
             nextEnd = endTime.add(1, 'day');
             break;
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             previousStart = startTime.add(-1, 'day').startOf('month');
             previousEnd = startTime.add(-1, 'day').endOf('month');
             nextStart = endTime.add(1, 'day').startOf('month');
             nextEnd = endTime.add(1, 'day').endOf('month');
             break;
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             previousStart = startTime.add(-1, 'month').startOf('year');
             previousEnd = startTime.add(-1, 'month').endOf('year');
             nextStart = endTime.add(1, 'month').startOf('year');
             nextEnd = endTime.add(1, 'month').endOf('year');
             break;
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             previousStart = startTime.add(-1, 'year');
             previousEnd = startTime.add(-1, 'year');
             nextStart = endTime.add(1, 'year');

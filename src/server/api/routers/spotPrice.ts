@@ -21,19 +21,19 @@ export const spotPriceRouter = createTRPCRouter({
     .query(({ input, ctx }) => {
 
       switch (input.timePeriod) {
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
           return getHourlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
           return getDailySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
           return getMonthlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
           return getYearlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
@@ -52,7 +52,7 @@ export const spotPriceRouter = createTRPCRouter({
       }
 
       // Only update Nordpool hourly prices
-      if (input.timePeriod === TimePeriod.Hour) {
+      if (input.timePeriod === TimePeriod.PT1H) {
         const nordpoolResult = await updateFromNordpool({ startDate: input.startTime, endDate: input.endTime });
         console.info('Nordpool update result', nordpoolResult)
         if (nordpoolResult) {

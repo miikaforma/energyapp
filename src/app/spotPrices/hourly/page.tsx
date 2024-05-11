@@ -29,7 +29,7 @@ dayjs.extend(isSameOrBefore);
 
 export default function Page() {
   const { data: session } = useSession();
-  const timePeriod = TimePeriod.Hour;
+  const timePeriod = TimePeriod.PT1H;
   const settings = TemporarySettings;
 
   const [startDate, setStartDate] = useState(

@@ -4,48 +4,61 @@ import { TRPCClientError } from "@trpc/client";
 import dayjs, { type Dayjs } from "dayjs";
 import toast from "react-hot-toast";
 
-interface IUseGetSpotPrices {
+interface IUseGetWattiVahtiProductions {
     timePeriod: TimePeriod;
     startTime: Dayjs;
     endTime: Dayjs;
 }
 
-interface IPrefetchGetSpotPrices {
+interface IPrefetchWattiVahtiProductions {
     utils: ReturnType<typeof api.useUtils>;
     timePeriod: TimePeriod;
     startTime: Dayjs;
     endTime: Dayjs;
+    singlePrefetch?: boolean;
 }
 
 // 30 minutes stale time
 const staleTime = 30 * 60 * 1000;
 
-const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices) => {
+const useGetWattiVahtiProductions = ({ timePeriod, startTime, endTime }: IUseGetWattiVahtiProductions) => {
     const utils = api.useUtils();
 
-    const query = api.spotPrice.get.useQuery({
+    const query = api.wattivahti.getProductions.useQuery({
         timePeriod: timePeriod, startTime, endTime
     }, {
         staleTime: staleTime,
         select: data => data,
         onSuccess: (_data) => {
-            prefetchSpotPrices({ utils, timePeriod, startTime, endTime });
+            prefetchWattiVahtiProductions({ utils, timePeriod, startTime, endTime });
         },
         onError: (err: unknown) => {
             if (err instanceof TRPCClientError) {
                 if (err.data?.code === 'NOT_FOUND') {
-                    toast.error('Valitulle aikavälille ei löytynyt hintoja.');
+                    toast.error('Valitulle aikavälille ei löytynyt tuottoja.');
                     return;
                 }
-                toast.error('Virhe haettaessa hintoja. Yritä myöhemmin uudelleen.');
+                toast.error('Virhe haettaessa tuottoja. Yritä myöhemmin uudelleen.');
             }
-        }
+        },
+        refetchOnWindowFocus: 'always'
     });
 
-    return { ...query, prefetch: prefetchSpotPrices }
+    return { ...query, prefetch: prefetchWattiVahtiProductions }
 }
 
-const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetchGetSpotPrices) => {
+const prefetchWattiVahtiProductions = ({ utils, timePeriod, startTime, endTime, singlePrefetch = false }: IPrefetchWattiVahtiProductions) => {
+    if (singlePrefetch) {
+        void utils.wattivahti.getProductions.prefetch({
+            timePeriod: timePeriod,
+            startTime: startTime,
+            endTime: endTime,
+        }, {
+            staleTime: staleTime,
+        });
+        return;
+    }
+
     let previousStart: Dayjs = dayjs();
     let previousEnd: Dayjs = dayjs();
     let nextStart: Dayjs = dayjs();
@@ -79,7 +92,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     }
 
     // Prefetch previous
-    void utils.spotPrice.get.prefetch({
+    void utils.wattivahti.getProductions.prefetch({
         timePeriod: timePeriod,
         startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
@@ -87,7 +100,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
         staleTime: staleTime,
     });
     // Prefetch next
-    void utils.spotPrice.get.prefetch({
+    void utils.wattivahti.getProductions.prefetch({
         timePeriod: timePeriod,
         startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)
@@ -96,4 +109,4 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     });
 }
 
-export default useGetSpotPrices
+export default useGetWattiVahtiProductions

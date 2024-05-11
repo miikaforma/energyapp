@@ -10,16 +10,16 @@ export function WattiVahtiConsumptionPrice({ consumption, timePeriod }: { consum
         case TimePeriod.PT15M:
             color = price < 0.25 ? 'green' : price < 0.5 ? 'orange' : 'red';
             break;
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
             color = price < 1 ? 'green' : price < 2 ? 'orange' : 'red';
             break;
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             color = price < 5 ? 'green' : price < 10 ? 'orange' : 'red';
             break;
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             color = price < 80 ? 'green' : price < 150 ? 'orange' : 'red';
             break;
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             color = price < 1000 ? 'green' : price < 2000 ? 'orange' : 'red';
             break;
     }

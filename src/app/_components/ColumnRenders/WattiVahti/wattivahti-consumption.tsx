@@ -8,16 +8,16 @@ export function WattiVahtiConsumption({ consumption, timePeriod }: { consumption
         case TimePeriod.PT15M:
             color = consumption.energy_consumption < 0.5 ? 'green' : consumption.energy_consumption < 1.25 ? 'orange' : 'red';
             break;
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
             color = consumption.energy_consumption < 2 ? 'green' : consumption.energy_consumption < 5 ? 'orange' : 'red';
             break;
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             color = consumption.energy_consumption < 40 ? 'green' : consumption.energy_consumption < 50 ? 'orange' : 'red';
             break;
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             color = consumption.energy_consumption < 500 ? 'green' : consumption.energy_consumption < 1000 ? 'orange' : 'red';
             break;
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             color = consumption.energy_consumption < 7200 ? 'green' : consumption.energy_consumption < 18000 ? 'orange' : 'red';
             break;
     }

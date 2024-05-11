@@ -90,14 +90,14 @@ export default function BottomNav({
               LinkComponent={Link}
             />
           )}
-          <BottomNavigationAction
+          {/* <BottomNavigationAction
             sx={{ minWidth: "60px" }}
             label="Tilastot"
             href="/statistics"
             value="/statistics"
             icon={<StackedLineChartIcon />}
             LinkComponent={Link}
-          />
+          /> */}
           {/* <BottomNavigationAction sx={{ minWidth: "60px" }} label="Asetukset" href="/settings" value="/settings" icon={<SettingsIcon />} LinkComponent={Link} /> */}
         </BottomNavigation>
       </Paper>

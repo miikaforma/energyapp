@@ -11,19 +11,16 @@ import {
     type ChartType,
     type TooltipPositionerFunction,
     type ActiveElement,
-    Point,
     type ChartOptions,
     type ChartData,
     type DefaultDataPoint,
-    type ChartDataset,
-    TooltipItem,
+    type TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
-import { isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
 import dayjs, { type Dayjs } from "dayjs";
-import { type ISettings, type ISpotPrice, type ISpotPriceResponse } from '@energyapp/shared/interfaces';
+import { type IWattiVahtiProductionResponse, type IWattiVahtiProduction } from '@energyapp/shared/interfaces';
 import { TimePeriod } from '@energyapp/shared/enums';
+import { SkeletonBarChart } from '@energyapp/app/_components/Skeletons/bar-chart-skeleton';
 
 ChartJS.register(
     CategoryScale,
@@ -61,19 +58,22 @@ Tooltip.positioners.top = function (items: readonly ActiveElement[]) {
     };
 };
 
-interface SpotPriceChartProps {
-    spotPriceResponse?: ISpotPriceResponse
+interface WattiVahtiProductionChartProps {
+    wattivahtiResponse?: IWattiVahtiProductionResponse
     startDate: Dayjs
     endDate: Dayjs
-    settings: ISettings
+    isLoading?: boolean
     style?: CSSProperties
 }
 
-export default function SpotPricesChart({ spotPriceResponse, startDate, endDate, settings, style }: SpotPriceChartProps) {
-    if (!spotPriceResponse) return null;
+export default function WattiVahtiProductionsChart({ wattivahtiResponse, startDate, endDate, isLoading, style }: WattiVahtiProductionChartProps) {
+    if (isLoading) {
+        return <SkeletonBarChart />
+    }
+    if (!wattivahtiResponse) return null;
 
-    const timePeriod = spotPriceResponse.timePeriod;
-    const data = spotPriceResponse.prices;
+    const timePeriod = wattivahtiResponse.timePeriod;
+    const data = wattivahtiResponse.productions;
 
     const title = (tooltipItems: TooltipItem<'bar'>[]) => {
         const tooltipItem = tooltipItems[0];
@@ -82,6 +82,8 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
 
         const date = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M:
+                return `${date.format('HH:mm')}`;
             case TimePeriod.PT1H:
             default:
                 return `${date.hour()}:00 - ${date.hour()}:59`;
@@ -94,18 +96,18 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
         }
     }
 
-    const { labels, electricityPrices, totalPrices, bgColors1, bgColors2, min, max } = mapper({ data, settings, timePeriod });
+    const { labels, productions, totalPrices, bgColors1, bgColors2, min, max } = mapper({ data, timePeriod });
 
-    let graphTitle = `Spottihinnat ${dayjs(startDate).format('DD.MM.YYYY')}`
+    let graphTitle = `Tuotot ${dayjs(startDate).format('DD.MM.YYYY')}`
     switch (timePeriod) {
         case TimePeriod.P1D:
-            graphTitle = `Spottihinnat - ${dayjs(startDate).format('MMMM YYYY')}`
+            graphTitle = `Tuotot - ${dayjs(startDate).format('MMMM YYYY')}`
             break;
         case TimePeriod.P1M:
-            graphTitle = `Spottihinnat - ${dayjs(startDate).format('YYYY')}`
+            graphTitle = `Tuotot - ${dayjs(startDate).format('YYYY')}`
             break;
         case TimePeriod.P1Y:
-            graphTitle = `Spottihinnat - (${dayjs(startDate).format('YYYY')} - ${dayjs(endDate).format('YYYY')})`
+            graphTitle = `Tuotot - (${dayjs(startDate).format('YYYY')} - ${dayjs(endDate).format('YYYY')})`
             break;
     }
 
@@ -124,7 +126,6 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
             title: {
                 display: true,
                 text: graphTitle,
-                // text: `Spottihinnat ${new Date(startDate).toLocaleDateString('fi-FI')} - ${new Date(endDate).toLocaleDateString('fi-FI')}`,
             },
             tooltip: {
                 position: 'top',
@@ -149,38 +150,21 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
         },
     } as ChartOptions<'bar'>;
 
-    let datasetLabel = 'Sähkö (c/kWh)'
-    switch (timePeriod) {
-        case TimePeriod.P1D:
-            datasetLabel = 'Keskihinta (c/kWh)';
-            break;
-        case TimePeriod.P1M:
-            datasetLabel = 'Keskihinta (c/kWh)';
-            break;
-        case TimePeriod.P1Y:
-            datasetLabel = 'Keskihinta (c/kWh)';
-            break;
-    }
-
     const mappedData = {
         labels,
         datasets: [
             {
-                label: datasetLabel,
-                data: electricityPrices,
+                label: 'Tuotto (kWh)',
+                data: productions,
                 backgroundColor: bgColors1,
             },
+            {
+                label: 'Arvo (€)',
+                data: totalPrices,
+                backgroundColor: bgColors2,
+            }
         ],
     } as ChartData<'bar'>;
-
-    if (timePeriod === TimePeriod.PT1H) {
-        mappedData.datasets.push({
-            label: 'Hinta (c/kWh)',
-            data: totalPrices,
-            backgroundColor: bgColors2,
-            hidden: true,
-        } as ChartDataset<'bar'>)
-    }
 
     return (
         <div className='text-center'>
@@ -196,7 +180,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
     )
 }
 
-const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: ISettings, timePeriod: TimePeriod }) => {
+const mapper = ({ data, timePeriod }: { data: IWattiVahtiProduction[], timePeriod: TimePeriod }) => {
     if (!data?.length) return {
         labels: [],
         values: [],
@@ -204,26 +188,29 @@ const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: 
     }
 
     const labels: string[] = []
-    const electricityPrices: DefaultDataPoint<'bar'> = []
+    const productions: DefaultDataPoint<'bar'> = []
     const totalPrices: DefaultDataPoint<'bar'> = []
     const bgColors1: string[] = []
     const bgColors2: string[] = []
 
     let min = 0
-    let max = 30
+    let max = timePeriod === TimePeriod.PT15M ? 2 : 10
 
     data.map(row => {
-        const electricityPrice = row.price_with_tax
-        const totalPrice = calculateTotalPrice({ data: row, settings })
+        const production = row.energy_production
+        const totalPrice = row.price / 100
 
-        electricityPrices.push(parseFloat(electricityPrice.toFixed(2)))
+        productions.push(parseFloat(production.toFixed(2)))
         totalPrices.push(parseFloat(totalPrice.toFixed(2)))
 
         const parsedTime = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M: {
+                labels.push(`${dayjs(row.time).format('HH:mm')}`)
+                break;
+            }
             case TimePeriod.PT1H: {
                 labels.push(`${dayjs(row.time).hour().toString().padStart(2, '0')}`)
-                // labels.push(`klo ${new Date(row.time).getHours().toString().padStart(2, '0')} - ${(new Date(row.time).getHours() + 1).toString().padStart(2, '0')}`)
                 break;
             }
             case TimePeriod.P1D: {
@@ -240,36 +227,20 @@ const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: 
             }
         }
 
-        let isCurrent = false
-        switch (timePeriod) {
-            case TimePeriod.PT1H:
-            default:
-                isCurrent = isCurrentHour(row.time)
-                break;
-            case TimePeriod.P1D:
-                isCurrent = isCurrentDay(row.time)
-                break;
-            case TimePeriod.P1M:
-                isCurrent = isCurrentMonth(row.time)
-                break;
-            case TimePeriod.P1Y:
-                isCurrent = isCurrentYear(row.time)
-                break;
-        }
+        bgColors1.push('yellow')
+        bgColors2.push('green')
+        // bgColors2.push(totalPrice < 15 ? 'green' : totalPrice < 20 ? 'yellow' : totalPrice < 30 ? 'orange' : 'red')
 
-        bgColors1.push(isCurrent ? '#00a6cc' : electricityPrice < 10 ? 'green' : electricityPrice < 15 ? 'yellow' : electricityPrice < 20 ? 'orange' : 'red')
-        bgColors2.push(isCurrent ? '#00a6cc' : totalPrice < 15 ? 'green' : totalPrice < 20 ? 'yellow' : totalPrice < 30 ? 'orange' : 'red')
-
-        min = Math.min(min, electricityPrice)
+        min = Math.min(min, production)
         min = Math.min(min, totalPrice)
 
-        max = Math.max(max, electricityPrice)
+        max = Math.max(max, production)
         max = Math.max(max, totalPrice)
     });
 
     return {
         labels,
-        electricityPrices,
+        productions,
         totalPrices,
         bgColors1,
         bgColors2,

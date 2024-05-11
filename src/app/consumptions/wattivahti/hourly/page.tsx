@@ -29,7 +29,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function Page() {
-    const timePeriod = TimePeriod.Hour;
+    const timePeriod = TimePeriod.PT1H;
 
     const [startDate, setStartDate] = useState(dayjs().add(-1, 'day').hour(0).minute(0).second(0).millisecond(0))
     const [endDate, setEndDate] = useState(dayjs().add(-1, 'day').hour(23).minute(59).second(59).millisecond(999))
@@ -40,22 +40,6 @@ export default function Page() {
         timePeriod: timePeriod, startTime: startDate, endTime: endDate
     });
     const consumptions = consumptionResponse?.consumptions ?? []
-
-    // Prefetch daily and monthly consumptions
-    // prefetchConsumptions({
-    //     utils,
-    //     timePeriod: TimePeriod.Day,
-    //     startTime: dayjs().startOf("month").hour(0).minute(0).second(0).millisecond(0),
-    //     endTime: dayjs().endOf("month").hour(23).minute(59).second(59).millisecond(999),
-    //     singlePrefetch: true
-    // })
-    // prefetchConsumptions({
-    //     utils,
-    //     timePeriod: TimePeriod.Month,
-    //     startTime: dayjs().startOf("year").hour(0).minute(0).second(0).millisecond(0),
-    //     endTime: dayjs().endOf("year").hour(23).minute(59).second(59).millisecond(999),
-    //     singlePrefetch: true
-    // })
 
     // Update consumptions
     const { mutate: updateConsumptions, isLoading: isUpdating } = useUpdateWattiVahti();

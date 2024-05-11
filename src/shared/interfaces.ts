@@ -74,7 +74,7 @@ export interface IWattiVahtiConsumption {
     time: Dayjs;
     metering_point_code: string;
     measure_type: number;
-    contract_type?: number;
+    contract_type?: number | null;
     source?: string;
     measure_unit?: string;
     tax_percentage?: number;
@@ -108,6 +108,55 @@ export interface IWattiVahtiConsumption {
     price_night: number;
     price_day: number;
     price_avg: number;
+    energy_fee_spot_no_margin: number;
+    price_spot_no_margin: number;
+}
+
+// Wattivahti productions
+export interface IWattiVahtiProductionResponse {
+    timePeriod: TimePeriod;
+    summary: IWattiVahtiProduction;
+    productions: IWattiVahtiProduction[];
+}
+
+export interface IWattiVahtiProduction {
+    time: Dayjs;
+    metering_point_code: string;
+    measure_type: number;
+    contract_type?: number | null;
+    source?: string;
+    measure_unit?: string;
+    tax_percentage: number;
+    night: boolean;
+    spot_price: number;
+    spot_price_tax: number;
+    spot_price_with_tax: number;
+    energy_basic_fee?: number | null;
+    transfer_basic_fee?: number | null;
+    energy_production: number;
+    energy_production_night: number;
+    energy_production_day: number;
+    energy_production_avg: number;
+    energy_fee?: number | null;
+    energy_fee_night: number;
+    energy_fee_day: number;
+    energy_fee_avg?: number | null;
+    energy_margin?: number | null;
+    energy_margin_night: number;
+    energy_margin_day: number;
+    energy_margin_avg?: number | null;
+    transfer_fee?: number | null;
+    transfer_fee_night: number;
+    transfer_fee_day: number;
+    transfer_fee_avg?: number | null;
+    transfer_tax_fee?: number | null;
+    transfer_tax_fee_night: number;
+    transfer_tax_fee_day: number;
+    transfer_tax_fee_avg?: number | null;
+    price: number;
+    price_night: number;
+    price_day: number;
+    price_avg?: number | null;
     energy_fee_spot_no_margin: number;
     price_spot_no_margin: number;
 }

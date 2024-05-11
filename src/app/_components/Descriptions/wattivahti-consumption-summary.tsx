@@ -72,7 +72,7 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
         let quickPrice = price;
         switch (timePeriod) {
             case TimePeriod.PT15M:
-            case TimePeriod.Hour:
+            case TimePeriod.PT1H:
                 const daysInMonth = dayjs(summary.time).daysInMonth();
                 transferBasicFee = summary.transfer_basic_fee / daysInMonth;
                 energyBasicFee = summary.energy_basic_fee / daysInMonth;
@@ -80,14 +80,14 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
                 quickPrice = price / 100;
                 color = price <= 1000.0 ? 'green' : price <= 2000.0 ? 'orange' : 'red';
                 break;
-            case TimePeriod.Day:
+            case TimePeriod.P1D:
                 transferBasicFee = summary.transfer_basic_fee;
                 energyBasicFee = summary.energy_basic_fee;
                 total = price / 100 + transferBasicFee + energyBasicFee;
                 quickPrice = price / 100;
                 color = price <= 5000.0 ? 'green' : price <= 10000.0 ? 'orange' : 'red';
                 break;
-            case TimePeriod.Month:
+            case TimePeriod.P1M:
                 // Assuming summary.time is a string in ISO 8601 format (e.g., "2022-01-01T00:00:00Z")
                 const startOfYear = dayjs(summary.time).startOf('year');
 
@@ -115,7 +115,7 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
                 quickPrice = price / 100;
                 color = price <= 130000.0 ? 'green' : price <= 150000.0 ? 'orange' : 'red';
                 break;
-            case TimePeriod.Year:
+            case TimePeriod.P1Y:
                 break;
         }
 

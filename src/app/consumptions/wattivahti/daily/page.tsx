@@ -1,6 +1,5 @@
 'use client';
 
-import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
 import { api } from "@energyapp/trpc/react";
 import { Button, Col, Row, Space, Table } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
@@ -12,7 +11,6 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type IWattiVahtiConsumption } from "@energyapp/shared/interfaces";
 import { dateToShortSpotTimeString } from "@energyapp/utils/timeHelpers";
-import { useSession } from "next-auth/react";
 import useUpdateWattiVahti from "@energyapp/app/_hooks/mutations/useUpdateWattiVahti";
 import useGetWattiVahtiConsumptions from "@energyapp/app/_hooks/queries/useGetWattiVahtiConsumptions";
 import WattiVahtiConsumptionSummary from "@energyapp/app/_components/Descriptions/wattivahti-consumption-summary";
@@ -25,8 +23,7 @@ dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
 
 export default function Page() {
-    const { data: session } = useSession();
-    const timePeriod = TimePeriod.Day;
+    const timePeriod = TimePeriod.P1D;
 
     const [startDate, setStartDate] = useState(dayjs().startOf("month").hour(0).minute(0).second(0).millisecond(0))
     const [endDate, setEndDate] = useState(dayjs().endOf("month").hour(23).minute(59).second(59).millisecond(999))
@@ -39,7 +36,6 @@ export default function Page() {
     const consumptions = consumptionResponse?.consumptions ?? []
 
     // Update consumptions
-    // TODO: Dis
     const { mutate: updateConsumptions, isLoading: isUpdating } = useUpdateWattiVahti();
 
     // Prefetch consumptions when date changes

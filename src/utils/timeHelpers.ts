@@ -21,17 +21,34 @@ export function isCurrentPT15M(time: string | number | Date | dayjs.Dayjs | null
     return dayjs(time).isSame(dayjs(), 'minute')
 }
 
+export function dateToTableString(date: Date | dayjs.Dayjs | null | undefined, timePeriod: TimePeriod) {
+    const time = dayjs(date)
+
+    switch (timePeriod) {
+        case TimePeriod.P1Y:
+            return dayjs(date).format('YYYY')
+        case TimePeriod.P1M:
+            return dayjs(date).format('YYYY - MMMM')
+        case TimePeriod.P1D:
+            return dayjs(date).format('DD.MM.YYYY')
+        case TimePeriod.PT1H:
+            return `klo ${time.hour().toString().padStart(2, '0')} - ${time.add(1, 'hour').hour().toString().padStart(2, '0')}`
+        case TimePeriod.PT15M:
+            return `klo ${time.format('HH:mm')} - ${time.add(15, 'minute').format('HH:mm')}`
+    }
+}
+
 export function dateToSpotTimeString(date: Date | dayjs.Dayjs | null | undefined, timePeriod: TimePeriod) {
     const time = dayjs(date)
 
     switch (timePeriod) {
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             return dayjs(date).format('YYYY')
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             return dayjs(date).format('YYYY - MMMM')
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             return dayjs(date).format('DD.MM.YYYY - dddd')
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
             return `klo ${time.hour().toString().padStart(2, '0')} - ${time.add(1, 'hour').hour().toString().padStart(2, '0')}`
         case TimePeriod.PT15M:
             return `klo ${time.format('HH:mm')} - ${time.add(15, 'minute').format('HH:mm')}`
@@ -42,13 +59,13 @@ export function dateToShortSpotTimeString(date: Date | dayjs.Dayjs | null | unde
     const time = dayjs(date)
 
     switch (timePeriod) {
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             return dayjs(date).format('YYYY')
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             return dayjs(date).format('MMMM')
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             return dayjs(date).format('DD.MM.YYYY')
-        case TimePeriod.Hour:
+        case TimePeriod.PT1H:
             return `klo ${time.hour().toString().padStart(2, '0')} - ${time.add(1, 'hour').hour().toString().padStart(2, '0')}`
         case TimePeriod.PT15M:
             return `klo ${time.format('HH:mm')} - ${time.add(15, 'minute').format('HH:mm')}`

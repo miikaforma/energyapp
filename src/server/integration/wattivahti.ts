@@ -9,29 +9,35 @@ interface UpdateParams {
 export const updateFromWattiVahti = async ({ startDate, endDate }: UpdateParams): Promise<boolean> => {
     console.debug({ startDate, endDate })
 
-    const data = {
-        start: getStartTime(startDate),
-        stop: getEndTime(endDate),
-    }
+    const resolutions = ['PT1H', 'PT15M'];
+    let success = true;
 
-    try {
-        const response = await fetch(`${env.WATTIVAHTI_ENDPOINT}/metering`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    for (const resolution of resolutions) {
+        const data = {
+            start: getStartTime(startDate),
+            stop: getEndTime(endDate),
+            resolution: resolution
         }
 
-        return true;
-    } catch (error) {
-        console.error(error);
-        return false;
+        try {
+            const response = await fetch(`${env.WATTIVAHTI_ENDPOINT}/metering`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(error);
+            success = false;
+        }
     }
+
+    return success;
 };
 
 const getStartTime = (time: Dayjs): string => {

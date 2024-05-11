@@ -84,14 +84,14 @@ export default function WattiVahtiConsumptionsChart({ wattivahtiResponse, startD
         switch (timePeriod) {
             case TimePeriod.PT15M:
                 return `${date.format('HH:mm')}`;
-            case TimePeriod.Hour:
+            case TimePeriod.PT1H:
             default:
                 return `${date.hour()}:00 - ${date.hour()}:59`;
-            case TimePeriod.Day:
+            case TimePeriod.P1D:
                 return `${date.format('DD.MM.YYYY - dddd')}`;
-            case TimePeriod.Month:
+            case TimePeriod.P1M:
                 return `${date.format('YYYY - MMMM')}`;
-            case TimePeriod.Year:
+            case TimePeriod.P1Y:
                 return `${date.format('YYYY')}`;
         }
     }
@@ -100,13 +100,13 @@ export default function WattiVahtiConsumptionsChart({ wattivahtiResponse, startD
 
     let graphTitle = `Kulutukset ${dayjs(startDate).format('DD.MM.YYYY')}`
     switch (timePeriod) {
-        case TimePeriod.Day:
+        case TimePeriod.P1D:
             graphTitle = `Kulutukset - ${dayjs(startDate).format('MMMM YYYY')}`
             break;
-        case TimePeriod.Month:
+        case TimePeriod.P1M:
             graphTitle = `Kulutukset - ${dayjs(startDate).format('YYYY')}`
             break;
-        case TimePeriod.Year:
+        case TimePeriod.P1Y:
             graphTitle = `Kulutukset - (${dayjs(startDate).format('YYYY')} - ${dayjs(endDate).format('YYYY')})`
             break;
     }
@@ -209,19 +209,19 @@ const mapper = ({ data, timePeriod }: { data: IWattiVahtiConsumption[], timePeri
                 labels.push(`${dayjs(row.time).format('HH:mm')}`)
                 break;
             }
-            case TimePeriod.Hour: {
+            case TimePeriod.PT1H: {
                 labels.push(`${dayjs(row.time).hour().toString().padStart(2, '0')}`)
                 break;
             }
-            case TimePeriod.Day: {
+            case TimePeriod.P1D: {
                 labels.push(parsedTime.format('DD'))
                 break;
             }
-            case TimePeriod.Month: {
+            case TimePeriod.P1M: {
                 labels.push(parsedTime.format('MMM'))
                 break;
             }
-            case TimePeriod.Year: {
+            case TimePeriod.P1Y: {
                 labels.push(parsedTime.format('YYYY'))
                 break;
             }

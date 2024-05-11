@@ -2,45 +2,67 @@
 
 import { Radio } from "antd"
 import { usePathname, useRouter } from "next/navigation";
-import { type SetStateAction, useState } from "react"
+import { useState } from "react"
 
-export default function ProductionNavigation() {
+type ProductionNavigationProps = {
+    hasWattivahti: boolean;
+    hasSolarman: boolean;
+}
+
+export default function ProductionNavigation({ hasWattivahti, hasSolarman }: ProductionNavigationProps) {
     const router = useRouter()
     const pathname = usePathname()
     let currentPage = 'wattivahti'
     if (pathname) {
         const pathArray = pathname.split('/');
         if (pathArray.length > 2) {
-            currentPage = pathArray[2]! ;
+            currentPage = pathArray[2]!;
+        }
+    }
+
+    let currentRange = 'PT1H'
+    if (pathname) {
+        const pathArray = pathname.split('/');
+        if (pathArray.length > 3) {
+            currentRange = pathArray[3]!;
         }
     }
 
     const [selectedType, setSelectedType] = useState(currentPage ?? 'wattivahti')
-    const [selectedRange, setSelectedRange] = useState('day')
-    // const navigate = useNavigate()
+    const [selectedRange, setSelectedRange] = useState(currentRange ?? 'PT1H')
 
     const onTypeChange = (value: string) => {
         if (value === 'wattivahti' && selectedRange === 'year') {
-            setSelectedRange('day')
+            setSelectedRange('PT1H')
         }
         setSelectedType(value)
         router.push(`/productions/${value}`)
     }
 
+    const onRangeChange = (value: string) => {
+        setSelectedRange(value)
+        router.push(`/productions/${currentPage}/${value}`)
+    }
+
+    const hasBothTypes = hasSolarman && hasWattivahti
+
     return (
         <>
-            <Radio.Group value={selectedType} onChange={(e) => onTypeChange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
-                <Radio.Button key={'wattivahti'} value="wattivahti">WattiVahti</Radio.Button>
-                <Radio.Button key={'solarman'} value="solarman">Solarman</Radio.Button>
-            </Radio.Group>
-            {/* <div style={{ width: "100%", marginBottom: 12 }}>
-          {selectedType === 'solarman' && <SolarLatestSummary></SolarLatestSummary>}
-        </div> */}
-            <Radio.Group value={selectedRange} onChange={(e) => setSelectedRange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
-                {selectedType === 'solarman' && <Radio.Button key={'year'} value="year">Vuosi</Radio.Button>}
-                <Radio.Button key={'month'} value="month">Kuukausi</Radio.Button>
-                <Radio.Button key={'day'} value="day">Päivä</Radio.Button>
-            </Radio.Group>
+            {hasBothTypes && (
+                <Radio.Group value={selectedType} onChange={(e) => onTypeChange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
+                    <Radio.Button key={'wattivahti'} value="wattivahti">WattiVahti</Radio.Button>
+                    <Radio.Button key={'melcloud'} value="melcloud">Melcloud</Radio.Button>
+                </Radio.Group>
+            )}
+            {selectedType === 'wattivahti' && (
+                <Radio.Group value={selectedRange} onChange={(e) => onRangeChange(e.target.value)} style={{ width: "100%", marginBottom: 12 }}>
+                    {/* <Radio.Button key={'P1Y'} value="P1Y">Vuosi</Radio.Button> */}
+                    <Radio.Button key={'P1M'} value="P1M">Kuukausi</Radio.Button>
+                    <Radio.Button key={'P1D'} value="P1D">Päivä</Radio.Button>
+                    <Radio.Button key={'PT1H'} value="PT1H">Tunti</Radio.Button>
+                    <Radio.Button key={'PT15M'} value="PT15M">15 Minuuttia</Radio.Button>
+                </Radio.Group>
+            )}
         </>
     )
 }

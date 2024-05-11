@@ -1,9 +1,9 @@
 export enum TimePeriod {
-    Year = "year",
-    Month = "month",
-    Day = "day",
-    Hour = "hour",
-    PT15M = "15min",
+    P1Y = "P1Y",
+    P1M = "P1M",
+    P1D = "P1D",
+    PT1H = "PT1H",
+    PT15M = "PT15M",
 }
 
 export enum Currency {

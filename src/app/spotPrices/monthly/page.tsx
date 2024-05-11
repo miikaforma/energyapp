@@ -24,7 +24,7 @@ dayjs.extend(isSameOrBefore)
 
 export default function Page() {
   const { data: session } = useSession();
-  const timePeriod = TimePeriod.Month;
+  const timePeriod = TimePeriod.P1M;
   const settings = TemporarySettings;
 
   const [startDate, setStartDate] = useState(dayjs().startOf("year").hour(0).minute(0).second(0).millisecond(0))

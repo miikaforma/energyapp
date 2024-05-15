@@ -1,7 +1,7 @@
 import { type ISettings } from "./interfaces";
 
 export const TemporarySettings = {
-  margin: 0.25,
+  margin: 0.59,
   addElectricityTax: true,
   nightTransfer: true,
   transferDay: 2.95,

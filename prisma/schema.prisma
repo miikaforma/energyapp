@@ -202,6 +202,80 @@ model melcloud_daily_energy_consumption {
   @@index([time(sort: Desc)])
 }
 
+model solarman_inverter_data {
+  time                                DateTime @db.Timestamptz(6)
+  plant_id                            Int
+  device_id                           Int
+  operating_state                     Int?
+  fault1                              Int?
+  fault2                              Int?
+  fault3                              Int?
+  fault4                              Int?
+  fault5                              Int?
+  solar_voltage_pv1                   Float?
+  solar_current_pv1                   Float?
+  solar_voltage_pv2                   Float?
+  solar_current_pv2                   Float?
+  solar_power_pv1                     Float?
+  solar_power_pv2                     Float?
+  output_power_active                 Float?
+  output_power_reactive               Float?
+  grid_freq_frequency                 Float?
+  output_voltage_l1                   Float?
+  output_current_l1                   Float?
+  output_voltage_l2                   Float?
+  output_current_l2                   Float?
+  output_voltage_l3                   Float?
+  output_current_l3                   Float?
+  solar_production_total              Float?
+  solar_time_total                    Float?
+  solar_production_today              Float?
+  solar_time_today                    Float?
+  inverter_temp_module                Float?
+  inverter_temp_inner                 Float?
+  inverter_voltage_bus                Float?
+  inverter_voltage_pv1_voltage_sample Float?
+  inverter_current_pv1_current_sample Float?
+  inverter_countdown_time             Float?
+  inverter_alert_message              Int?
+  input_mode                          Int?
+  communication_board_inner_message   Int?
+  inverter_insulation_pv1             Float?
+  inverter_insulation_pv2             Float?
+  cathode_insulation_impedance        Float?
+  country_code                        Int?
+
+  @@unique([time, plant_id, device_id])
+  @@index([time(sort: Desc)])
+}
+
+model cbase_pv_forecast {
+  time                 DateTime @unique @db.Timestamptz(6)
+  temp_avg             Float?
+  wind_avg             Float?
+  cl_tot               Float?
+  cl_low               Float?
+  cl_med               Float?
+  cl_high              Float?
+  prec_amt             Float?
+  s_glob               Float?
+  s_dif                Float?
+  s_dir_hor            Float?
+  s_dir                Float?
+  s_sw_net             Float?
+  solar_angle_vs_panel Float?
+  albedo               Float?
+  s_glob_pv            Float?
+  s_ground_dif_pv      Float?
+  s_dir_pv             Float?
+  s_dif_pv             Float?
+  pv_po                Float?
+  pv_t                 Float?
+  pv_eta               Float?
+
+  @@index([time(sort: Desc)])
+}
+
 view average_kwh_price_day_by_day {
   date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?

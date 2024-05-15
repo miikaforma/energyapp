@@ -263,7 +263,7 @@ export default function Page() {
         settings={settings}
       />
       <Table
-        rowClassName={(record, index) =>
+        rowClassName={(record, _index) =>
           isCurrentHour(record.time) ? "table-row-current" : ""
         }
         rowKey={"time"}

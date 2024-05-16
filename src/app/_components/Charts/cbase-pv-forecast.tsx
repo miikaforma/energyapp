@@ -16,7 +16,7 @@ import {
     type ChartDataset,
 } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-import { type cbase_pv_forecast } from "@prisma/client";
+import { type cbase_pv_forecast, type solarman_production_hour_by_hour } from "@prisma/client";
 
 ChartJS.register(  CategoryScale,
     LinearScale,
@@ -30,13 +30,10 @@ ChartJS.register(  CategoryScale,
 
 type CBasePvForecastProps = {
     hourlyForecast?: cbase_pv_forecast[]
+    produced?: solarman_production_hour_by_hour[]
 }
 
-export default function CBasePvForecast({ hourlyForecast }: CBasePvForecastProps) {
-    if (!hourlyForecast) {
-        return <p>Ladataan...</p>
-    }
-
+export default function CBasePvForecast({ hourlyForecast, produced }: CBasePvForecastProps) {
     const options = {
         locale: 'fi-FI',
         responsive: true,
@@ -85,6 +82,7 @@ export default function CBasePvForecast({ hourlyForecast }: CBasePvForecastProps
         labels: [], // generate the labels
         datasets: [
             mapEventsToData(hourlyForecast, 'Ennuste (W)', 'rgb(255,255,0)', false, true),
+            mapProducedToData(produced, 'Toteutunut (W)', 'rgb(255,127,80)', false, true),
         ],
     };
 
@@ -100,7 +98,7 @@ export default function CBasePvForecast({ hourlyForecast }: CBasePvForecastProps
     )
 }
 
-const mapEventsToData = (events: cbase_pv_forecast[], label: string, color: string, fill = false, dashed = false, hidden = false) => {
+const mapEventsToData = (data: cbase_pv_forecast[] | undefined | null, label: string, color: string, fill = false, dashed = false, hidden = false) => {
     const dataset = {
         label: label,
         data: [],
@@ -112,7 +110,7 @@ const mapEventsToData = (events: cbase_pv_forecast[], label: string, color: stri
         borderDash: dashed ? [5, 5] : [],
     } as ChartDataset<'line'>;
 
-    events.sort((a, b) => {
+    data?.sort((a, b) => {
         const dateA = a.time ? new Date(a.time) : null;
         const dateB = b.time ? new Date(b.time) : null;
         if (dateA && dateB) {
@@ -124,6 +122,37 @@ const mapEventsToData = (events: cbase_pv_forecast[], label: string, color: stri
             dataset.data.push({
                 x: new Date(event.time).getTime(),
                 y: event.pv_po ?? 0,
+            });
+        }
+    });
+
+    return dataset;
+};
+
+const mapProducedToData = (data: solarman_production_hour_by_hour[] | undefined | null, label: string, color: string, fill = false, dashed = false, hidden = false) => {
+    const dataset = {
+        label: label,
+        data: [],
+        fill: fill,
+        borderColor: color,
+        backgroundColor: 'rgba(255,127,80, 0.2)',
+        tension: 0.2,
+        hidden: hidden,
+        borderDash: dashed ? [5, 5] : [],
+    } as ChartDataset<'line'>;
+
+    data?.sort((a, b) => {
+        const dateA = a.time ? new Date(a.time) : null;
+        const dateB = b.time ? new Date(b.time) : null;
+        if (dateA && dateB) {
+            return dateA.getTime() - dateB.getTime();
+        }
+        return 0;
+    }).forEach(event => {
+        if (event.time) {
+            dataset.data.push({
+                x: new Date(event.time).getTime(),
+                y: event.production ?? 0,
             });
         }
     });

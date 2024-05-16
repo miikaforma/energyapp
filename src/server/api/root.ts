@@ -4,6 +4,7 @@ import { spotPriceRouter } from "@energyapp/server/api/routers/spotPrice";
 import { melcloudRouter } from "@energyapp/server/api/routers/melcloud";
 import { wattivahtiRouter } from "./routers/wattivahti";
 import { cbaseRouter } from "./routers/cbase";
+import { solarmanRouter } from "./routers/solarman";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   melCloud: melcloudRouter,
   wattivahti: wattivahtiRouter,
   cbase: cbaseRouter,
+  solarman: solarmanRouter,
 });
 
 // export type definition of API

@@ -714,6 +714,56 @@ view energies_production_15min_by_15min {
   price_spot_no_margin      Float
 }
 
+view solarman_production_5_minutes {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_15_minutes {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_hour_by_hour {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_day_by_day {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_month_by_month {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_year_by_year {
+  time                      DateTime @unique @db.Timestamptz(6)
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+}
+
+view solarman_production_total {
+  plant_id                  Int
+  device_id                 Int
+  production                Float
+
+  @@unique([plant_id, device_id])
+}
+
 enum accessType {
   WATTIVAHTI_CONSUMPTION
   WATTIVAHTI_PRODUCTION

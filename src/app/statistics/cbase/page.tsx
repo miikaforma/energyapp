@@ -3,29 +3,56 @@
 import dayjs, { type Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useGetPvForecast from "@energyapp/app/_hooks/queries/useGetPvForecast";
 import CBasePvForecast from "@energyapp/app/_components/Charts/cbase-pv-forecast";
-import { Space, Table } from "antd";
+import { Space, Table, type TableProps } from "antd";
 import { dateToTableString, isCurrentHour } from "@energyapp/utils/timeHelpers";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type cbase_pv_forecast } from "@prisma/client";
 import { CBaseForecastProduction } from "@energyapp/app/_components/ColumnRenders/Statistics/cbase-forecast-production";
 import { CaretRightFilled } from "@ant-design/icons";
+import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolarmanProductions";
+import { SolarmanProductionProduced } from "@energyapp/app/_components/ColumnRenders/Statistics/solarman-production-produced";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+type ForecastWithProduction = cbase_pv_forecast & { production?: number };
+
 export default function Page() {
+  const tableRef: Parameters<typeof Table>[0]['ref'] = useRef(null);
+
   const [startDate, setStartDate] = useState(
     dayjs().hour(1).minute(0).second(0).millisecond(0),
   );
 
-  const { data: forecast } = useGetPvForecast({ startTime: startDate });
+  const { data: forecast, isLoading: forecastLoading } = useGetPvForecast({ startTime: startDate });
+  const { data: productions, isLoading: productionLoading } = useGetSolarmanProductions({ startTime: startDate.hour(0) });
 
-  console.log(forecast);
+  const combinedData = forecast?.map(forecastItem => {
+    const productionItem = productions?.find(
+      productionItem => dayjs(productionItem.time).isSame(forecastItem.time)
+    );
+  
+    return productionItem
+      ? { ...forecastItem, production: productionItem.production }
+      : forecastItem;
+  }) as ForecastWithProduction[] | undefined;
 
-  const columns = [
+  useEffect(() => {
+    if (!forecastLoading && combinedData) {
+      const currentHourIndex = combinedData.findIndex(record => isCurrentHour(record.time));
+
+      if (currentHourIndex !== -1 && tableRef.current) {
+        setTimeout(() => {
+          tableRef.current?.scrollTo({ index: currentHourIndex + 2 });
+        }, 1);
+      }
+    }
+  }, [combinedData, forecastLoading, productionLoading]);
+
+  const columns: TableProps<ForecastWithProduction>['columns'] = [
     {
       title: "",
       dataIndex: "time",
@@ -39,14 +66,24 @@ export default function Page() {
       title: "Aika",
       dataIndex: "time",
       key: "time",
+      align: "left",
       render: (data: Dayjs) => dateToTableString(data, TimePeriod.PT1H),
     },
     {
       title: "Ennuste",
       dataIndex: "pv_po",
       key: "pv_po",
-      render: (_data: number, row: cbase_pv_forecast) =>
+      align: "left",
+      render: (_data: number, row: ForecastWithProduction) =>
         CBaseForecastProduction({ forecast: row }),
+    },
+    {
+      title: "Toteutunut",
+      dataIndex: "production",
+      key: "production",
+      align: "left",
+      render: (data: number, row: ForecastWithProduction) =>
+        SolarmanProductionProduced({ time: row.time, produced: data }),
     },
   ];
 
@@ -56,14 +93,17 @@ export default function Page() {
       className="text-center"
       style={{ width: "calc(100vw - 32px)" }}
     >
-      <CBasePvForecast hourlyForecast={forecast} />
+      <CBasePvForecast hourlyForecast={forecast} produced={productions} />
       <Table
+        ref={tableRef}
         rowClassName={(record, _index) =>
           isCurrentHour(record.time) ? "table-row-current" : ""
         }
-        rowKey={"time"}
-        size={"small"}
-        dataSource={forecast}
+        virtual
+        scroll={{ x: 380, y: 400 }}
+        rowKey="time"
+        size="small"
+        dataSource={combinedData}
         columns={columns}
         pagination={false}
       />

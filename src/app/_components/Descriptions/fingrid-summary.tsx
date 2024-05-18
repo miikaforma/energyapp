@@ -1,10 +1,10 @@
 import { Descriptions, Tag } from "antd";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { FingridRealTimeEvents } from "@energyapp/shared/constants";
-import { type Event } from "@energyapp/app/_fingrid/api";
+import { type fingrid_latest_data } from "@prisma/client";
 
 interface IFingridSummaryProps {
-    latestTotals?: Event[];
+    latestTotals?: fingrid_latest_data[];
 }
 
 export default function FingridSummary({ latestTotals }: IFingridSummaryProps) {
@@ -14,8 +14,8 @@ export default function FingridSummary({ latestTotals }: IFingridSummaryProps) {
         return null
     }
 
-    const production = latestTotals.find(x => x.variable_id === FingridRealTimeEvents.AllProduction)
-    const consumption = latestTotals.find(x => x.variable_id === FingridRealTimeEvents.AllConsumption)
+    const production = latestTotals.find(x => x.dataset_id === FingridRealTimeEvents.AllProduction)
+    const consumption = latestTotals.find(x => x.dataset_id === FingridRealTimeEvents.AllConsumption)
 
     const getConsumption = () => {
         return (

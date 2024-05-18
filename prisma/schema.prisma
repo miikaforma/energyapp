@@ -272,7 +272,24 @@ model cbase_pv_forecast {
   pv_po                Float?
   pv_t                 Float?
   pv_eta               Float?
+}
 
+model fingrid_latest_data {
+  dataset_id      Float     @id
+  modified_at_utc DateTime? @db.Timestamp(6)
+  start_time      DateTime  @db.Timestamp(6)
+  end_time        DateTime  @db.Timestamp(6)
+  value           Float
+}
+
+model fingrid_time_series_data {
+  time       DateTime @db.Timestamptz(6)
+  dataset_id Float
+  start_time DateTime @db.Timestamp(6)
+  end_time   DateTime @db.Timestamp(6)
+  value      Float
+
+  @@unique([time, dataset_id])
   @@index([time(sort: Desc)])
 }
 

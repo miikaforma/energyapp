@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Line} from "react-chartjs-2";
-import { type Event } from '@energyapp/app/_fingrid/api'
+import { type fingrid_time_series_data } from "@prisma/client";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -28,9 +28,9 @@ ChartJS.register(  CategoryScale,
     Filler);
 
 interface FingridWindForecastProps {
-    produced?: Event[]
-    hourlyForecast?: Event[]
-    dailyForecast?: Event[]
+    produced?: fingrid_time_series_data[]
+    hourlyForecast?: fingrid_time_series_data[]
+    dailyForecast?: fingrid_time_series_data[]
 }
 
 export default function FingridWindForecast({ produced, hourlyForecast, dailyForecast }: FingridWindForecastProps) {
@@ -93,7 +93,7 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
 
     return (
         <div className='text-center'>
-            <div id="canvas-container" style={{ paddingBottom: 8, height: 300, width: 'calc(100vw - 8px)' }}>
+            <div id="canvas-container" style={{ height: '30vh', width: 'calc(100vw - (2 * 16px))', position: 'relative' }}>
                 <Line
                     options={options}
                     data={mappedData}
@@ -103,7 +103,7 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
     )
 }
 
-const mapEventsToData = (events: Event[], label: string, color: string, fill = false, dashed = false, hidden = false) => {
+const mapEventsToData = (events: fingrid_time_series_data[], label: string, color: string, fill = false, dashed = false, hidden = false) => {
     const dataset = {
         label: label,
         data: [],

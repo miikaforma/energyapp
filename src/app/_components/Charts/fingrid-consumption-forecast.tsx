@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Line} from "react-chartjs-2";
-import { type Event } from '@energyapp/app/_fingrid/api'
+import { type fingrid_time_series_data } from '@prisma/client'
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -28,8 +28,8 @@ ChartJS.register(  CategoryScale,
     Filler);
 
 interface FingridConsumptionForecastProps {
-    hourEnergyConsumptionForecast?: Event[]
-    hourEnergyProductionForecast?: Event[]
+    hourEnergyConsumptionForecast?: fingrid_time_series_data[]
+    hourEnergyProductionForecast?: fingrid_time_series_data[]
 }
 
 export default function FingridConsumptionForecast({ hourEnergyConsumptionForecast, hourEnergyProductionForecast }: FingridConsumptionForecastProps) {
@@ -82,7 +82,7 @@ export default function FingridConsumptionForecast({ hourEnergyConsumptionForeca
     } as ChartOptions<'line'>;
 
     // Convert the 5 minute interval forecast to hourly forecast
-    const hourlyConsumptionForecast: Event[] = [];
+    const hourlyConsumptionForecast: fingrid_time_series_data[] = [];
     hourEnergyConsumptionForecast.forEach((dataPoint) => {
         const date = dataPoint.start_time ? new Date(dataPoint.start_time) : new Date();
         if (date.getMinutes() === 0) {
@@ -101,7 +101,7 @@ export default function FingridConsumptionForecast({ hourEnergyConsumptionForeca
 
     return (
         <div className='text-center'>
-            <div id="canvas-container" style={{ paddingBottom: 8, height: 300, width: 'calc(100vw - 8px)' }}>
+            <div id="canvas-container" style={{ height: '30vh', width: 'calc(100vw - (2 * 16px))', position: 'relative' }}>
                 <Line
                     options={options}
                     data={mappedData}
@@ -111,7 +111,7 @@ export default function FingridConsumptionForecast({ hourEnergyConsumptionForeca
     )
 }
 
-const mapEventsToData = (events: Event[], label: string, color: string, fill = false, dashed = false, hidden = false) => {
+const mapEventsToData = (events: fingrid_time_series_data[], label: string, color: string, fill = false, dashed = false, hidden = false) => {
     const dataset = {
         label: label,
         data: [],

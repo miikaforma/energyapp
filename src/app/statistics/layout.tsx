@@ -1,6 +1,12 @@
 import { type ReactNode } from "react";
 import StatisticsNavigation from "@energyapp/app/_components/Navigation/statistics-navigation";
 
+export const metadata = {
+  title: "Statistiikka",
+  description: "Täältä näet statistiikkaa kuten Fingridin tarjoamat sähkön kulutus ja tuotanto arvot sekä ennusteet.",
+  // other metadata...
+};
+
 export default async function StatisticsLayout({
   children, // will be a page or nested layout
 }: {

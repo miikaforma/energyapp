@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Doughnut} from "react-chartjs-2";
-import { type Event } from '@energyapp/app/_fingrid/api'
+import { type fingrid_latest_data } from '@prisma/client'
 import {
     Chart as ChartJS,
     ArcElement,
@@ -16,7 +16,7 @@ import useIsXs from "@energyapp/app/_hooks/mediaQuerys/useIsXs";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface FingridProductionDataProps {
-    data?: Event[]
+    data?: fingrid_latest_data[]
 }
 
 export default function FingridProductionData({ data }: FingridProductionDataProps) {
@@ -90,7 +90,7 @@ export default function FingridProductionData({ data }: FingridProductionDataPro
     return (
         <div className='text-center'>
             <div className="text-sm mb-3 mt-3">Tuotanto {timeNow.format('DD.MM.YYYY HH:mm')}</div>
-            <div id="canvas-container" style={{ paddingBottom: 8, height: 300, width: 'calc(100vw - 8px)', maxWidth: '420px' }}>
+            <div id="canvas-container" style={{ height: '30vh', width: 'calc(100vw - (2 * 16px))', position: 'relative' }}>
                 <Doughnut
                     options={options}
                     data={mappedData}
@@ -100,7 +100,7 @@ export default function FingridProductionData({ data }: FingridProductionDataPro
     )
 }
 
-const dataMapper = (data: Event[]) => {
+const dataMapper = (data: fingrid_latest_data[]) => {
     if (!data?.length) return {
         labels: [],
         values: [],
@@ -118,7 +118,7 @@ const dataMapper = (data: Event[]) => {
     data.forEach(row => {
         values.push((row.value ?? 0))
 
-        switch (row.variable_id) {
+        switch (row.dataset_id) {
             case FingridRealTimeEvents.Nuclear: {
                 labels.push('Ydinvoima')
                 backgroundColors.push('rgb(255,220,0)')
@@ -162,7 +162,7 @@ const dataMapper = (data: Event[]) => {
                 break;
             }
             default: {
-                labels.push((row.variable_id ?? '').toString())
+                labels.push((row.dataset_id ?? '').toString())
                 backgroundColors.push('rgb(0,0,0)')
                 borderColors.push('rgb(54,54,54)')
                 break;

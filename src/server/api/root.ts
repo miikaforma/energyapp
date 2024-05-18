@@ -2,9 +2,10 @@ import { accessRouter } from "@energyapp/server/api/routers/access";
 import { createTRPCRouter } from "@energyapp/server/api/trpc";
 import { spotPriceRouter } from "@energyapp/server/api/routers/spotPrice";
 import { melcloudRouter } from "@energyapp/server/api/routers/melcloud";
-import { wattivahtiRouter } from "./routers/wattivahti";
-import { cbaseRouter } from "./routers/cbase";
-import { solarmanRouter } from "./routers/solarman";
+import { wattivahtiRouter } from "@energyapp/server/api/routers/wattivahti";
+import { cbaseRouter } from "@energyapp/server/api/routers/cbase";
+import { solarmanRouter } from "@energyapp/server/api/routers/solarman";
+import { fingridRouter } from "@energyapp/server/api/routers/fingrid";
 
 /**
  * This is the primary router for your server.
@@ -18,6 +19,7 @@ export const appRouter = createTRPCRouter({
   wattivahti: wattivahtiRouter,
   cbase: cbaseRouter,
   solarman: solarmanRouter,
+  fingrid: fingridRouter,
 });
 
 // export type definition of API

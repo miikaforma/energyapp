@@ -14,7 +14,6 @@ import { ElectricityPrice } from "@energyapp/app/_components/ColumnRenders/SpotP
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type ISpotPrice } from "@energyapp/shared/interfaces";
-import { TemporarySettings } from "@energyapp/shared/constants";
 import {
   dateToSpotTimeString,
   isCurrentHour,
@@ -23,6 +22,7 @@ import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-
 import { useSession } from "next-auth/react";
 import useGetSpotPrices from "@energyapp/app/_hooks/queries/useGetSpotPrices";
 import useUpdateSpotPrices from "@energyapp/app/_hooks/mutations/useUpdateSpotPrices";
+import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -30,7 +30,8 @@ dayjs.extend(isSameOrBefore);
 export default function Page() {
   const { data: session } = useSession();
   const timePeriod = TimePeriod.PT1H;
-  const settings = TemporarySettings;
+  const settingsStore = useSettingsStore()
+  const settings = settingsStore.settings;
 
   const [startDate, setStartDate] = useState(
     dayjs().hour(0).minute(0).second(0).millisecond(0),

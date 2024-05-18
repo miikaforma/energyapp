@@ -1,6 +1,5 @@
 import { Tag } from "antd";
-import { addMargin, addTax, addTransfer, addVAT, getTransfer } from "@energyapp/utils/calculationHelpers";
-import { type Dayjs } from "dayjs";
+import { addMargin, addTax, addTransfer, getTransfer } from "@energyapp/utils/calculationHelpers";
 import { type ISettings, type ISpotPrice } from "@energyapp/shared/interfaces";
 
 export function ElectricityPrice(spotPrice: ISpotPrice,

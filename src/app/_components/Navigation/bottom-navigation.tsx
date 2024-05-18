@@ -6,6 +6,7 @@ import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import EuroIcon from "@mui/icons-material/Euro";
 import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
 import SolarPowerIcon from "@mui/icons-material/SolarPower";
+import SettingsIcon from "@mui/icons-material/Settings";
 import StackedLineChartIcon from "@mui/icons-material/StackedLineChart";
 import Paper from "@mui/material/Paper";
 import { type ReactNode } from "react";
@@ -98,7 +99,14 @@ export default function BottomNav({
             icon={<StackedLineChartIcon />}
             LinkComponent={Link}
           />
-          {/* <BottomNavigationAction sx={{ minWidth: "60px" }} label="Asetukset" href="/settings" value="/settings" icon={<SettingsIcon />} LinkComponent={Link} /> */}
+          <BottomNavigationAction
+            sx={{ minWidth: "60px" }}
+            label="Asetukset"
+            href="/settings"
+            value="/settings"
+            icon={<SettingsIcon />}
+            LinkComponent={Link}
+          />
         </BottomNavigation>
       </Paper>
     </Box>

@@ -12,7 +12,6 @@ import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/S
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { type ISpotPrice } from "@energyapp/shared/interfaces";
-import { TemporarySettings } from "@energyapp/shared/constants";
 import { dateToSpotTimeString, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
 import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-summary";
 import useGetSpotPrices from "@energyapp/app/_hooks/queries/useGetSpotPrices";
@@ -20,13 +19,15 @@ import useUpdateSpotPrices from "@energyapp/app/_hooks/mutations/useUpdateSpotPr
 import { useSession } from "next-auth/react";
 import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
 import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
+import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
 
 export default function Page() {
   const { data: session } = useSession();
   const timePeriod = TimePeriod.P1Y;
-  const settings = TemporarySettings;
+  const settingsStore = useSettingsStore()
+  const settings = settingsStore.settings;
 
   const [startDate, setStartDate] = useState(dayjs().add(-5, 'year').startOf("year").hour(0).minute(0).second(0).millisecond(0))
   const [endDate, setEndDate] = useState(dayjs().endOf("year").hour(23).minute(59).second(59).millisecond(999))

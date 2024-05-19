@@ -39,11 +39,10 @@ export default function FingridProductionData({ data }: FingridProductionDataPro
                         const data = chart.data;
                         if (data.labels?.length && data.datasets.length) {
                             return data.labels.map((label, i) => {
-                                const meta = chart.getDatasetMeta(0);
                                 const ds = data.datasets[0];
                                 const arcOpts = chart.options.elements?.arc;
-                                const fill = ds?.backgroundColor?.[i] ?? arcOpts?.backgroundColor;
-                                const stroke = ds?.borderColor?.[i] ?? arcOpts?.borderColor;
+                                const fill = String(ds?.backgroundColor?.[i] ?? arcOpts?.backgroundColor);
+                                const stroke = String(ds?.borderColor?.[i] ?? arcOpts?.borderColor);
                                 const bw = arcOpts?.borderWidth
 
                                 return {

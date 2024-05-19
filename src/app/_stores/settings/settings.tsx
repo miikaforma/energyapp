@@ -1,6 +1,6 @@
 import { type ISettings } from "@energyapp/shared/interfaces";
 import { create } from "zustand";
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from "zustand/middleware";
 
 type SettingsState = {
   settings: ISettings;
@@ -23,7 +23,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage", // unique name
-      getStorage: () => localStorage, // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(() => localStorage), // (optional) by default the 'localStorage' is used
     },
   ),
 );

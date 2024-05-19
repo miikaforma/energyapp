@@ -23,7 +23,7 @@ type ForecastWithProduction = cbase_pv_forecast & { production?: number };
 export default function Page() {
   const tableRef: Parameters<typeof Table>[0]['ref'] = useRef(null);
 
-  const [startDate, setStartDate] = useState(
+  const [startDate] = useState(
     dayjs().hour(1).minute(0).second(0).millisecond(0),
   );
 
@@ -34,7 +34,7 @@ export default function Page() {
     const productionItem = productions?.find(
       productionItem => dayjs(productionItem.time).isSame(forecastItem.time)
     );
-  
+
     return productionItem
       ? { ...forecastItem, production: productionItem.production }
       : forecastItem;

@@ -65,35 +65,30 @@ export default function MelCloudEnergyReportPie({ fromDate, toDate,
                 display: true,
                 position: "bottom",
                 labels: {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    generateLabels: function (chart: { data: any; getDatasetMeta: (arg0: number) => any; options: { elements: { arc: any; }; }; }) {
+                    generateLabels: function (chart: Chart<'doughnut'>) {
                         const data = chart.data;
-                        if (data.labels.length && data.datasets.length) {
+                        if (data.labels?.length && data.datasets.length) {
                             // Calculate total
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                            const total = data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
+                            const total = data.datasets[0]?.data.reduce((a: number, b: number) => a + b, 0) ?? 0;
 
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                            return data.labels.map((label: string, i: string | number) => {
-                                const meta = chart.getDatasetMeta(0);
+                            return data.labels.map((label, i) => {
                                 const ds = data.datasets[0];
-                                const arc = meta.data[i];
-                                const custom = (arc?.custom) || {};
-                                const arcOpts = chart.options.elements.arc;
-                                const fill = custom.backgroundColor ? custom.backgroundColor : (ds.backgroundColor[i] || arcOpts.backgroundColor);
-                                const stroke = custom.borderColor ? custom.borderColor : (ds.borderColor[i] || arcOpts.borderColor);
-                                const bw = arcOpts.borderWidth //custom.borderWidth ? custom.borderWidth : (ds.borderWidth[i] || arcOpts.borderWidth);
+                                const arcOpts = chart.options.elements?.arc;
+                                const fill = String(ds?.backgroundColor?.[i] ?? arcOpts?.backgroundColor);
+                                const stroke = String(ds?.borderColor?.[i] ?? arcOpts?.borderColor);
+                                const bw = arcOpts?.borderWidth
 
                                 // Calculate percentage
-                                const percentage = (ds.data[i] / total * 100).toFixed(2);
+                                const dataPoint = ds?.data[i] ?? 0;
+                                const percentage = (dataPoint / total * 100).toFixed(2);
 
                                 return {
                                     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                                    text: `${label}: ${parseFloat(ds.data[i].toFixed(1))} kWh (${percentage}%)`,
+                                    text: `${String(label)}: ${parseFloat(dataPoint.toFixed(1))} kWh (${percentage}%)`,
                                     fillStyle: fill,
                                     strokeStyle: stroke,
                                     lineWidth: bw,
-                                    hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
+                                    // hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
                                     index: i,
                                     font: {
                                         color: '#fff',

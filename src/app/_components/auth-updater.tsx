@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useSession } from "next-auth/react"
 
 export default function AuthUpdater() {
-    const { data: session, status, update } = useSession()
+    const { update } = useSession()
 
     // Polling the session every 1 hour
     useEffect(() => {
@@ -19,7 +19,6 @@ export default function AuthUpdater() {
     // Listen for when the page is visible, if the user switches tabs
     // and makes our tab visible again, re-fetch the session
     useEffect(() => {
-        // @ts-ignore
         const visibilityHandler = () =>
             document.visibilityState === "visible" && update()
         // eslint-disable-next-line @typescript-eslint/no-misused-promises

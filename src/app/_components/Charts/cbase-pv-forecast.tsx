@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import {Line} from "react-chartjs-2";
-import { type Event } from '@energyapp/app/_fingrid/api'
 import {
     Chart as ChartJS,
     CategoryScale,

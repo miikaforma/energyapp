@@ -3,14 +3,12 @@ import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
-  TokenSet,
 } from "next-auth";
 import KeycloakProvider from 'next-auth/providers/keycloak';
 
 import { env } from "@energyapp/env";
 import { db } from "@energyapp/server/db";
 import { type Adapter, type AdapterAccount } from "next-auth/adapters";
-import { JWT } from "next-auth/jwt";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

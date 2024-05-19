@@ -37,6 +37,7 @@
     "chart.js": "^4.4.1",
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "chartjs-plugin-datalabels": "^2.2.0",
+    "croner": "^8.0.2",
     "dayjs": "^1.11.10",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",

@@ -11,12 +11,11 @@ import {
     type ChartType,
     type TooltipPositionerFunction,
     type ActiveElement,
-    Point,
     type ChartOptions,
     type ChartData,
     type DefaultDataPoint,
     type ChartDataset,
-    TooltipItem,
+    type TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
@@ -43,7 +42,8 @@ declare module 'chart.js' {
 
 // Create a custom tooltip positioner to put at the bottom of the chart area
 Tooltip.positioners.top = function (items: readonly ActiveElement[]) {
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     const pos = Tooltip.positioners.average(items);
 
     // Happens when nothing is found

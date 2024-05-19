@@ -40,7 +40,8 @@ declare module 'chart.js' {
 
 // Create a custom tooltip positioner to put at the bottom of the chart area
 Tooltip.positioners.top = function (items: readonly ActiveElement[]) {
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     const pos = Tooltip.positioners.average(items);
 
     // Happens when nothing is found

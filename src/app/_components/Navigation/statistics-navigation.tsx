@@ -1,12 +1,12 @@
 "use client";
 
-import { Radio } from "antd";
+import {Radio, type RadioChangeEvent} from "antd";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function StatisticsNavigation() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const router = useRouter();
   const pathname = usePathname();
@@ -20,7 +20,8 @@ export default function StatisticsNavigation() {
 
   const [selectedType, setSelectedType] = useState(currentPage ?? "fingrid");
 
-  const onTypeChange = (value: string) => {
+  const onTypeChange = (e: RadioChangeEvent) => {
+    const value = e.target.value as string
     setSelectedType(value);
     router.push(`/statistics/${value}`);
   };
@@ -28,7 +29,7 @@ export default function StatisticsNavigation() {
   return (
     <Radio.Group
       value={selectedType}
-      onChange={(e) => onTypeChange(e.target.value)}
+      onChange={onTypeChange}
       style={{ width: "100%", marginBottom: 12 }}
     >
       <Radio.Button key={"fingrid"} value="fingrid">

@@ -1,14 +1,10 @@
-import { db } from "@energyapp/server/db";
-import { info, warn } from "console";
-import dayjs from "dayjs";
-import { type Dayjs } from "dayjs";
+import {db} from "@energyapp/server/db";
+import {info, warn} from "console";
+import dayjs, {type Dayjs} from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
-import { type IEnergyCostReport } from "@energyapp/shared/interfaces";
-import {
-  type melcloud_daily_energy_consumption,
-  type melcloud_hourly_energy_consumption,
-} from "@prisma/client";
+import {type IEnergyCostReport} from "@energyapp/shared/interfaces";
+import {type melcloud_daily_energy_consumption, type melcloud_hourly_energy_consumption,} from "@prisma/client";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -295,9 +291,8 @@ export async function getEnergyReport(
   else {
     info("Yearly data fetched so skipping cache.");
   }
-  
-  const data = await fetchDataFromMelCloud(deviceId, fromDate, toDate);
-  return data;
+
+  return await fetchDataFromMelCloud(deviceId, fromDate, toDate);
   info("No cached data found.");
   return {} as IEnergyCostReport;
 }

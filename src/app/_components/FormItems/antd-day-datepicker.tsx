@@ -6,11 +6,12 @@ import { CaretLeftFilled, CaretRightFilled } from "@ant-design/icons";
 const dateFormat = "DD.MM.YYYY";
 
 interface DayDatePickerProps {
-  value: Dayjs;
-  onChange: (value: Dayjs) => void;
+  value?: Dayjs;
+  onChange: (value: Dayjs | null) => void;
   disabledNextDays?: number;
   minDate?: Dayjs;
   maxDate?: Dayjs;
+  allowClear?: boolean;
 }
 
 export function DayDatePicker({
@@ -19,20 +20,19 @@ export function DayDatePicker({
   disabledNextDays = 0,
   minDate,
   maxDate,
+  allowClear = false,
 }: DayDatePickerProps) {
   const [previousDisabled, setPreviousDisabled] = useState(false);
   const [nextDisabled, setNextDisabled] = useState(false);
 
   useEffect(() => {
-    if (minDate) {
-      setPreviousDisabled(
-        value && value.add(-1, "day").isBefore(minDate),
-      );
+    if (minDate && value) {
+      setPreviousDisabled(value && value.add(-1, "day").isBefore(minDate));
     }
 
-    if (maxDate) {
+    if (maxDate && value) {
       setNextDisabled(value && value.add(1, "day").isAfter(maxDate));
-    } else {
+    } else if (value) {
       // Should remove this and apply the minDate/disabledAfter properly everywhere
       setNextDisabled(
         value &&
@@ -58,15 +58,12 @@ export function DayDatePicker({
     if (minDate && maxDate) {
       return (
         current &&
-        (current.isBefore(minDate, "day") ||
-          current.isAfter(maxDate, "day"))
+        (current.isBefore(minDate, "day") || current.isAfter(maxDate, "day"))
       );
     }
 
     if (minDate) {
-      return (
-        minDate && current && current.isBefore(minDate, "day")
-      );
+      return minDate && current && current.isBefore(minDate, "day");
     }
 
     if (maxDate) {
@@ -81,28 +78,32 @@ export function DayDatePicker({
   return (
     <>
       <Space wrap>
-        <Button
-          type="text"
-          icon={<CaretLeftFilled />}
-          onClick={previousClick}
-          disabled={previousDisabled}
-        />
+        {value && (
+          <Button
+            type="text"
+            icon={<CaretLeftFilled />}
+            onClick={previousClick}
+            disabled={previousDisabled}
+          />
+        )}
         <DatePicker
-          allowClear={false}
+          allowClear={allowClear}
           inputReadOnly={true}
           variant={"outlined"}
-          value={dayjs(value)}
-          onChange={(value: Dayjs | null) => onChange(value ?? dayjs())}
+          value={value ? dayjs(value) : undefined}
+          onChange={(value: Dayjs | null) => onChange(allowClear ? value : value ?? dayjs())}
           format={dateFormat}
           showToday={true}
           disabledDate={disabledDate}
         />
-        <Button
-          type="text"
-          icon={<CaretRightFilled />}
-          onClick={nextClick}
-          disabled={nextDisabled}
-        />
+        {value && (
+          <Button
+            type="text"
+            icon={<CaretRightFilled />}
+            onClick={nextClick}
+            disabled={nextDisabled}
+          />
+        )}
       </Space>
     </>
   );

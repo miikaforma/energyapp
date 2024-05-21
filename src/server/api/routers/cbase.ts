@@ -32,8 +32,23 @@ export const cbaseRouter = createTRPCRouter({
         .then((data) =>
           data.map((d) => ({
             ...d,
-            time: dayjs(d.time).subtract(1, 'hour').toDate(),
+            time: dayjs(d.time).subtract(1, "hour").toDate(),
           })),
         );
     }),
+  getRange: protectedProcedure.query(async ({ ctx }) => {
+    const minMaxTime = await ctx.db.cbase_pv_forecast.aggregate({
+      _min: {
+        time: true,
+      },
+      _max: {
+        time: true,
+      },
+    });
+
+    return {
+      min: dayjs(minMaxTime._min.time),
+      max: dayjs(minMaxTime._max.time),
+    };
+  }),
 });

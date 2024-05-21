@@ -36,11 +36,11 @@ export function WattiVahtiProductionPrice({ production, timePeriod }: { producti
         }
     }
 
-    const spotPriceFullStr = production.spot_price < 100
+    const spotPriceFullStr = (timePeriod === TimePeriod.PT15M || timePeriod === TimePeriod.PT1H) && production.spot_price < 100
         ? `${spotPriceStr}: ${production.spot_price.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
         : `${spotPriceStr}: ${(production.spot_price / 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
-    const priceStr = price < 1
+    const priceStr = (timePeriod === TimePeriod.PT15M || timePeriod === TimePeriod.PT1H) && price < 1
         ? `${(price * 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
         : `${price.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 

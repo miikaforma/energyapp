@@ -12,6 +12,11 @@ import { updateFromEntsoe } from "@energyapp/server/integration/entsoe";
 import { updateFromNordpool } from "@energyapp/server/integration/nordpool";
 import { TRPCError } from "@trpc/server";
 
+export type DatePickerRange = {
+  min?: Dayjs,
+  max?: Dayjs,
+}
+
 const zodDay = z.custom<Dayjs>((val: unknown) => dayjs(val as string).isValid(), 'Invalid date');
 const zodTimePeriod = z.nativeEnum(TimePeriod);
 
@@ -41,9 +46,14 @@ export const spotPriceRouter = createTRPCRouter({
           return Promise.reject("Not implemented");
       }
     }),
+  getRange: publicProcedure
+    .input(z.object({ timePeriod: zodTimePeriod }))
+    .query(({ input, ctx }) => {
+      return getRange(ctx, input.timePeriod)
+    }),
   update: protectedProcedure
     .input(z.object({ timePeriod: zodTimePeriod, startTime: zodDay, endTime: zodDay }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       // Attempt updating from ENTSO-E first
       const entsoeResult = await updateFromEntsoe({ startDate: input.startTime, endDate: input.endTime });
       console.info('ENTSO-E update result', entsoeResult)
@@ -177,6 +187,73 @@ const getYearlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Pro
       } as ISpotPrice;
     });
   })
+}
+
+const getRange = async (ctx: IContext, timePeriod: TimePeriod): Promise<DatePickerRange> => {
+  switch (timePeriod) {
+    case TimePeriod.PT1H: {
+      const minMaxTime = await ctx.db.average_kwh_price_day_by_day.aggregate({
+        _min: {
+          date: true,
+        },
+        _max: {
+          date: true,
+        },
+      })
+
+      return {
+        min: dayjs(minMaxTime._min.date),
+        max: dayjs(minMaxTime._max.date),
+      }
+    }
+    case TimePeriod.P1D: {
+      const minMaxTime = await ctx.db.average_kwh_price_month_by_month.aggregate({
+        _min: {
+          date: true,
+        },
+        _max: {
+          date: true,
+        },
+      })
+
+      return {
+        min: dayjs(minMaxTime._min.date),
+        max: dayjs(minMaxTime._max.date),
+      }
+    }
+    case TimePeriod.P1M: {
+      const minMaxTime = await ctx.db.average_kwh_price_year_by_year.aggregate({
+        _min: {
+          date: true,
+        },
+        _max: {
+          date: true,
+        },
+      })
+
+      return {
+        min: dayjs(minMaxTime._min.date),
+        max: dayjs(minMaxTime._max.date),
+      }
+    }
+    case TimePeriod.P1Y: {
+      const minMaxTime = await ctx.db.average_kwh_price_year_by_year.aggregate({
+        _min: {
+          date: true,
+        },
+        _max: {
+          date: true,
+        },
+      })
+
+      return {
+        min: dayjs(minMaxTime._min.date),
+        max: dayjs(minMaxTime._max.date),
+      }
+    }
+    default:
+      return Promise.reject("Not implemented");
+  }
 }
 
 const spotPricesToResponse = (timePeriod: TimePeriod, prices: ISpotPrice[]): ISpotPriceResponse => {

@@ -14,6 +14,8 @@ import { CBaseForecastProduction } from "@energyapp/app/_components/ColumnRender
 import { CaretRightFilled } from "@ant-design/icons";
 import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolarmanProductions";
 import { SolarmanProductionProduced } from "@energyapp/app/_components/ColumnRenders/Statistics/solarman-production-produced";
+import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
+import useGetPvForecastRange from "@energyapp/app/_hooks/queries/useGetPvForecastRange";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -21,18 +23,27 @@ dayjs.extend(timezone);
 type ForecastWithProduction = cbase_pv_forecast & { production?: number };
 
 export default function Page() {
-  const tableRef: Parameters<typeof Table>[0]['ref'] = useRef(null);
+  const tableRef: Parameters<typeof Table>[0]["ref"] = useRef(null);
 
-  const [startDate] = useState(
+  const [startDate, setStartDate] = useState<Dayjs>(
     dayjs().hour(1).minute(0).second(0).millisecond(0),
   );
+  const [endDate, setEndDate] = useState<Dayjs | undefined>(undefined);
 
-  const { data: forecast, isLoading: forecastLoading } = useGetPvForecast({ startTime: startDate });
-  const { data: productions, isLoading: productionLoading } = useGetSolarmanProductions({ startTime: startDate.hour(0) });
+  const { data: datePickerRange } = useGetPvForecastRange();
+  const { data: forecast, isLoading: forecastLoading } = useGetPvForecast({
+    startTime: startDate,
+    endTime: endDate?.endOf("day").add(1, "hour"),
+  });
+  const { data: productions, isLoading: productionLoading } =
+    useGetSolarmanProductions({
+      startTime: startDate.hour(0),
+      endTime: endDate?.endOf("day").add(1, "hour"),
+    });
 
-  const combinedData = forecast?.map(forecastItem => {
-    const productionItem = productions?.find(
-      productionItem => dayjs(productionItem.time).isSame(forecastItem.time)
+  const combinedData = forecast?.map((forecastItem) => {
+    const productionItem = productions?.find((productionItem) =>
+      dayjs(productionItem.time).isSame(forecastItem.time),
     );
 
     return productionItem
@@ -42,7 +53,9 @@ export default function Page() {
 
   useEffect(() => {
     if (!forecastLoading && combinedData) {
-      const currentHourIndex = combinedData.findIndex(record => isCurrentHour(record.time));
+      const currentHourIndex = combinedData.findIndex((record) =>
+        isCurrentHour(record.time),
+      );
 
       if (currentHourIndex !== -1 && tableRef.current) {
         setTimeout(() => {
@@ -52,7 +65,19 @@ export default function Page() {
     }
   }, [combinedData, forecastLoading, productionLoading]);
 
-  const columns: TableProps<ForecastWithProduction>['columns'] = [
+  const onDateChange = (
+    date: string | number | dayjs.Dayjs | Date | null | undefined,
+  ) => {
+    if (date) {
+      setStartDate(dayjs(date).hour(1).minute(0).second(0).millisecond(0));
+      setEndDate(dayjs(date));
+    } else {
+      setStartDate(dayjs().hour(1).minute(0).second(0).millisecond(0));
+      setEndDate(undefined);
+    }
+  };
+
+  const columns: TableProps<ForecastWithProduction>["columns"] = [
     {
       title: "",
       dataIndex: "time",
@@ -93,6 +118,13 @@ export default function Page() {
       className="text-center"
       style={{ width: "calc(100vw - 32px)" }}
     >
+      <DayDatePicker
+        value={endDate}
+        onChange={onDateChange}
+        minDate={datePickerRange?.min}
+        maxDate={datePickerRange?.max}
+        allowClear={true}
+      ></DayDatePicker>
       <CBasePvForecast hourlyForecast={forecast} produced={productions} />
       <Table
         ref={tableRef}

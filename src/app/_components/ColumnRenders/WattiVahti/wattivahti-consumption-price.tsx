@@ -24,11 +24,11 @@ export function WattiVahtiConsumptionPrice({ consumption, timePeriod }: { consum
             break;
     }
 
-    const energyPriceStr = consumption.energy_fee < 100
+    const energyPriceStr = (timePeriod === TimePeriod.PT15M || timePeriod === TimePeriod.PT1H) && consumption.energy_fee < 1
         ? `Energia: ${consumption.energy_fee.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
         : `Energia: ${(consumption.energy_fee / 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
-    const priceStr = price < 100
+    const priceStr = (timePeriod === TimePeriod.PT15M || timePeriod === TimePeriod.PT1H) && price < 1
         ? `${(price * 100).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} snt`
         : `${price.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 

@@ -28,6 +28,7 @@ const zodDay = z.custom<Dayjs>(
 );
 const zodTimePeriod = z.nativeEnum(TimePeriod);
 
+// TODO: Add actual permission checks, now only checks for login
 export const solarmanRouter = createTRPCRouter({
   getLatest: protectedProcedure.query(
     async ({ ctx }): Promise<SolarmanLatestProduction | null> => {
@@ -37,7 +38,7 @@ export const solarmanRouter = createTRPCRouter({
         })
         .then((production: solarman_inverter_data | null) => {
           if (!production) return null;
-          
+
           return {
             plant_id: production.plant_id,
             device_id: production.device_id,

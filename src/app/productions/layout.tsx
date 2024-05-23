@@ -9,7 +9,7 @@ export default async function ProductionLayout({
 }) {
   const userAccesses = await api.access.getUserAccesses.query();
 
-  const hasSolarman = false //userAccesses.some((access: { type: string }) => access.type === "SOLARMAN");
+  const hasSolarman = userAccesses.some((access: { type: string }) => access.type === "SOLARMAN");
   const hasWattivahtiProduction = userAccesses.some((access: { type: string }) => access.type === "WATTIVAHTI_PRODUCTION");
 
   return (

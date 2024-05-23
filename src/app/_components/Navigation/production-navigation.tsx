@@ -53,10 +53,19 @@ export default function ProductionNavigation({ hasWattivahti, hasSolarman }: Pro
             {hasBothTypes && (
                 <Radio.Group value={selectedType} onChange={onTypeChange} style={{ width: "100%", marginBottom: 12 }}>
                     <Radio.Button key={'wattivahti'} value="wattivahti">WattiVahti</Radio.Button>
-                    <Radio.Button key={'melcloud'} value="melcloud">Melcloud</Radio.Button>
+                    <Radio.Button key={'solarman'} value="solarman">Solarman</Radio.Button>
                 </Radio.Group>
             )}
             {selectedType === 'wattivahti' && (
+                <Radio.Group value={selectedRange} onChange={onRangeChange} style={{ width: "100%", marginBottom: 12 }}>
+                    {/* <Radio.Button key={'P1Y'} value="P1Y">Vuosi</Radio.Button> */}
+                    <Radio.Button key={'P1M'} value="P1M">Kuukausi</Radio.Button>
+                    <Radio.Button key={'P1D'} value="P1D">Päivä</Radio.Button>
+                    <Radio.Button key={'PT1H'} value="PT1H">Tunti</Radio.Button>
+                    <Radio.Button key={'PT15M'} value="PT15M">15 Minuuttia</Radio.Button>
+                </Radio.Group>
+            )}
+            {selectedType === 'solarman' && (
                 <Radio.Group value={selectedRange} onChange={onRangeChange} style={{ width: "100%", marginBottom: 12 }}>
                     {/* <Radio.Button key={'P1Y'} value="P1Y">Vuosi</Radio.Button> */}
                     <Radio.Button key={'P1M'} value="P1M">Kuukausi</Radio.Button>

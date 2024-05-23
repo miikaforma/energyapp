@@ -37,12 +37,13 @@ export default function Page() {
   });
   const { data: productions, isLoading: productionLoading } =
     useGetSolarmanProductions({
+      timePeriod: TimePeriod.PT1H,
       startTime: startDate.hour(0),
       endTime: endDate?.endOf("day").add(1, "hour"),
     });
 
   const combinedData = forecast?.map((forecastItem) => {
-    const productionItem = productions?.find((productionItem) =>
+    const productionItem = productions?.productions?.find((productionItem) =>
       dayjs(productionItem.time).isSame(forecastItem.time),
     );
 
@@ -125,7 +126,7 @@ export default function Page() {
         maxDate={datePickerRange?.max}
         allowClear={true}
       ></DayDatePicker>
-      <CBasePvForecast hourlyForecast={forecast} produced={productions} />
+      <CBasePvForecast hourlyForecast={forecast} produced={productions?.productions} />
       <Table
         ref={tableRef}
         rowClassName={(record, _index) =>

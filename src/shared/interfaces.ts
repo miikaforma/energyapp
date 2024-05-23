@@ -192,3 +192,32 @@ export interface IEnergyCostReport {
     TotalMinutes?: number;
     MissingMinutes?: number;
 }
+
+export type SolarmanProductionResponse = {
+    timePeriod: TimePeriod;
+    summary?: SolarmanProductionSummary;
+    productions: SolarmanProduction[];
+}
+
+export type SolarmanProductionSummary = {
+    total?: SolarmanProduction;
+    best?: SolarmanProduction;
+}
+
+export type SolarmanProduction = {
+    time: Dayjs;
+    plant_id: number;
+    device_id: number;
+    production: number;
+}
+
+export type SolarmanLatestProduction = {
+    time: Dayjs;
+    plant_id: number;
+    device_id: number;
+    output_power_active: number;
+    solar_production_total: number;
+    solar_production_today: number;
+    solar_time_total: number;
+    solar_time_today: number;
+}

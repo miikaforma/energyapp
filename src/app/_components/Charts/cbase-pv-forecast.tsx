@@ -15,7 +15,8 @@ import {
     type ChartDataset,
 } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-import { type cbase_pv_forecast, type solarman_production_hour_by_hour } from "@prisma/client";
+import { type cbase_pv_forecast } from "@prisma/client";
+import { type SolarmanProduction } from "@energyapp/shared/interfaces";
 
 ChartJS.register(  CategoryScale,
     LinearScale,
@@ -29,7 +30,7 @@ ChartJS.register(  CategoryScale,
 
 type CBasePvForecastProps = {
     hourlyForecast?: cbase_pv_forecast[]
-    produced?: solarman_production_hour_by_hour[]
+    produced?: SolarmanProduction[]
 }
 
 export default function CBasePvForecast({ hourlyForecast, produced }: CBasePvForecastProps) {
@@ -128,7 +129,7 @@ const mapEventsToData = (data: cbase_pv_forecast[] | undefined | null, label: st
     return dataset;
 };
 
-const mapProducedToData = (data: solarman_production_hour_by_hour[] | undefined | null, label: string, color: string, fill = false, dashed = false, hidden = false) => {
+const mapProducedToData = (data: SolarmanProduction[] | undefined | null, label: string, color: string, fill = false, dashed = false, hidden = false) => {
     const dataset = {
         label: label,
         data: [],
@@ -141,8 +142,8 @@ const mapProducedToData = (data: solarman_production_hour_by_hour[] | undefined 
     } as ChartDataset<'line'>;
 
     data?.sort((a, b) => {
-        const dateA = a.time ? new Date(a.time) : null;
-        const dateB = b.time ? new Date(b.time) : null;
+        const dateA = a.time ? dayjs(a.time).toDate() : null;
+        const dateB = b.time ? dayjs(b.time).toDate() : null;
         if (dateA && dateB) {
             return dateA.getTime() - dateB.getTime();
         }
@@ -150,7 +151,7 @@ const mapProducedToData = (data: solarman_production_hour_by_hour[] | undefined 
     }).forEach(event => {
         if (event.time) {
             dataset.data.push({
-                x: new Date(event.time).getTime(),
+                x: dayjs(event.time).toDate().getTime(),
                 y: event.production ?? 0,
             });
         }

@@ -6,6 +6,7 @@ import { wattivahtiRouter } from "@energyapp/server/api/routers/wattivahti";
 import { cbaseRouter } from "@energyapp/server/api/routers/cbase";
 import { solarmanRouter } from "@energyapp/server/api/routers/solarman";
 import { fingridRouter } from "@energyapp/server/api/routers/fingrid";
+import { pushSubscriptionRouter } from "@energyapp/server/api/routers/pushSubscription";
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   cbase: cbaseRouter,
   solarman: solarmanRouter,
   fingrid: fingridRouter,
+  pushSubscription: pushSubscriptionRouter,
 });
 
 // export type definition of API

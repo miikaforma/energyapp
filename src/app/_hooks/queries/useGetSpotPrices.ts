@@ -17,16 +17,12 @@ interface IPrefetchGetSpotPrices {
     endTime: Dayjs;
 }
 
-// 30 minutes stale time
-const staleTime = 30 * 60 * 1000;
-
 const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices) => {
     const utils = api.useUtils();
 
     const query = api.spotPrice.get.useQuery({
         timePeriod: timePeriod, startTime, endTime
     }, {
-        staleTime: staleTime,
         select: data => data,
         onSuccess: (_data) => {
             prefetchSpotPrices({ utils, timePeriod, startTime, endTime });
@@ -84,7 +80,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
         startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
     }, {
-        staleTime: staleTime,
+
     });
     // Prefetch next
     void utils.spotPrice.get.prefetch({
@@ -92,7 +88,7 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
         startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
         endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)
     }, {
-        staleTime: staleTime,
+
     });
 }
 

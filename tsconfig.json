@@ -51,7 +51,9 @@
   "exclude": [
     "node_modules",
     "public/sw.js",
+    "worker/**/*",
     "public/workbox-*.js",
+    "public/worker-*.js",
     "src/app/_fingrid/**/*",
   ]
 }

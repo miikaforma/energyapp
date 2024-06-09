@@ -10,6 +10,7 @@ const useUpdateWattiVahti = () => {
             void utils.wattivahti.getConsumptions.invalidate().then(_ => {
                 toast.success('Kulutukset päivitetty onnistuneesti.');
             });
+            void utils.wattivahti.getProductions.invalidate()
         },
         onError: (err: unknown) => {
             // narrow the type

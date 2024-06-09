@@ -21,6 +21,8 @@ import { type Metadata, type Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import { api } from "@energyapp/trpc/server";
 import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
+import PushSubscriber from "./_components/Helpers/push-subscriber";
+import { env } from "@energyapp/env";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -73,6 +75,7 @@ export default async function RootLayout({
                       },
                     }} />
                     <AuthUpdater />
+                    <PushSubscriber applicationServerKey={env.VAPID_PUBLIC_KEY} />
                     <MenuAppBar session={session} />
                     <BottomNav session={session} userAccesses={userAccesses}>
                       {children}

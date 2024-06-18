@@ -1,10 +1,12 @@
-import React, { useState, useEffect, FC } from "react";
-import dayjs, { Dayjs } from "dayjs";
+import React, { useState, useEffect, type FC } from "react";
+import dayjs, { type Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocale);
+
+dayjs.locale('fi');
 
 dayjs.updateLocale("fi", {
   relativeTime: {

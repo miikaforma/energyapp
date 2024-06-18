@@ -407,7 +407,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
     switch (timePeriod) {
       case TimePeriod.PT15M:
       case TimePeriod.PT1H:
-        return "Sähkön hinta";
+        return "Spot-hinta";
       case TimePeriod.P1D:
         return "Päivän keskihinta";
       case TimePeriod.P1M:

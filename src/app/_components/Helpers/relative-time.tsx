@@ -2,6 +2,7 @@ import React, { useState, useEffect, type FC } from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
+import "dayjs/locale/fi";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocale);

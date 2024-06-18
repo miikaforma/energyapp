@@ -4,6 +4,7 @@ import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { useMediaQuery } from "@mui/material";
 import RelativeTime from "@energyapp/app/_components/Helpers/relative-time";
 import dayjs, { type Dayjs } from "dayjs";
+import { kwhOrWattsString } from "@energyapp/utils/powerHelpers";
 
 export default function SolarmanLatestProductionSummary({ summary }: { summary?: SolarmanLatestProduction | null }) {
     const isSx = useMediaQuery('(max-width:575px)');
@@ -28,10 +29,6 @@ export default function SolarmanLatestProductionSummary({ summary }: { summary?:
         return <span style={{ fontStyle: 'italic', color: "gray", whiteSpace: 'nowrap' }}><RelativeTime timestamp={time}></RelativeTime></span>
     }
 
-    const kwhOrWatts = (value: number) => {
-        return value > 1000 ? formatNumberToFI(value / 1000) + ' kWh' : formatNumberToFI(value) + ' W';
-    }
-
     const getLatestProduction = () => {
         const production = summary.output_power_active / 1000;
         const color = production < 1 ? 'yellow' : production < 2 ? 'gold' : production < 4 ? 'orange' : 'volcano';
@@ -39,7 +36,7 @@ export default function SolarmanLatestProductionSummary({ summary }: { summary?:
         return (
             <Descriptions.Item key={'latestProduction'} label={<span>Tuotto: {getRelativeTimeStamp(summary.time)}</span>} style={{ padding: 8 }}>
                 <Tag color={color} key='latestProduction' style={{ fontSize: isSx ? 14 : 15, padding: 4, width: '100%', textAlign: 'center' }}>
-                    {kwhOrWatts(summary.output_power_active)}
+                    {kwhOrWattsString(summary.output_power_active)}
                 </Tag>
             </Descriptions.Item>
         )

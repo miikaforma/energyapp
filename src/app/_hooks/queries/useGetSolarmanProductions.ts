@@ -18,9 +18,6 @@ type PrefetchSolarmanProductions = {
   singlePrefetch?: boolean;
 }
 
-// 30 minutes stale time
-const staleTime = 30 * 60 * 1000;
-
 const useGetSolarmanProductions = ({
   timePeriod,
   startTime,
@@ -35,7 +32,6 @@ const useGetSolarmanProductions = ({
       endTime,
     },
     {
-      staleTime: staleTime,
       select: (data) => data,
       onSuccess: (_data) => {
         if (timePeriod && endTime) {
@@ -69,7 +65,6 @@ const prefetchSolarmanProductions = ({ utils, timePeriod, startTime, endTime, si
           startTime: startTime,
           endTime: endTime,
       }, {
-          staleTime: staleTime,
       });
       return;
   }
@@ -112,7 +107,6 @@ const prefetchSolarmanProductions = ({ utils, timePeriod, startTime, endTime, si
       startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
       endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
   }, {
-      staleTime: staleTime,
   });
   // Prefetch next
   void utils.solarman.getProductions.prefetch({
@@ -120,7 +114,6 @@ const prefetchSolarmanProductions = ({ utils, timePeriod, startTime, endTime, si
       startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
       endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)
   }, {
-      staleTime: staleTime,
   });
 }
 

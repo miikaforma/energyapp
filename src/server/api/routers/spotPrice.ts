@@ -46,6 +46,10 @@ export const spotPriceRouter = createTRPCRouter({
           return Promise.reject("Not implemented");
       }
     }),
+  getCurrentPrice: publicProcedure
+    .query(({ ctx }) => {
+      return getCurrentSpotPrices(ctx)
+    }),
   getRange: publicProcedure
     .input(z.object({ timePeriod: zodTimePeriod }))
     .query(({ input, ctx }) => {
@@ -76,6 +80,42 @@ export const spotPriceRouter = createTRPCRouter({
       });
     }),
 });
+
+const getCurrentSpotPrices = (ctx: IContext): Promise<ISpotPrice | null> => {
+  return ctx.db.day_ahead_prices.findFirst({
+    orderBy: { time: "desc" },
+    where: {
+      time: {
+        lte: new Date(),
+      },
+    },
+    // orderBy: { time: "asc" },
+    // where: {
+    //   time: {
+    //     gte: startTime,
+    //     lte: endTime,
+    //   },
+    // },
+  }).then((price) => {
+    if (!price) {
+      return null;
+    }
+
+    const time = dayjs(price.time);
+    const tzTime = time.tz('Europe/Helsinki');
+
+    return {
+      time: time,
+      currency: 'EUR',
+      price: parseFloat((price.price / 10).toFixed(2)),
+      price_with_tax: parseFloat(((price.price * (1 + price.tax_percentage / 100)) / 10).toFixed(2)),
+      year: tzTime.year(),
+      month: tzTime.month() + 1,
+      day: tzTime.date(),
+      hour: tzTime.hour(),
+    } as ISpotPrice;
+  })
+}
 
 const getHourlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
   return ctx.db.day_ahead_prices.findMany({

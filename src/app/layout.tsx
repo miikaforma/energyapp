@@ -76,7 +76,7 @@ export default async function RootLayout({
                     }} />
                     <AuthUpdater />
                     <PushSubscriber applicationServerKey={env.VAPID_PUBLIC_KEY} />
-                    <MenuAppBar session={session} />
+                    <MenuAppBar session={session} userAccesses={userAccesses} />
                     <BottomNav session={session} userAccesses={userAccesses}>
                       {children}
                     </BottomNav>

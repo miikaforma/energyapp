@@ -1,13 +1,14 @@
 import { Tag } from "antd";
 import { addMargin, addTax, addTransfer, getTransfer } from "@energyapp/utils/calculationHelpers";
 import { type ISettings, type ISpotPrice } from "@energyapp/shared/interfaces";
+import dayjs from "dayjs";
 
 export function ElectricityPrice(spotPrice: ISpotPrice,
     settings: ISettings) {
 
     const time = spotPrice.time! ;
 
-    const parsedPrice = addTransfer(addTax(addMargin(spotPrice.price_with_tax, settings.margin), settings.addElectricityTax), getTransfer(time, settings))
+    const parsedPrice = addTransfer(addTax(spotPrice.time ?? dayjs(), addMargin(spotPrice.price_with_tax, settings.margin), settings.addElectricityTax), getTransfer(time, settings))
 
     const color = parsedPrice < 15 ? 'green' : parsedPrice < 20 ? 'yellow' : parsedPrice < 30 ? 'orange' : 'red';
 

@@ -34,7 +34,7 @@ export const addPricesToDb = async (data: Result[]) => {
                 price: dataRow.value,
                 measure_unit: 'MWH',
                 source: 'nordpool',
-                tax_percentage: 24.0, // Should add config like in entsoe logger
+                tax_percentage: 25.5, // Should add config like in entsoe logger
             }
         }),
         skipDuplicates: true,

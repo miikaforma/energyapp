@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
-import {Form, InputNumber, Switch, Slider, Space, Button, type SliderSingleProps, FloatButton} from "antd";
+import {Form, InputNumber, Switch, Slider, Space, Button, type SliderSingleProps, FloatButton, Typography} from "antd";
 import { type MutableRefObject, useRef } from "react";
 import SimpleSnackbar from "@energyapp/app/_components/snackbar";
 import useSettingsForm, {
@@ -9,6 +9,8 @@ import useSettingsForm, {
 } from "@energyapp/app/_hooks/forms/useSettingsForm";
 import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 import {SaveOutlined} from "@ant-design/icons";
+
+const { Text } = Typography;
 
 // const vats = [
 //   { label: "0 %", value: 0 },
@@ -153,7 +155,13 @@ export default function Settings() {
         <Form.Item
             name="addElectricityTax"
             label="Sähkövero"
-            help={"2,79372 c/kWh (sis. alv. 24 % ja huoltovarmuusmaksun)"}
+            help={
+              <Space.Compact direction="vertical">
+                <Text type="secondary">2,79372 c/kWh (sis. alv. 24 % ja huoltovarmuusmaksun)</Text>
+                <Text type="secondary">01.09.2024 alkaen 25,5 % ALV</Text>
+                <Text type="secondary">2,827515 c/kWh (sis. alv. 25,5 % ja huoltovarmuusmaksun)</Text>
+              </Space.Compact>
+            }
             rules={[validator]}
         >
           <Switch />

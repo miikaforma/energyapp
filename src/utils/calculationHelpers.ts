@@ -1,4 +1,9 @@
 import dayjs, { type Dayjs } from "dayjs";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export function addVAT(price: number, vat: number) {
   if (!vat || vat <= 0 /*|| Math.sign(price) === -1*/) {
@@ -49,10 +54,14 @@ export function addTransfer(price: number, transfer: number) {
   return price + transfer;
 }
 
-export function addTax(price: number, addTax: boolean) {
+export function addTax(time: Dayjs | Date, price: number, addTax: boolean) {
   if (!addTax) {
     return price;
   }
 
-  return price + 2.79372;
+  // If the price is after 01.09.2024, the tax is 25,5%, otherwise 24%
+  const priceDateTime = dayjs(time);
+  const tax = priceDateTime.isAfter('2024-08-31T20:59:59.999Z') ? 1.255 : 1.24;
+  
+  return price + (2.253 * tax); //2.79372;
 }

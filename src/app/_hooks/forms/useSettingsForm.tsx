@@ -14,6 +14,7 @@ const getSettingsFormValidator = () => {
     // nightStart: z.number().default(22),
     // nightEnd: z.number().default(7),
     nightRange: z.array(z.number()).length(2).default([1, 10]),
+    showConsumptionEffects: z.boolean().default(true),
   });
 };
 
@@ -53,6 +54,7 @@ export default function useSettingsForm(settings: ISettings) {
       nightTransfer,
       nightStart,
       nightEnd,
+      showConsumptionEffects,
     } = settings ?? {};
     return {
       margin: margin || 0.0,
@@ -64,6 +66,7 @@ export default function useSettingsForm(settings: ISettings) {
         nightStart >= 0 ? getKeyByValue(marks, nightStart) : 1,
         nightEnd >= 0 ? getKeyByValue(marks, nightEnd) : 10,
       ],
+      showConsumptionEffects: showConsumptionEffects || false,
     };
   }, [settings]);
 

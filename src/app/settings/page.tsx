@@ -9,6 +9,7 @@ import useSettingsForm, {
 } from "@energyapp/app/_hooks/forms/useSettingsForm";
 import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 import {SaveOutlined} from "@ant-design/icons";
+import { useSession } from "next-auth/react";
 
 const { Text } = Typography;
 
@@ -22,6 +23,7 @@ const { Text } = Typography;
 const cKWHSuffix = <span>c/kWh</span>;
 
 export default function Settings() {
+  const { status } = useSession();
   const settingsStore = useSettingsStore();
   const { form, validator, initialValues } = useSettingsForm(
     settingsStore.settings,
@@ -166,6 +168,15 @@ export default function Settings() {
         >
           <Switch />
         </Form.Item>
+        {status === "authenticated" && (
+          <Form.Item
+              name="showConsumptionEffects"
+              label="Näytä kulutusvaikutukset"
+              rules={[validator]}
+          >
+            <Switch />
+          </Form.Item>
+        )}
         <Space style={{ margin: 8 }}>
           <Form.Item>
             <Button type="primary" htmlType="submit">

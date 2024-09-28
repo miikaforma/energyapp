@@ -90,12 +90,21 @@ export default function FingridConsumptionForecast({ hourEnergyConsumptionForeca
         }
     });
 
+    // Find the minimum end time from both datasets
+    const maxEndTime = Math.min(
+        Math.max(...hourlyConsumptionForecast.map(dataPoint => new Date(dataPoint.start_time).getTime())),
+        Math.max(...hourEnergyProductionForecast.map(dataPoint => new Date(dataPoint.start_time).getTime()))
+    );
+
+    const filteredHourlyConsumptionForecast = hourlyConsumptionForecast.filter(dataPoint => new Date(dataPoint.start_time).getTime() <= maxEndTime);
+    const filteredHourEnergyProductionForecast = hourEnergyProductionForecast.filter(dataPoint => new Date(dataPoint.start_time).getTime() <= maxEndTime);
+
     const mappedData = {
         labels: [],
         datasets: [
             // mapEventsToData(nextDayForecast, 'Kulutusennuste - seuraava vuorokausi', 'rgb(0,210,255)', false, false),
-            mapEventsToData(hourlyConsumptionForecast, 'Kulutusennuste', 'rgb(255,56,56)', false, false),
-            mapEventsToData(hourEnergyProductionForecast, 'Tuotantoennuste', 'rgb(100,255,0)', false, false),
+            mapEventsToData(filteredHourlyConsumptionForecast, 'Kulutusennuste', 'rgb(255,56,56)', false, false),
+            mapEventsToData(filteredHourEnergyProductionForecast, 'Tuotantoennuste', 'rgb(100,255,0)', false, false),
         ],
     };
 

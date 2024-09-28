@@ -18,6 +18,7 @@ export const useSettingsStore = create<SettingsState>()(
         transferNight: 1.5,
         nightStart: 22,
         nightEnd: 7,
+        showConsumptionEffects: true,
       } as ISettings,
       setSettings: (settings) => set({ settings }),
     }),

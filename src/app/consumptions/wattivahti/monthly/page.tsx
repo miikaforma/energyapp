@@ -16,14 +16,19 @@ import useGetWattiVahtiConsumptions from "@energyapp/app/_hooks/queries/useGetWa
 import WattiVahtiConsumptionSummary from "@energyapp/app/_components/Descriptions/wattivahti-consumption-summary";
 import { WattiVahtiConsumption } from "@energyapp/app/_components/ColumnRenders/WattiVahti/wattivahti-consumption";
 import { WattiVahtiConsumptionPrice } from "@energyapp/app/_components/ColumnRenders/WattiVahti/wattivahti-consumption-price";
+import { WattiVahtiConsumptionEffect } from "@energyapp/app/_components/ColumnRenders/WattiVahti/wattivahti-consumption-effect";
 import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
 import WattiVahtiConsumptionsChart from "@energyapp/app/_components/Charts/wattivahti-consumptions-chart";
+import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
 
 export default function Page() {
     const timePeriod = TimePeriod.P1M;
+
+    const settingsStore = useSettingsStore();
+    const settings = settingsStore.settings;
 
     const [startDate, setStartDate] = useState(dayjs().startOf("year").hour(0).minute(0).second(0).millisecond(0))
     const [endDate, setEndDate] = useState(dayjs().endOf("year").hour(23).minute(59).second(59).millisecond(999))
@@ -77,6 +82,12 @@ export default function Page() {
             key: 'price',
             render: (_data: number, row: IWattiVahtiConsumption) => WattiVahtiConsumptionPrice({ consumption: row, timePeriod })
         },
+        settings.showConsumptionEffects ? {
+            title: <div style={{ wordBreak: 'break-word' }}>Omavaikutus</div>,
+            dataIndex: 'price',
+            key: 'price',
+            render: (_data: number, row: IWattiVahtiConsumption) => WattiVahtiConsumptionEffect({ consumption: row })
+        } : {}
     ]
 
     return (

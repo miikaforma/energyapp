@@ -17,6 +17,7 @@ export interface ISettings {
     transferNight: number;
     nightStart: number;
     nightEnd: number;
+    showConsumptionEffects: boolean;
 }
 
 export interface ISpotPriceResponse {

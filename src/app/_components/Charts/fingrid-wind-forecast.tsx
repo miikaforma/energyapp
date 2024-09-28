@@ -14,8 +14,14 @@ import {
     Filler,
     type ChartOptions,
     type ChartDataset,
+    // type Point,
 } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
+import annotationPlugin from 'chartjs-plugin-annotation';
+// import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
+import { Col, Row, Statistic } from "antd";
+import WindPowerIcon from '@mui/icons-material/WindPower';
+import AirIcon from '@mui/icons-material/Air';
 
 ChartJS.register(  CategoryScale,
     LinearScale,
@@ -25,7 +31,8 @@ ChartJS.register(  CategoryScale,
     Tooltip,
     Legend,
     TimeScale,
-    Filler);
+    Filler,
+    annotationPlugin);
 
 interface FingridWindForecastProps {
     produced?: fingrid_time_series_data[]
@@ -37,6 +44,110 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
     if (!produced || !hourlyForecast || !dailyForecast) {
         return <p>Ladataan...</p>
     }
+
+    const hourlyForecastData = mapEventsToData(hourlyForecast, 'Ennuste tunneittain', 'rgb(0,210,255)', false, true)
+
+    const mappedData = {
+        labels: [], // generate the labels
+        datasets: [
+            mapEventsToData(produced, 'Toteutunut', 'rgb(0,93,255)', true),
+            hourlyForecastData,
+            mapEventsToData(dailyForecast, 'Ennuste päivittäin', 'rgb(194,243,250)', false, true, true),
+        ],
+    }
+
+    const minYPoint = hourlyForecast.reduce((minPoint, point) => point.value < minPoint.value ? point : minPoint);
+    const maxYPoint = hourlyForecast.reduce((maxPoint, point) => point.value > maxPoint.value ? point : maxPoint);    
+/*
+    const minXValue = Math.min(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));
+    const maxXValue = Math.max(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));    
+
+    const getXAdjustByValue = (timestamp: number): number => {
+        const oneHour = 3600000; // milliseconds in one hour
+        const twoHours = 2 * oneHour;
+
+        if (Math.abs(timestamp - maxXValue) <= oneHour) {
+            return -100;
+        } else if (Math.abs(timestamp - maxXValue) <= twoHours) {
+            return -60;
+        } else if (Math.abs(timestamp - minXValue) <= oneHour) {
+            return 100;
+        } else if (Math.abs(timestamp - minXValue) <= twoHours) {
+            return 60;
+        }
+        return 0;
+    }
+
+    function getYAdjustByValue(value: number): number {
+        if (value < 3000) {
+            return -50;
+        } else if (value < 4000) {
+            return 40;
+        } else {
+            return 50;
+        }
+    }
+
+    const annotations = hourlyForecastData.hidden ? {} : {
+        minLabel: {
+            type: 'label',
+            xValue: new Date(minYPoint.start_time).getTime(),
+            yValue: minYPoint.value,
+            xAdjust: getXAdjustByValue(new Date(minYPoint.start_time).getTime()),
+            yAdjust: getYAdjustByValue(minYPoint.value),
+            color: 'white',
+            content: `${formatNumberToFI(minYPoint.value)} MW`,
+            textAlign: 'start',
+            font: {
+                size: 14
+            },
+            callout: {
+                display: true,
+                side: 10
+            }
+        },
+        maxLabel: {
+            type: 'label',
+            xValue: new Date(maxYPoint.start_time).getTime(),
+            yValue: maxYPoint.value,
+            xAdjust: getXAdjustByValue(new Date(maxYPoint.start_time).getTime()),
+            yAdjust: getYAdjustByValue(maxYPoint.value),
+            color: 'white',
+            content: `${formatNumberToFI(maxYPoint.value)} MW`,
+            textAlign: 'start',
+            font: {
+                size: 14
+            },
+            callout: {
+                display: true,
+                side: 10
+            }
+        },
+        // minLine: {
+        //     type: 'line',
+        //     yMin: minYValue,
+        //     yMax: minYValue,
+        //     borderColor: 'red',
+        //     borderWidth: 2,
+        //     label: {
+        //         content: `Min: ${minYValue}`,
+        //         enabled: true,
+        //         position: 'center'
+        //     }
+        // },
+        // maxLine: {
+        //     type: 'line',
+        //     yMin: maxYValue,
+        //     yMax: maxYValue,
+        //     borderColor: 'green',
+        //     borderWidth: 2,
+        //     label: {
+        //         content: `Max: ${maxYValue}`,
+        //         enabled: true,
+        //         position: 'center'
+        //     }
+        // }
+    };*/
 
     const options = {
         locale: 'fi-FI',
@@ -51,6 +162,9 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
                 display: true,
                 text: `Tuulituotanto Suomessa - ${dayjs().format('DD.MM.YYYY HH:mm')}`,
             },
+            // annotation: {
+            //     annotations
+            // },
         },
         scales: {
             x: {
@@ -65,7 +179,9 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
                     callback: function(value, _index, _values) {
                         return value + ' MW';
                     }
-                }
+                },
+                min: 0,
+                suggestedMax: 7700,
             },
         },
         elements: {
@@ -82,14 +198,15 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
         },
     } as ChartOptions<'line'>;
 
-    const mappedData = {
-        labels: [], // generate the labels
-        datasets: [
-            mapEventsToData(produced, 'Toteutunut', 'rgb(0,93,255)', true),
-            mapEventsToData(hourlyForecast, 'Ennuste tunneittain', 'rgb(0,210,255)', false, true),
-            mapEventsToData(dailyForecast, 'Ennuste päivittäin', 'rgb(194,243,250)', false, true, true),
-        ],
-    };
+    const getProductionColor = (value: number): string => {
+        if (value < 3000) {
+            return 'rgb(0,210,255)';
+        } else if (value < 4000) {
+            return 'rgb(0, 135, 255)';
+        } else {
+            return 'rgb(0, 108, 204)';
+        }
+    }
 
     return (
         <div className='text-center'>
@@ -99,6 +216,14 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
                     data={mappedData}
                 />
             </div>
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Statistic title="Pienin tuotanto" value={minYPoint.value} suffix="MW" prefix={<WindPowerIcon/>} valueStyle={{ color: getProductionColor(minYPoint.value) }} />
+                </Col>
+                <Col span={12}>
+                    <Statistic title="Suurin tuotanto" value={maxYPoint.value} precision={2} suffix="MW" prefix={<AirIcon/>} valueStyle={{ color: getProductionColor(maxYPoint.value) }} />
+                </Col>
+            </Row>
         </div>
     )
 }

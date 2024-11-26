@@ -40,6 +40,7 @@ import SpotPriceSummary from "@energyapp/app/_components/Descriptions/spotprice-
 import SpotPricesChart from "@energyapp/app/_components/Charts/spot-prices-chart";
 import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
 import useGetSpotPriceRange from "@energyapp/app/_hooks/queries/useGetSpotPriceRange";
+import { useSearchParams } from 'next/navigation';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -50,11 +51,14 @@ type SpotPricePageProps = {
   timePeriod: TimePeriod;
 };
 
-const getDefaultStartDate = (timePeriod: TimePeriod) => {
+const getDefaultStartDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
   switch (timePeriod) {
     case TimePeriod.PT15M:
       return dayjs().hour(0).minute(0).second(0).millisecond(0);
     case TimePeriod.PT1H:
+      if (dateQuery) {
+        return dateQuery.hour(0).minute(0).second(0).millisecond(0);
+      }
       return dayjs().hour(0).minute(0).second(0).millisecond(0);
     case TimePeriod.P1D:
       return dayjs()
@@ -78,11 +82,14 @@ const getDefaultStartDate = (timePeriod: TimePeriod) => {
   }
 };
 
-const getDefaultEndDate = (timePeriod: TimePeriod) => {
+const getDefaultEndDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
   switch (timePeriod) {
     case TimePeriod.PT15M:
       return dayjs().hour(23).minute(59).second(59).millisecond(999);
     case TimePeriod.PT1H:
+      if (dateQuery) {
+        return dateQuery.hour(23).minute(59).second(59).millisecond(999);
+      }
       return dayjs().hour(23).minute(59).second(59).millisecond(999);
     case TimePeriod.P1D:
       return dayjs()
@@ -115,17 +122,39 @@ const getDefaultEndDate = (timePeriod: TimePeriod) => {
   }
 };
 
+const getSelectedDate = (date: dayjs.Dayjs) => {
+  // Yesterday
+  if (date.isSame(dayjs().subtract(1, "day"), "day")) {
+    return "yesterday";
+  }
+  // Today
+  else if (date.isSame(dayjs(), "day")) {
+    return "today";
+  }
+  // Tomorrow
+  else if (date.isSame(dayjs().add(1, "day"), "day")) {
+    return "tomorrow";
+  }
+  // Other
+  else {
+    return "";
+  }
+};
+
 export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
+  const searchParams = useSearchParams()
+  const dateQuery = searchParams.get('date')
+
   const { data: session } = useSession();
-  const [startDate, setStartDate] = useState(getDefaultStartDate(timePeriod));
-  const [endDate, setEndDate] = useState(getDefaultEndDate(timePeriod));
+  const [startDate, setStartDate] = useState(getDefaultStartDate(timePeriod, dateQuery ? dayjs(dateQuery) : undefined));
+  const [endDate, setEndDate] = useState(getDefaultEndDate(timePeriod, dateQuery ? dayjs(dateQuery) : undefined));
   const utils = api.useUtils();
   const settingsStore = useSettingsStore();
   const settings = settingsStore.settings;
 
   // Get the current hour
   const [currentHour, setCurrentHour] = useState(new Date().getHours());
-  const [selectedDate, setSelectedDate] = useState("today");
+  const [selectedDate, setSelectedDate] = useState(getSelectedDate(dateQuery ? dayjs(dateQuery) : dayjs()));
 
   // Get spot price range
   const { data: spotPriceRange } = useGetSpotPriceRange({
@@ -212,22 +241,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
       }
       case TimePeriod.PT15M:
       case TimePeriod.PT1H: {
-        // Yesterday
-        if (dayjs(date).isSame(dayjs().subtract(1, "day"), "day")) {
-          setSelectedDate("yesterday");
-        }
-        // Today
-        else if (dayjs(date).isSame(dayjs(), "day")) {
-          setSelectedDate("today");
-        }
-        // Tomorrow
-        else if (dayjs(date).isSame(dayjs().add(1, "day"), "day")) {
-          setSelectedDate("tomorrow");
-        }
-        // Other
-        else {
-          setSelectedDate("");
-        }
+        setSelectedDate(getSelectedDate(dayjs(date)));
         break;
       }
     }

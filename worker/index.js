@@ -8,8 +8,7 @@ self.addEventListener("push", (event) => {
         body: bodyBuilder(data),
         icon: "/android-chrome-192x192.png",
         timestamp: data.updatedAt,
-        tag: "price-update",
-        renotify: true
+        data: data,
       }),
     );
   }
@@ -30,6 +29,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const { type, date } = event.notification.data || {};
+
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
@@ -41,10 +42,16 @@ self.addEventListener("notificationclick", (event) => {
               client = clientItem;
             }
           }
+          if (type === "NewSpotPriceUpdate") {
+            return client.focus().then(() => client.navigate(`/spotPrices/PT1H?date=${date}`));
+          }
           return client.focus();
         }
+        if (type === "NewSpotPriceUpdate") {
+          return clients.openWindow(`/spotPrices/PT1H?date=${date}`);
+        }
         return clients.openWindow("/");
-      }),
+      })
   );
 });
 

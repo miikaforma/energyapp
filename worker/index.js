@@ -8,6 +8,8 @@ self.addEventListener("push", (event) => {
         body: bodyBuilder(data),
         icon: "/android-chrome-192x192.png",
         timestamp: data.updatedAt,
+        tag: "price-update",
+        renotify: true
       }),
     );
   }

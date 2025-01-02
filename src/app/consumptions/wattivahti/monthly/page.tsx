@@ -63,6 +63,8 @@ export default function Page() {
         });
     }
 
+    const hasHybridConsumption = consumptions.some(consumption => consumption.contract_type === 4)
+
     const columns = [
         {
             title: 'Aika',
@@ -82,7 +84,7 @@ export default function Page() {
             key: 'price',
             render: (_data: number, row: IWattiVahtiConsumption) => WattiVahtiConsumptionPrice({ consumption: row, timePeriod })
         },
-        settings.showConsumptionEffects ? {
+        (settings.showConsumptionEffects || hasHybridConsumption) ? {
             title: <div style={{ wordBreak: 'break-word' }}>Omavaikutus</div>,
             dataIndex: 'price',
             key: 'price',

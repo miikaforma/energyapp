@@ -222,3 +222,28 @@ export type SolarmanLatestProduction = {
     solar_time_total: number;
     solar_time_today: number;
 }
+
+export type ShellyConsumptionResponse = {
+    timePeriod: TimePeriod;
+    summary?: ShellyConsumptionSummary;
+    consumptions: ShellyConsumption[];
+}
+
+export type ShellyConsumptionSummary = {
+    total: number;
+    highest: ShellyConsumption;
+    lowest: ShellyConsumption;
+}
+
+export type ShellyConsumption = {
+    time?: Dayjs;
+    device_name?: string;
+    device_id: string;
+    consumption: number;
+    avg_temperature_c: number;
+    avg_temperature_f: number;
+    avg_apower: number;
+    avg_voltage: number;
+    avg_freq: number;
+    avg_current: number;
+}

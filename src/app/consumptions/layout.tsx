@@ -11,15 +11,16 @@ export default async function ConsumptionLayout({
 
   const hasMelcloud = userAccesses.some((access: { type: string }) => access.type === "MELCLOUD");
   const hasWattivahtiConsumption = userAccesses.some((access: { type: string }) => access.type === "WATTIVAHTI_CONSUMPTION");
+  const hasShelly = userAccesses.some((access: { type: string }) => access.type === "SHELLY");
 
-  const hasBothTypes = hasMelcloud && hasWattivahtiConsumption;
+  const hasMultiple = [hasMelcloud, hasWattivahtiConsumption, hasShelly].filter(Boolean).length > 1;
 
   return (
     <main className="flex min-h-screen-nhf flex-col items-center justify-center app-main-background text-white">
       <div className="container flex flex-col items-center justify-center gap-2 px-4 py-16 ">
-        {hasBothTypes && (
+        {hasMultiple && (
           <div className="text-center">
-            <ConsumptionNavigation />
+            <ConsumptionNavigation hasMelcloud hasShelly hasWattivahti />
           </div>
         )}
         {children}

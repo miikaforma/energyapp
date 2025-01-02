@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import ConsumptionDescriptionSkeleton from "@energyapp/app/_components/Skeletons/consumption-description-skeleton";
 import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 
-export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLoading }: { timePeriod: TimePeriod, summary?: IWattiVahtiConsumption | null, isLoading: boolean }) {
+export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLoading, hasHybridConsumption }: { timePeriod: TimePeriod, summary?: IWattiVahtiConsumption | null, isLoading: boolean, hasHybridConsumption?: boolean }) {
     const settingsStore = useSettingsStore();
     const settings = settingsStore.settings;
     
@@ -173,7 +173,7 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
             {getTransferDay()}
             {getTransferNight()}
             {getBasicFeesAndBill()}
-            {settings.showConsumptionEffects && getConsumptionEffect()}
+            {(settings.showConsumptionEffects || hasHybridConsumption) && getConsumptionEffect()}
         </Descriptions>
     );
 }

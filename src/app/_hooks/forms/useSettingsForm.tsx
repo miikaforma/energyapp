@@ -15,6 +15,8 @@ const getSettingsFormValidator = () => {
     // nightEnd: z.number().default(7),
     nightRange: z.array(z.number()).length(2).default([1, 10]),
     showConsumptionEffects: z.boolean().default(true),
+    showSpot: z.boolean().default(false),
+    addMarginToShowSpot: z.boolean().default(false),
   });
 };
 
@@ -55,6 +57,8 @@ export default function useSettingsForm(settings: ISettings) {
       nightStart,
       nightEnd,
       showConsumptionEffects,
+      showSpot,
+      addMarginToShowSpot,
     } = settings ?? {};
     return {
       margin: margin || 0.0,
@@ -67,6 +71,8 @@ export default function useSettingsForm(settings: ISettings) {
         nightEnd >= 0 ? getKeyByValue(marks, nightEnd) : 10,
       ],
       showConsumptionEffects: showConsumptionEffects || false,
+      showSpot: showSpot || false,
+      addMarginToShowSpot: addMarginToShowSpot || false,
     };
   }, [settings]);
 

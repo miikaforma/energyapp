@@ -21,7 +21,9 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { TimePeriod } from "@energyapp/shared/enums";
-import { ShellyConsumption, type ISpotPrice } from "@energyapp/shared/interfaces";
+import {
+  type ShellyConsumption,
+} from "@energyapp/shared/interfaces";
 import {
   dateToSpotTimeString,
   isCurrentDay,
@@ -140,6 +142,7 @@ const getSelectedDate = (date: dayjs.Dayjs) => {
 export default function ShellyConsumptionPage({
   timePeriod,
 }: ShellyConsumptionPageProps) {
+  const enablePrefetch = false;
   const searchParams = useSearchParams();
   const dateQuery = searchParams.get("date");
 
@@ -150,9 +153,12 @@ export default function ShellyConsumptionPage({
   const [endDate, setEndDate] = useState(
     getDefaultEndDate(timePeriod, dateQuery ? dayjs(dateQuery) : undefined),
   );
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>();
+  const [selectedDeviceId, setSelectedDeviceId] = useState<
+    string | undefined
+  >();
   const [consumptions, setConsumptions] = useState<ShellyConsumption[]>();
-  const [filteredConsumptions, setFilteredConsumptions] = useState<ShellyConsumption[]>();
+  const [filteredConsumptions, setFilteredConsumptions] =
+    useState<ShellyConsumption[]>();
 
   const utils = api.useUtils();
 
@@ -182,38 +188,47 @@ export default function ShellyConsumptionPage({
 
   // Filter consumptions
   useEffect(() => {
-    setFilteredConsumptions(filterConsumptions(consumptions ?? [], selectedDeviceId));
-    console.log('Setting filtered consumptions');
+    setFilteredConsumptions(
+      filterConsumptions(consumptions ?? [], selectedDeviceId),
+    );
+    console.log("Setting filtered consumptions");
   }, [consumptions, selectedDeviceId]);
 
-  const filterConsumptions = (consumptions: ShellyConsumption[], selectedDeviceId?: string) => {
+  const filterConsumptions = (
+    consumptions: ShellyConsumption[],
+    selectedDeviceId?: string,
+  ) => {
     if (selectedDeviceId) {
       return consumptions.filter(
         (consumption) => consumption.device_id === selectedDeviceId,
       );
     }
     return [];
-  }
+  };
 
   // Prefetch consumptions when date changes
   useEffect(() => {
-    prefetchShellyConsumptions({
-      utils,
-      timePeriod: timePeriod,
-      startTime: startDate,
-      endTime: endDate,
-    });
+    if (enablePrefetch) {
+      prefetchShellyConsumptions({
+        utils,
+        timePeriod: timePeriod,
+        startTime: startDate,
+        endTime: endDate,
+      });
+    }
   }, [startDate, endDate]);
 
   // Prefetch consumptions when date changes
   useEffect(() => {
     // Call the function to refresh the data immediately when the component mounts
-    prefetchShellyConsumptions({
-      utils,
-      timePeriod: timePeriod,
-      startTime: startDate,
-      endTime: endDate,
-    });
+    if (enablePrefetch) {
+      prefetchShellyConsumptions({
+        utils,
+        timePeriod: timePeriod,
+        startTime: startDate,
+        endTime: endDate,
+      });
+    }
 
     // Set an interval to check every 10 seconds if the hour has changed
     const intervalId = setInterval(() => {
@@ -222,12 +237,14 @@ export default function ShellyConsumptionPage({
       if (newHour !== currentHour) {
         // If the hour has changed, update the state and refresh the data
         setCurrentHour(newHour);
-        prefetchShellyConsumptions({
-          utils,
-          timePeriod: timePeriod,
-          startTime: startDate,
-          endTime: endDate,
-        });
+        if (enablePrefetch) {
+          prefetchShellyConsumptions({
+            utils,
+            timePeriod: timePeriod,
+            startTime: startDate,
+            endTime: endDate,
+          });
+        }
 
         // If the date has changed, change to the current date
         const currentDate = dayjs();
@@ -398,8 +415,8 @@ export default function ShellyConsumptionPage({
 
   const uniqueConsumptions = Array.from(
     new Set(consumptions?.map((consumption) => consumption.device_id)),
-  ).map((id) =>
-    consumptions?.find((consumption) => consumption.device_id === id),
+  ).map(
+    (id) => consumptions?.find((consumption) => consumption.device_id === id),
   );
 
   const options = uniqueConsumptions.map((consumption) => ({
@@ -426,7 +443,11 @@ export default function ShellyConsumptionPage({
       )}
       {filters()}
 
-      <Select style={{ width: 200 }} options={options} onChange={handleChange} />
+      <Select
+        style={{ width: 200 }}
+        options={options}
+        onChange={handleChange}
+      />
       {/* <SpotPriceSummary spotResponse={spotResponse} />
       <SpotPricesChart
         spotPriceResponse={spotResponse}
@@ -463,7 +484,8 @@ export default function ShellyConsumptionPage({
           key="device
         _id"
         />
-        <Column title="Tiedot" 
+        <Column
+          title="Tiedot"
           dataIndex="device_id"
           key="device_id"
           width={100}
@@ -471,12 +493,82 @@ export default function ShellyConsumptionPage({
           render={(device_id: string, record: ShellyConsumption) => {
             return (
               <Row gutter={[4, 4]}>
-                <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{(record.consumption / 1000).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh</Tag></Col>
-                <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{record.avg_temperature_c.toLocaleString('fi-FI', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} °C</Tag></Col>
-                <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{(record.avg_apower / 1000).toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} W</Tag></Col>
-                <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{record.avg_voltage.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} V</Tag></Col>
+                <Col span={24}>
+                  <Tag
+                    style={{
+                      width: "80px",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    {(record.consumption / 1000).toLocaleString("fi-FI", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    kWh
+                  </Tag>
+                </Col>
+                <Col span={24}>
+                  <Tag
+                    style={{
+                      width: "80px",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    {record.avg_temperature_c.toLocaleString("fi-FI", {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    °C
+                  </Tag>
+                </Col>
+                <Col span={24}>
+                  <Tag
+                    style={{
+                      width: "80px",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    {(record.avg_apower / 1000).toLocaleString("fi-FI", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    W
+                  </Tag>
+                </Col>
+                <Col span={24}>
+                  <Tag
+                    style={{
+                      width: "80px",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    {record.avg_voltage.toLocaleString("fi-FI", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    V
+                  </Tag>
+                </Col>
                 {/* <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{record.avg_freq.toLocaleString('fi-FI', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} Hz</Tag></Col> */}
-                <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{record.avg_current.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} A</Tag></Col>
+                <Col span={24}>
+                  <Tag
+                    style={{
+                      width: "80px",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    {record.avg_current.toLocaleString("fi-FI", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    A
+                  </Tag>
+                </Col>
               </Row>
             );
           }}

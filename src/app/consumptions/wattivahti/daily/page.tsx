@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from "@energyapp/trpc/react";
-import { Button, Col, Row, Space, Table } from "antd";
+import { Button, Col, Row, Space, Switch, Table } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -32,6 +32,7 @@ export default function Page() {
 
     const [startDate, setStartDate] = useState(dayjs().startOf("month").hour(0).minute(0).second(0).millisecond(0))
     const [endDate, setEndDate] = useState(dayjs().endOf("month").hour(23).minute(59).second(59).millisecond(999))
+    const [showSpot, setShowSpot] = useState<boolean>(settings.showSpot)
     const utils = api.useUtils();
 
     // Get consumptions
@@ -62,6 +63,10 @@ export default function Page() {
             timePeriod: timePeriod,
         });
     }
+
+    const hasFixedConsumption = consumptions.some(consumption => consumption.contract_type === 2)
+    const hasHybridConsumption = consumptions.some(consumption => consumption.contract_type === 4)
+    const hasHybridOrFixedConsumption = hasFixedConsumption || hasHybridConsumption
 
     const columns = [
         {
@@ -96,7 +101,20 @@ export default function Page() {
                 <Col flex="auto"><MonthDatePicker value={startDate} onChange={onDateChange}></MonthDatePicker></Col>
                 <Col flex="none">{(<Button loading={isUpdating} onClick={executeUpdateConsumptions} icon={!isUpdating && <RedoOutlined />}></Button>)}</Col>
             </Row>
-            <WattiVahtiConsumptionSummary timePeriod={timePeriod} summary={consumptionResponse?.summary} isLoading={isLoading} />
+            {hasHybridOrFixedConsumption && (
+                <Row style={{ paddingBottom: 8 }} justify="end">
+                    <Col>
+                        <Switch value={showSpot} onChange={(val) => {
+                            setShowSpot(val)
+                            settingsStore.setSettings({
+                                ...settings,
+                                showSpot: val
+                            })
+                        }} checkedChildren="Spot-hinnalla" unCheckedChildren="Sopimuksen hinnalla" />
+                    </Col>
+                </Row>
+            )}
+            <WattiVahtiConsumptionSummary timePeriod={timePeriod} summary={consumptionResponse?.summary} isLoading={isLoading} hasFixedConsumption={hasFixedConsumption} hasHybridConsumption={hasHybridConsumption} showSpot={showSpot} />
             <WattiVahtiConsumptionsChart wattivahtiResponse={consumptionResponse} startDate={startDate} isLoading={isLoading} endDate={endDate} />
             <Table
                 rowKey={'time'}

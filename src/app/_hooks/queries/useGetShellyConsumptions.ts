@@ -33,7 +33,7 @@ const useGetShellyConsumptions = ({
     {
       select: (data) => data,
       onSuccess: (_data) => {
-        prefetchShellyConsumptions({ utils, timePeriod, startTime, endTime });
+        // prefetchShellyConsumptions({ utils, timePeriod, startTime, endTime });
       },
       onError: (err: unknown) => {
         if (err instanceof TRPCClientError) {

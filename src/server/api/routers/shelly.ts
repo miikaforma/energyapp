@@ -36,6 +36,8 @@ const getAggregatedData = (
   interval: string,
   deviceIds: string[],
 ): Promise<ShellyConsumption[]> => {
+  // console.log("getAggregatedData", startTime, endTime, interval, deviceIds);
+
   return ctx.db.$queryRaw<ShellyConsumption[]>`
     SELECT
         time_bucket(${Prisma.raw(`'${interval}'`)}, "time") AS time,
@@ -52,7 +54,13 @@ const getAggregatedData = (
     (
       SELECT
         *,
-        GREATEST(aenergy - COALESCE(LAG(aenergy) OVER (PARTITION BY device_id ORDER BY time), aenergy), 0) AS delta
+        -- GREATEST(aenergy - COALESCE(LAG(aenergy) OVER (PARTITION BY device_id ORDER BY time), aenergy), 0) AS delta
+        CASE 
+            WHEN EXTRACT(EPOCH FROM (time - LAG(time) OVER (PARTITION BY device_id ORDER BY time))) < 120 THEN 
+              GREATEST(aenergy - COALESCE(LAG(aenergy) OVER (PARTITION BY device_id ORDER BY time), aenergy), 0)
+            ELSE 
+              0 -- Reset delta if the interval is 2 minutes or more
+        END AS delta
       FROM "shelly_historical_data"
       WHERE "time" >= ${dayjs(startTime).subtract(1, 'hour').toDate()}
         AND "time" <= ${endTime}

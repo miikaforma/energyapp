@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
-import {Form, InputNumber, Switch, Slider, Space, Button, type SliderSingleProps, FloatButton, Typography} from "antd";
+import {Form, InputNumber, Switch, Slider, Space, Button, type SliderSingleProps, FloatButton, Typography, Input} from "antd";
 import { type MutableRefObject, useRef } from "react";
 import SimpleSnackbar from "@energyapp/app/_components/snackbar";
 import useSettingsForm, {
@@ -90,6 +90,10 @@ export default function Settings() {
         {/* <Form.Item name="vat" label="Arvonlisävero">
             <Select options={vats} value={settings?.vat || 0} />
           </Form.Item> */}
+        <Form.Item name="showSpot" hidden>
+          <Input type="hidden" />
+        </Form.Item>
+        
         <Form.Item
             name="margin"
             label="Marginaali"
@@ -169,13 +173,23 @@ export default function Settings() {
           <Switch />
         </Form.Item>
         {status === "authenticated" && (
+          <>
+            <Form.Item
+                name="showConsumptionEffects"
+                label="Näytä kulutusvaikutukset"
+                rules={[validator]}
+            >
+              <Switch />
+            </Form.Item>
+            
           <Form.Item
-              name="showConsumptionEffects"
-              label="Näytä kulutusvaikutukset"
+              name="addMarginToShowSpot"
+              label="Lisää marginaali fixed/hybrid spot laskuihin"
               rules={[validator]}
           >
             <Switch />
           </Form.Item>
+          </>
         )}
         <Space style={{ margin: 8 }}>
           <Form.Item>

@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import ConsumptionDescriptionSkeleton from "@energyapp/app/_components/Skeletons/consumption-description-skeleton";
 import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 
-export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLoading, hasHybridConsumption }: { timePeriod: TimePeriod, summary?: IWattiVahtiConsumption | null, isLoading: boolean, hasHybridConsumption?: boolean }) {
+export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLoading, hasHybridConsumption, hasFixedConsumption, showSpot }: { timePeriod: TimePeriod, summary?: IWattiVahtiConsumption | null, isLoading: boolean, hasHybridConsumption?: boolean, hasFixedConsumption?: boolean, showSpot?: boolean }) {
     const settingsStore = useSettingsStore();
     const settings = settingsStore.settings;
     
@@ -19,6 +19,31 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
     }
 
     const getEnergy = () => {
+        if ((hasHybridConsumption === true || hasFixedConsumption === true) && showSpot === true) {
+            const energyConsumption = summary?.energy_consumption ?? 0
+            let spotEnergyFee = summary?.energy_fee_spot_no_margin ?? 0
+            let priceSpotNoMargin = summary?.price_spot_no_margin ?? 0
+
+            if (settings.addMarginToShowSpot) {
+                const marginAddition = energyConsumption * settings.margin
+                spotEnergyFee += marginAddition
+                priceSpotNoMargin += marginAddition
+            }
+
+            const averageSpotPrice = spotEnergyFee / energyConsumption
+            const averagePriceSpot = priceSpotNoMargin / energyConsumption
+
+            return (
+                <Descriptions.Item key='energy' label={<Tooltip placement="bottom" title={<><span><strong>Kiinteä:</strong><br />Energia</span><br /><br /><span><strong>Spottisähkö:</strong><br />Spot-tuntihinta + Marginaali</span></>} trigger={'click'}><span>Energia</span> <InfoCircleFilled /></Tooltip>} style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
+                    <Row align="middle">
+                        <Col span={8}>{`${formatNumberToFI(summary?.energy_consumption)} kWh`}</Col>
+                        <Col span={8}><Tooltip title={<>Keskihinta (kaikki): <strong>{formatNumberToFI(averagePriceSpot)} c/kWh</strong></>} trigger={'click'}>{`${formatNumberToFI(averageSpotPrice)} c/kWh`}</Tooltip></Col>
+                        <Col span={8}>{<Tooltip placement="left" trigger={'click'}>{`${formatNumberToEuros(spotEnergyFee)} €`}</Tooltip>}</Col>
+                    </Row>
+                </Descriptions.Item>
+            )
+        }
+
         return (
             <Descriptions.Item key='energy' label={<Tooltip placement="bottom" title={<><span><strong>Kiinteä:</strong><br />Energia</span><br /><br /><span><strong>Spottisähkö:</strong><br />Spot-tuntihinta + Marginaali</span></>} trigger={'click'}><span>Energia</span> <InfoCircleFilled /></Tooltip>} style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
                 <Row align="middle">
@@ -67,7 +92,16 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
     }
 
     const getBasicFeesAndBill = () => {
-        const price = summary?.price ?? 0;
+        let price = summary?.price ?? 0;
+
+        if ((hasHybridConsumption === true || hasFixedConsumption === true) && showSpot === true) {
+            price = summary?.price_spot_no_margin ?? 0
+            if (settings.addMarginToShowSpot) {
+                const marginAddition = summary.energy_consumption * settings.margin
+                price += marginAddition
+            }
+        }
+
         let color = '';
 
         let transferBasicFee = 0;

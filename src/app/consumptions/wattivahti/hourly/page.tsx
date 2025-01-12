@@ -2,7 +2,7 @@
 
 import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
 import { api } from "@energyapp/trpc/react";
-import { Button, Col, Row, Space, Table } from "antd";
+import { Button, Col, Row, Space, Switch, Table } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
 
@@ -22,6 +22,7 @@ import { WattiVahtiConsumptionPrice } from "@energyapp/app/_components/ColumnRen
 import useUpdateWattiVahti from "@energyapp/app/_hooks/mutations/useUpdateWattiVahti";
 import { AlertWarning } from "@energyapp/app/_components/Alerts/alert-warning";
 import WattiVahtiConsumptionsChart from "@energyapp/app/_components/Charts/wattivahti-consumptions-chart";
+import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
@@ -30,9 +31,13 @@ dayjs.extend(timezone);
 
 export default function Page() {
     const timePeriod = TimePeriod.PT1H;
-
+    
+    const settingsStore = useSettingsStore();
+    const settings = settingsStore.settings;
+    
     const [startDate, setStartDate] = useState(dayjs().add(-1, 'day').hour(0).minute(0).second(0).millisecond(0))
     const [endDate, setEndDate] = useState(dayjs().add(-1, 'day').hour(23).minute(59).second(59).millisecond(999))
+    const [showSpot, setShowSpot] = useState<boolean>(settings.showSpot)
     const utils = api.useUtils();
 
     // Get consumptions
@@ -63,6 +68,10 @@ export default function Page() {
             timePeriod: timePeriod,
         });
     }
+    
+    const hasFixedConsumption = consumptions.some(consumption => consumption.contract_type === 2)
+    const hasHybridConsumption = consumptions.some(consumption => consumption.contract_type === 4)
+    const hasHybridOrFixedConsumption = hasFixedConsumption || hasHybridConsumption
 
     const columns = [
         {
@@ -99,7 +108,20 @@ export default function Page() {
                 <Col flex="none">{(<Button loading={isUpdating} onClick={executeUpdateConsumptions} icon={!isUpdating && <RedoOutlined />}></Button>)}</Col>
             </Row>
             {!isLoading && (consumptionResponse?.consumptions.length ?? 0) < hoursInDay() && <AlertWarning title='Huom!' message='Kaikkia päivän kulutuksia ei ole vielä saatavilla.' type="borderedWithAccent" />}
-            <WattiVahtiConsumptionSummary timePeriod={timePeriod} summary={consumptionResponse?.summary} isLoading={isLoading} />
+            {hasHybridOrFixedConsumption && (
+                <Row style={{ paddingBottom: 8 }} justify="end">
+                    <Col>
+                        <Switch value={showSpot} onChange={(val) => {
+                            setShowSpot(val)
+                            settingsStore.setSettings({
+                                ...settings,
+                                showSpot: val
+                            })
+                        }} checkedChildren="Spot-hinnalla" unCheckedChildren="Sopimuksen hinnalla" />
+                    </Col>
+                </Row>
+            )}
+            <WattiVahtiConsumptionSummary timePeriod={timePeriod} summary={consumptionResponse?.summary} isLoading={isLoading} hasFixedConsumption={hasFixedConsumption} hasHybridConsumption={hasHybridConsumption} showSpot={showSpot} />
             <WattiVahtiConsumptionsChart wattivahtiResponse={consumptionResponse} startDate={startDate} isLoading={isLoading} endDate={endDate} />
             <Table
                 rowKey={'time'}

@@ -18,6 +18,8 @@ export interface ISettings {
     nightStart: number;
     nightEnd: number;
     showConsumptionEffects: boolean;
+    showSpot: boolean;
+    addMarginToShowSpot: boolean;
 }
 
 export interface ISpotPriceResponse {

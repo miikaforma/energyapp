@@ -333,9 +333,58 @@ model shelly_historical_data {
   @@index([time(sort: Desc)])
 }
 
+model meteringPoint {
+  metering_point_ean      String     @id
+  type                    accountingPointType
+  street_name             String?
+  building_number         String?
+  postal_code             String?
+  post_office             String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([metering_point_ean])
+
+  electricityObservations electricity_observations[]
+  contracts contracts[]
+}
+
+model contracts {
+  id                 Int       @id @default(autoincrement())
+  metering_point_ean String
+  contract_type      Int       @db.SmallInt
+  start_date         DateTime
+  end_date           DateTime?
+
+  // Energy
+  night_start_hour   Int?       @default(22)
+  night_end_hour     Int?       @default(7)
+  basic_fee          Float      @db.Real
+  day_fee            Float?     @db.Real
+  night_fee          Float?     @db.Real
+  margin             Float?     @db.Real
+  negative_no_tax    Boolean?   @default(false)
+
+  // Transfer
+  night_start_hour_transfer Int? @default(22)
+  night_end_hour_transfer   Int? @default(7)
+  basic_fee_transfer        Float @db.Real
+  day_fee_transfer          Float @db.Real
+  night_fee_transfer        Float @db.Real
+  tax_fee_transfer          Float @db.Real
+  negative_no_tax_transfer  Boolean? @default(false)
+
+  // Tax
+  tax_percentage     Float     @default(25.5) @db.Real
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  meteringPoint meteringPoint @relation(fields: [metering_point_ean], references: [metering_point_ean])
+}
+
 model electricity_observations {
   period_start        DateTime @db.Timestamptz(6)
-  metering_point_ean  String
+  metering_point_ean  String 
   resolution_duration String
   product_type        String
   unit_type           String
@@ -343,6 +392,8 @@ model electricity_observations {
   measurement_source  String?
   quantity            Float?
   quality             String?
+
+  meteringPoint meteringPoint @relation(fields: [metering_point_ean], references: [metering_point_ean])
 
   @@unique([period_start, metering_point_ean, resolution_duration, product_type, unit_type, reading_type])
   @@index([period_start(sort: Desc)])
@@ -849,4 +900,9 @@ enum dayAheadState {
   Preliminary
   Final
   Cancelled
+}
+
+enum accountingPointType {
+  AG01
+  AG02
 }

@@ -333,6 +333,21 @@ model shelly_historical_data {
   @@index([time(sort: Desc)])
 }
 
+model electricity_observations {
+  period_start        DateTime @db.Timestamptz(6)
+  metering_point_ean  String
+  resolution_duration String
+  product_type        String
+  unit_type           String
+  reading_type        String
+  measurement_source  String?
+  quantity            Float?
+  quality             String?
+
+  @@unique([period_start, metering_point_ean, resolution_duration, product_type, unit_type, reading_type])
+  @@index([period_start(sort: Desc)])
+}
+
 view average_kwh_price_day_by_day {
   date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?

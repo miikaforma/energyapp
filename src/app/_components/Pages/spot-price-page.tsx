@@ -341,7 +341,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
                 value={startDate}
                 onChange={onDateChange}
                 disabledNextDays={1}
-                minDate={session ? undefined : spotPriceRange?.min}
+                minDate={spotPriceRange?.min}
               ></DayDatePicker>
             </Col>
             {showUpdateButton() && (
@@ -364,7 +364,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
               <MonthDatePicker
                 value={startDate}
                 onChange={onDateChange}
-                minDate={session ? undefined : spotPriceRange?.min}
+                minDate={spotPriceRange?.min}
               ></MonthDatePicker>
             </Col>
           </Row>
@@ -376,7 +376,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
               <YearDatePicker
                 value={startDate}
                 onChange={onDateChange}
-                minDate={session ? undefined : spotPriceRange?.min}
+                minDate={spotPriceRange?.min}
               ></YearDatePicker>
             </Col>
           </Row>
@@ -389,7 +389,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
                 startYear={startDate}
                 endYear={endDate}
                 onChange={onDateRangeChange}
-                minDate={session ? undefined : spotPriceRange?.min}
+                minDate={spotPriceRange?.min}
               />
             </Col>
           </Row>

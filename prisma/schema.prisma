@@ -340,6 +340,7 @@ model meteringPoint {
   building_number         String?
   postal_code             String?
   post_office             String?
+  start_date              DateTime      @db.Timestamptz(6)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 

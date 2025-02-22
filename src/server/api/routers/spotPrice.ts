@@ -9,7 +9,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { type IContext, type ISpotPrice, type ISpotPriceResponse, type ISpotPriceSummary } from "@energyapp/shared/interfaces";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { updateFromEntsoe } from "@energyapp/server/integration/entsoe";
-import { updateFromNordpool } from "@energyapp/server/integration/nordpool";
+import { updateFromElring } from "@energyapp/server/integration/elring";
 import { TRPCError } from "@trpc/server";
 
 export type DatePickerRange = {
@@ -65,13 +65,11 @@ export const spotPriceRouter = createTRPCRouter({
         return "ok";
       }
 
-      // Only update Nordpool hourly prices
-      if (input.timePeriod === TimePeriod.PT1H) {
-        const nordpoolResult = await updateFromNordpool({ startDate: input.startTime, endDate: input.endTime });
-        console.info('Nordpool update result', nordpoolResult)
-        if (nordpoolResult) {
-          return "ok";
-        }
+      // Only update Elring hourly prices
+      const elringResult = await updateFromElring({ startDate: input.startTime, endDate: input.endTime });
+      console.info('Elring update result', elringResult)
+      if (elringResult) {
+        return "ok";
       }
 
       throw new TRPCError({
@@ -285,6 +283,8 @@ const getRange = async (ctx: IContext, timePeriod: TimePeriod): Promise<DatePick
           date: true,
         },
       })
+
+      console.log(minMaxTime);
 
       return {
         min: dayjs(minMaxTime._min.date),

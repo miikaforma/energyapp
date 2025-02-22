@@ -9,6 +9,7 @@ CREATE TABLE "meteringPoint" (
     "building_number" TEXT,
     "postal_code" TEXT,
     "post_office" TEXT,
+    "start_date" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

@@ -34,6 +34,7 @@ export const env = createEnv({
 
     ENTSOE_ENDPOINT: z.string().url(),
     WATTIVAHTI_ENDPOINT: z.string().url(),
+    DATAHUB_ENDPOINT: z.string().url(),
 
     VAPID_PUBLIC_KEY: z.string(),
     VAPID_PRIVATE_KEY: z.string(),
@@ -62,6 +63,7 @@ export const env = createEnv({
     KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
     ENTSOE_ENDPOINT: process.env.ENTSOE_ENDPOINT,
     WATTIVAHTI_ENDPOINT: process.env.WATTIVAHTI_ENDPOINT,
+    DATAHUB_ENDPOINT: process.env.DATAHUB_ENDPOINT,
     VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
   },

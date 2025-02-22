@@ -103,6 +103,8 @@ jobs:
     name: "Create Docker Manifests and Release"
     needs: [build_amd64, build_arm64]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4

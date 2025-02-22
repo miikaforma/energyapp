@@ -196,10 +196,10 @@ jobs:
 
       - name: Combine and push images
         run: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ needs.build_amd64.outputs.RELEASE_VERSION }}-amd64
-          docker pull ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ needs.build_arm64.outputs.RELEASE_VERSION }}-arm64
-          docker tag ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ needs.build_amd64.outputs.RELEASE_VERSION }}-amd64 ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ needs.build_arm64.outputs.RELEASE_VERSION }}-arm64 ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
+          docker pull ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-amd64
+          docker pull ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-arm64
+          docker tag ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-amd64 ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-arm64 ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
           docker push ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
           docker push ${{ secrets.DOCKER_USERNAME }}/energyapp:latest
 

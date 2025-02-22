@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:20.1.0-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -8,11 +8,8 @@ ENV SKIP_ENV_VALIDATION=true
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:18-alpine as runner
+FROM node:20.1.0-alpine AS runner
 WORKDIR /app
-
-# Install required dependencies
-RUN apk add --no-cache openssl1.1-compat
 
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/package-lock.json .

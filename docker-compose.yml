@@ -4,6 +4,8 @@ services:
   energyapp:
     hostname: '0.0.0.0'
     image: miikaforma/energyapp:latest
+    env_file:
+      - .env.docker.local
     ports:
       - 5247:3000
     # deploy:

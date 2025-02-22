@@ -5,6 +5,7 @@ import {
 } from "@energyapp/server/api/trpc";
 import {
   recalculateWithContract,
+  refreshContinuousAggregates,
   updateFromDatahub,
 } from "@energyapp/server/integration/datahub";
 import { TimePeriod } from "@energyapp/shared/enums";
@@ -184,6 +185,9 @@ async function _recalculateWithContract({
       "Datahub recalculate results PT15M",
       recalculateResultsPT15M,
     );
+
+    // Refresh continuous aggregates
+    await refreshContinuousAggregates();
 
     if (recalculateResultsPT15M.every((result) => result)) {
       return "ok";

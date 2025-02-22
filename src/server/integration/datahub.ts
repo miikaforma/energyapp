@@ -193,7 +193,7 @@ export const recalculateWithContract = async ({
       });
     }
 
-    await addEnergiesToDb(data, new Set(pointTypes));
+    await addEnergiesToDb(data/*, new Set(pointTypes) */);
 
     return true;
   } catch (error) {
@@ -216,7 +216,21 @@ const getEndDate = (time: Dayjs): string => {
   return newTime.format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
 };
 
-export const addEnergiesToDb = async (data: energies[], pointTypes: Set<string>) => {
+export const refreshContinuousAggregates = async () => {
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_15min_by_15min', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_hour_by_hour', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_day_by_day', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_month_by_month', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_year_by_year', NULL, NULL);`;
+
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_15min_by_15min', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_hour_by_hour', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_day_by_day', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_month_by_month', NULL, NULL);`;
+  await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_year_by_year', NULL, NULL);`;
+}
+
+export const addEnergiesToDb = async (data: energies[]/*, pointTypes: Set<string> */) => {
   //   await db.energies.createMany({
   //     data: data,
   //     skipDuplicates: true,
@@ -237,23 +251,24 @@ export const addEnergiesToDb = async (data: energies[], pointTypes: Set<string>)
     }),
   );
 
-  await Promise.all(upsertPromises);
+  await db.$transaction(upsertPromises);
+  // await Promise.all(upsertPromises);
 
   // Refresh the continuous aggregates
-  if (pointTypes.has("AG01")) {
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_15min_by_15min', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_hour_by_hour', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_day_by_day', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_month_by_month', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_year_by_year', NULL, NULL);`;
-  }
-  if (pointTypes.has("AG02")) {
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_15min_by_15min', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_hour_by_hour', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_day_by_day', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_month_by_month', NULL, NULL);`;
-    await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_year_by_year', NULL, NULL);`;
-  }
+  // if (pointTypes.has("AG01")) {
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_15min_by_15min', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_hour_by_hour', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_day_by_day', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_month_by_month', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_consumption_year_by_year', NULL, NULL);`;
+  // }
+  // if (pointTypes.has("AG02")) {
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_15min_by_15min', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_hour_by_hour', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_day_by_day', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_month_by_month', NULL, NULL);`;
+  //   await db.$queryRaw`CALL refresh_continuous_aggregate('energies_production_year_by_year', NULL, NULL);`;
+  // }
 };
 
 const get_energy_fee = (

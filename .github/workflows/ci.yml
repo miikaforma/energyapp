@@ -55,6 +55,8 @@ jobs:
           context: .
           platforms: linux/amd64
           file: ./Dockerfile
+          push: true
+          provenance: false
           tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-amd64
 
   build_arm64:
@@ -93,6 +95,8 @@ jobs:
           context: .
           platforms: linux/arm64
           file: ./Dockerfile
+          push: true
+          provenance: false
           tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-arm64
 
   create-manifests-and-release:

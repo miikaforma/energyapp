@@ -10,6 +10,10 @@ RUN npm run build
 
 FROM node:18-alpine as runner
 WORKDIR /app
+
+# Install required dependencies
+RUN apk add --no-cache openssl1.1-compat
+
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/package-lock.json .
 COPY --from=builder /app/next.config.js ./

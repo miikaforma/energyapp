@@ -17,21 +17,88 @@ on:
         description: 'Specific version'
         required: false
         default: ''
-      push:
-        description: 'Push to DockerHub'
-        required: true
-        default: true
-        type: boolean
 
 jobs:
-  buildVariables:
-    name: "Get variables"
+  build_amd64:
+    name: "Build amd64 image"
     runs-on: ubuntu-latest
-    outputs:
-      tag_version: ${{ steps.set_outputs.outputs.TAG_VERSION }}
-      release_version: ${{ steps.set_outputs.outputs.RELEASE_VERSION }}
-      commit_branch: ${{ steps.set_outputs.outputs.COMMIT_BRANCH }}
-      commit_hash: ${{ steps.set_outputs.outputs.COMMIT_HASH }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Context for Buildx
+        id: buildx-context
+        run: |
+          docker context create builders
+
+      - uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          endpoint: builders
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push amd64 image
+        id: docker_build_amd64
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          file: ./Dockerfile
+          tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-amd64
+
+  build_arm64:
+    name: "Build arm64 image"
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Context for Buildx
+        id: buildx-context
+        run: |
+          docker context create builders
+
+      - uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          endpoint: builders
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push arm64 image
+        id: docker_build_arm64
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          file: ./Dockerfile
+          tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-arm64
+
+  create-manifests-and-release:
+    name: "Create Docker Manifests and Release"
+    needs: [build_amd64, build_arm64]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -111,90 +178,11 @@ jobs:
           echo "COMMIT_BRANCH=${{ env.COMMIT_BRANCH }}" >> $GITHUB_OUTPUT
           echo "COMMIT_HASH=${{ env.COMMIT_HASH }}" >> $GITHUB_OUTPUT
 
-  # build_amd64:
-  #   name: "Build amd64 image"
-  #   needs: [buildVariables]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-  #     RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-  #     COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-  #     COMMIT_HASH: ${{ needs.buildVariables.outputs.commit_hash }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #         submodules: recursive
-
-  #     - uses: docker/setup-buildx-action@v3
-  #     - name: Login to DockerHub
-  #       uses: docker/login-action@v2
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-
-  #     - name: Build and push amd64 image
-  #       id: docker_build_amd64
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         platforms: linux/amd64
-  #         file: ./Dockerfile
-  #         push: ${{ inputs.push }}
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-amd64
-
-  # build_arm64:
-  #   name: "Build arm64 image"
-  #   needs: [buildVariables]
-  #   runs-on: ubuntu-24.04-arm
-  #   env:
-  #     TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-  #     RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-  #     COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-  #     COMMIT_HASH: ${{ needs.buildVariables.outputs.commit_hash }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #         submodules: recursive
-
-  #     - uses: docker/setup-buildx-action@v3
-  #     - name: Login to DockerHub
-  #       uses: docker/login-action@v2
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-
-  #     - name: Build and push arm64 image
-  #       id: docker_build_arm64
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         platforms: linux/arm64
-  #         file: ./Dockerfile
-  #         push: ${{ inputs.push }}
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-arm64
-
-  create-manifests:
-    name: "Create and push multi platform image"
-    # needs: [build_amd64, build_arm64]
-    needs: [buildVariables]
-    runs-on: ubuntu-latest
-    env:
-      TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-      RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-      COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-      COMMIT_HASH: ${{ needs.buildVariables.outputs.commit_hash }}
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -203,40 +191,26 @@ jobs:
         run: |
           docker manifest create \
             ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }} \
-            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-amd64 \
-            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}-arm64
+            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-amd64 \
+            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-arm64
           docker manifest push ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
 
       - name: Create latest manifest and push
         run: |
           docker manifest create \
             ${{ secrets.DOCKER_USERNAME }}/energyapp:latest \
-            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:latest-amd64 \
-            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:latest-arm64
+            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-amd64 \
+            --amend ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ github.sha }}-arm64
           docker manifest push ${{ secrets.DOCKER_USERNAME }}/energyapp:latest
 
-  create_release:
-    needs: [buildVariables, create-manifests]
-    name: Create a new release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    if: ${{ github.event.inputs.version_level != 'commit' }}
-    env:
-      RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
         env:
-          TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-          RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-          COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          TAG_VERSION: ${{ env.TAG_VERSION }}
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+          COMMIT_BRANCH: ${{ env.COMMIT_BRANCH }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag: "${{ env.TAG_VERSION }}"
           name: "${{ env.RELEASE_VERSION }}"
@@ -245,90 +219,3 @@ jobs:
           prerelease: false
           allowUpdates: true
           updateOnlyUnreleased: true
-
-  # docker:
-  #   name: "Build and push energyapp"
-  #   needs: [buildVariables]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-  #     RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-  #     COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-  #     COMMIT_HASH: ${{ needs.buildVariables.outputs.commit_hash }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #         submodules: recursive
-
-  #     - uses: docker/setup-buildx-action@v3
-  #     - name: Login to DockerHub
-  #       uses: docker/login-action@v2
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-
-  #     - name: Build and push
-  #       id: docker_build
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         platforms: linux/amd64,linux/arm64
-  #         file: ./Dockerfile
-  #         push: ${{ inputs.push }}
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }},${{ secrets.DOCKER_USERNAME }}/energyapp:latest
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=max
-
-  #     - name: Extract binary
-  #       run: |
-  #         docker create --name temp_container ${{ secrets.DOCKER_USERNAME }}/energyapp:${{ env.RELEASE_VERSION }}
-  #         docker exec temp_container tar -czf /app.tar.gz -C /app . --exclude=node_modules
-  #         docker cp temp_container:/app.tar.gz ./energyapp-${{ needs.buildVariables.outputs.release_version }}.tar.gz
-  #         docker rm temp_container
-
-  #     - name: Upload binary
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: energyapp
-  #         path: ./energyapp-${{ needs.buildVariables.outputs.release_version }}.tar.gz
-
-  # create_release:
-  #   needs: [buildVariables, docker]
-  #   name: Create a new release
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   if: ${{ github.event.inputs.version_level != 'commit' }}
-  #   env:
-  #     RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Download energyapp artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: energyapp
-  #         path: ./artifacts
-  #     - name: List
-  #       run: find ./artifacts
-  #     - name: Create Release
-  #       id: create_release
-  #       uses: ncipollo/release-action@v1
-  #       env:
-  #         TAG_VERSION: ${{ needs.buildVariables.outputs.tag_version }}
-  #         RELEASE_VERSION: ${{ needs.buildVariables.outputs.release_version }}
-  #         COMMIT_BRANCH: ${{ needs.buildVariables.outputs.commit_branch }}
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-  #       with:
-  #         tag: "${{ env.TAG_VERSION }}"
-  #         name: "${{ env.RELEASE_VERSION }}"
-  #         commit: "${{ env.COMMIT_BRANCH }}"
-  #         draft: false
-  #         prerelease: false
-  #         allowUpdates: true
-  #         updateOnlyUnreleased: true
-  #         artifacts: "./artifacts/*"

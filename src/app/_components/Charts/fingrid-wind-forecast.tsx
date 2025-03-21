@@ -56,8 +56,8 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
         ],
     }
 
-    const minYPoint = hourlyForecast.reduce((minPoint, point) => point.value < minPoint.value ? point : minPoint);
-    const maxYPoint = hourlyForecast.reduce((maxPoint, point) => point.value > maxPoint.value ? point : maxPoint);    
+    const minYPoint = hourlyForecast?.reduce((minPoint, point) => point.value < minPoint.value ? point : minPoint);
+    const maxYPoint = hourlyForecast?.reduce((maxPoint, point) => point.value > maxPoint.value ? point : maxPoint);    
 /*
     const minXValue = Math.min(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));
     const maxXValue = Math.max(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));    

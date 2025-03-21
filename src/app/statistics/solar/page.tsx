@@ -16,6 +16,7 @@ import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolar
 import { SolarmanProductionProduced } from "@energyapp/app/_components/ColumnRenders/Statistics/solarman-production-produced";
 import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
 import useGetPvForecastRange from "@energyapp/app/_hooks/queries/useGetPvForecastRange";
+import useUpdateSolarman from "@energyapp/app/_hooks/mutations/useUpdateSolarman";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -51,6 +52,18 @@ export default function Page() {
       ? { ...forecastItem, production: productionItem.production }
       : forecastItem;
   }) as ForecastWithProduction[] | undefined;
+
+  // Update
+  const { mutate: updateProductions } =
+    useUpdateSolarman();
+
+  useEffect(() => {
+    console.log('Solar prediction page loaded');
+    updateProductions({
+      timePeriod: TimePeriod.PT1H,
+    });
+  }
+  , []);
 
   useEffect(() => {
     if (!forecastLoading && combinedData) {

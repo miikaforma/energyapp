@@ -2,7 +2,7 @@
 
 import { DayDatePicker } from "@energyapp/app/_components/FormItems/antd-day-datepicker";
 import { api } from "@energyapp/trpc/react";
-import { Col, Row, Space, Table } from "antd";
+import { Button, Col, Row, Space, Table } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 
 import { useEffect, useState } from "react";
@@ -22,6 +22,8 @@ import SolarmanProductionSummary from "@energyapp/app/_components/Descriptions/s
 import { SolarmanProductionColumn } from "@energyapp/app/_components/ColumnRenders/Solarman/solarman-production";
 import useGetLatestSolarmanProduction from "@energyapp/app/_hooks/queries/useGetLatestSolarmanProduction";
 import SolarmanLatestProductionSummary from "@energyapp/app/_components/Descriptions/solarman-latest-production-summary";
+import useUpdateSolarman from "@energyapp/app/_hooks/mutations/useUpdateSolarman";
+import { RedoOutlined } from "@ant-design/icons";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -100,8 +102,16 @@ export default function SolarmanProductionPage({
   const productions = response?.productions ?? [];
 
   // Update
-  //   const { mutate: updateConsumptions, isLoading: isUpdating } =
-  //     useUpdateWattiVahti();
+    const { mutate: updateProductions, isLoading: isUpdating } =
+      useUpdateSolarman();
+
+  useEffect(() => {
+    console.log('SolarmanProductionPage', { timePeriod, startDate, endDate });
+    updateProductions({
+      timePeriod: timePeriod,
+    });
+  }
+  , [timePeriod]);
 
   // Prefetch productions when date changes
   useEffect(() => {
@@ -137,13 +147,11 @@ export default function SolarmanProductionPage({
   };
 
   // Execute update
-  //   const executeUpdateConsumptions = () => {
-  //     updateConsumptions({
-  //       startTime: startDate,
-  //       endTime: endDate,
-  //       timePeriod: timePeriod,
-  //     });
-  //   };
+    const executeUpdateProductions = () => {
+      updateProductions({
+        timePeriod: timePeriod,
+      });
+    };
 
   const columns = [
     {
@@ -176,15 +184,15 @@ export default function SolarmanProductionPage({
                 onChange={onDateChange}
               ></DayDatePicker>
             </Col>
-            {/* <Col flex="none">
+            <Col flex="none">
               {
                 <Button
                   loading={isUpdating}
-                  onClick={executeUpdateConsumptions}
+                  onClick={executeUpdateProductions}
                   icon={!isUpdating && <RedoOutlined />}
                 ></Button>
               }
-            </Col> */}
+            </Col>
           </Row>
         );
       case TimePeriod.P1D:
@@ -196,15 +204,15 @@ export default function SolarmanProductionPage({
                 onChange={onDateChange}
               ></MonthDatePicker>
             </Col>
-            {/* <Col flex="none">
+            <Col flex="none">
               {
                 <Button
                   loading={isUpdating}
-                  onClick={executeUpdateConsumptions}
+                  onClick={executeUpdateProductions}
                   icon={!isUpdating && <RedoOutlined />}
                 ></Button>
               }
-            </Col> */}
+            </Col>
           </Row>
         );
       case TimePeriod.P1M:
@@ -216,15 +224,15 @@ export default function SolarmanProductionPage({
                 onChange={onDateChange}
               ></YearDatePicker>
             </Col>
-            {/* <Col flex="none">
+            <Col flex="none">
               {
                 <Button
                   loading={isUpdating}
-                  onClick={executeUpdateConsumptions}
+                  onClick={executeUpdateProductions}
                   icon={!isUpdating && <RedoOutlined />}
                 ></Button>
               }
-            </Col> */}
+            </Col>
           </Row>
         );
       default:

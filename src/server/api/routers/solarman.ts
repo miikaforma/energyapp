@@ -21,6 +21,7 @@ import {
   type SolarmanProductionResponse,
   type SolarmanLatestProduction,
 } from "@energyapp/shared/interfaces";
+import { TRPCError } from "@trpc/server";
 
 const zodDay = z.custom<Dayjs>(
   (val: unknown) => dayjs(val as string).isValid(),
@@ -66,7 +67,7 @@ export const solarmanRouter = createTRPCRouter({
 
       switch (input.timePeriod) {
         case TimePeriod.PT15M: {
-          await refreshViewByTimePeriod(ctx, input.timePeriod);
+          // await refreshViewByTimePeriod(ctx, input.timePeriod);
           const [productions, summary] = await Promise.all([
             getPT15MProductions(ctx, startTime, endTime),
             get15MinuteProductionSummary(ctx, startTime, endTime),
@@ -79,7 +80,7 @@ export const solarmanRouter = createTRPCRouter({
           } as SolarmanProductionResponse;
         }
         case TimePeriod.PT1H: {
-          await refreshViewByTimePeriod(ctx, input.timePeriod);
+          // await refreshViewByTimePeriod(ctx, input.timePeriod);
           const [productions, summary] = await Promise.all([
             getHourlyProductions(ctx, startTime, endTime),
             getHourlyProductionSummary(ctx, startTime, endTime),
@@ -92,7 +93,7 @@ export const solarmanRouter = createTRPCRouter({
           } as SolarmanProductionResponse;
         }
         case TimePeriod.P1D: {
-          await refreshViewByTimePeriod(ctx, input.timePeriod);
+          // await refreshViewByTimePeriod(ctx, input.timePeriod);
           const [productions, summary] = await Promise.all([
             getDailyProductions(ctx, startTime, endTime),
             getDailyProductionSummary(ctx, startTime, endTime),
@@ -105,7 +106,7 @@ export const solarmanRouter = createTRPCRouter({
           } as SolarmanProductionResponse;
         }
         case TimePeriod.P1M: {
-          await refreshViewByTimePeriod(ctx, input.timePeriod);
+          // await refreshViewByTimePeriod(ctx, input.timePeriod);
           const [productions, summary] = await Promise.all([
             getMonthlyProductions(ctx, startTime, endTime),
             getMonthlyProductionSummary(ctx, startTime, endTime),
@@ -119,7 +120,7 @@ export const solarmanRouter = createTRPCRouter({
         }
         /* Not implemented fully, the summary is tricky */
         case TimePeriod.P1Y: {
-          await refreshViewByTimePeriod(ctx, input.timePeriod);
+          // await refreshViewByTimePeriod(ctx, input.timePeriod);
           const [productions, summary] = await Promise.all([
             getYearlyProductions(ctx, startTime, endTime),
             getYearlyProductionSummary(ctx, startTime, endTime),
@@ -134,6 +135,11 @@ export const solarmanRouter = createTRPCRouter({
         default:
           return Promise.reject("Not implemented");
       }
+    }),
+  update: protectedProcedure
+    .input(z.object({ timePeriod: zodTimePeriod }))
+    .mutation(async ({ input, ctx }) => {
+      await refreshViewByTimePeriod(ctx, input.timePeriod);
     }),
 });
 
@@ -546,10 +552,24 @@ const getYearlyProductionSummary = (
   });
 };
 
+const refreshTimestamps = new Map<TimePeriod, number>();
+
 const refreshViewByTimePeriod = async (
   ctx: IContext,
   timePeriod: TimePeriod,
 ): Promise<void> => {
+  const now = Date.now();
+  const lastRefresh = refreshTimestamps.get(timePeriod);
+
+  // Check if the last refresh was within the last 10 seconds
+  if (lastRefresh && now - lastRefresh < 10 * 1000) {
+    console.log(`Skipping refresh for ${timePeriod}, last refresh was too recent.`);
+    return;
+  }
+
+  // Update the timestamp for the current timePeriod
+  refreshTimestamps.set(timePeriod, now);
+
   switch (timePeriod) {
     case TimePeriod.PT15M:
       await ctx.db

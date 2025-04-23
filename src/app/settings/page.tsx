@@ -81,8 +81,8 @@ export default function Settings() {
           style={{
             maxWidth: 600,
           }}
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 14 }}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
           layout="horizontal"
           onFinish={onFinish}
           initialValues={initialValues}
@@ -92,6 +92,17 @@ export default function Settings() {
           </Form.Item> */}
         <Form.Item name="showSpot" hidden>
           <Input type="hidden" />
+        </Form.Item>
+
+        <Form.Item
+            name="additionalHourInSpotPrices"
+            label="Näytä lisätunti spot-hinnoissa"
+            help={
+              "Näytä seuraavan vuorokauden ensimmäinen tunti spot-hinnoissa. Oletuksena tämä on päällä."
+            }
+            rules={[validator]}
+        >
+          <Switch />
         </Form.Item>
         
         <Form.Item

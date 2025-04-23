@@ -179,6 +179,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
   useEffect(() => {
     prefetchSpotPrices({
       utils,
+      settings,
       timePeriod: timePeriod,
       startTime: startDate,
       endTime: endDate,
@@ -190,6 +191,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
     // Call the function to refresh the data immediately when the component mounts
     prefetchSpotPrices({
       utils,
+      settings,
       timePeriod: timePeriod,
       startTime: startDate,
       endTime: endDate,
@@ -204,6 +206,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
         setCurrentHour(newHour);
         prefetchSpotPrices({
           utils,
+          settings,
           timePeriod: timePeriod,
           startTime: startDate,
           endTime: endDate,

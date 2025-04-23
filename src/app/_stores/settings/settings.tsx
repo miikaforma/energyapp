@@ -21,6 +21,7 @@ export const useSettingsStore = create<SettingsState>()(
         showConsumptionEffects: true,
         showSpot: false,
         addMarginToShowSpot: false,
+        additionalHourInSpotPrices: true,
       } as ISettings,
       setSettings: (settings) => set({ settings }),
     }),

@@ -17,6 +17,7 @@ const getSettingsFormValidator = () => {
     showConsumptionEffects: z.boolean().default(true),
     showSpot: z.boolean().default(false),
     addMarginToShowSpot: z.boolean().default(false),
+    additionalHourInSpotPrices: z.boolean().default(true),
   });
 };
 
@@ -59,6 +60,7 @@ export default function useSettingsForm(settings: ISettings) {
       showConsumptionEffects,
       showSpot,
       addMarginToShowSpot,
+      additionalHourInSpotPrices,
     } = settings ?? {};
     return {
       margin: margin || 0.0,
@@ -73,6 +75,7 @@ export default function useSettingsForm(settings: ISettings) {
       showConsumptionEffects: showConsumptionEffects || false,
       showSpot: showSpot || false,
       addMarginToShowSpot: addMarginToShowSpot || false,
+      additionalHourInSpotPrices: additionalHourInSpotPrices,
     };
   }, [settings]);
 

@@ -22,24 +22,37 @@ const zodTimePeriod = z.nativeEnum(TimePeriod);
 
 export const spotPriceRouter = createTRPCRouter({
   get: publicProcedure
-    .input(z.object({ timePeriod: zodTimePeriod, startTime: zodDay, endTime: zodDay }))
+    .input(z.object({ timePeriod: zodTimePeriod, startTime: zodDay, endTime: zodDay, additionalHour: z.boolean().optional() }))
     .query(({ input, ctx }) => {
+      const startTime = dayjs(input.startTime).toDate();
+      const endTime = dayjs(input.endTime).toDate();
+
+      if (input.timePeriod === TimePeriod.PT1H && input.additionalHour) {
+        endTime.setHours(endTime.getHours() + 1);
+      }
+      
+      if (startTime > endTime) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Start time must be before end time',
+        });
+      }
 
       switch (input.timePeriod) {
         case TimePeriod.PT1H:
-          return getHourlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
-            return spotPricesToResponse(input.timePeriod, prices);
+          return getHourlySpotPrices(ctx, startTime, endTime).then((prices) => {
+            return spotPricesToResponse(input.timePeriod, prices, input.additionalHour);
           });
         case TimePeriod.P1D:
-          return getDailySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
+          return getDailySpotPrices(ctx, startTime, endTime).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
         case TimePeriod.P1M:
-          return getMonthlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
+          return getMonthlySpotPrices(ctx, startTime, endTime).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
         case TimePeriod.P1Y:
-          return getYearlySpotPrices(ctx, dayjs(input.startTime).toDate(), dayjs(input.endTime).toDate()).then((prices) => {
+          return getYearlySpotPrices(ctx, startTime, endTime).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices);
           });
         default:
@@ -296,7 +309,7 @@ const getRange = async (ctx: IContext, timePeriod: TimePeriod): Promise<DatePick
   }
 }
 
-const spotPricesToResponse = (timePeriod: TimePeriod, prices: ISpotPrice[]): ISpotPriceResponse => {
+const spotPricesToResponse = (timePeriod: TimePeriod, prices: ISpotPrice[], additionalHour = false): ISpotPriceResponse => {
   if (!prices.length) {
     throw new TRPCError({
       code: 'NOT_FOUND',
@@ -304,22 +317,28 @@ const spotPricesToResponse = (timePeriod: TimePeriod, prices: ISpotPrice[]): ISp
     });
   }
 
+  // Create a filtered array for summary calculations if additionalHour is true
+  const summaryPrices =
+    additionalHour && timePeriod === TimePeriod.PT1H
+      ? prices.slice(0, -1) // Exclude the last hour
+      : prices;
+
   const summary = {
-    cheapest: prices.reduce((prev, curr) => {
+    cheapest: summaryPrices.reduce((prev, curr) => {
       return prev.price < curr.price ? prev : curr;
     }),
-    mostExpensive: prices.reduce((prev, curr) => {
+    mostExpensive: summaryPrices.reduce((prev, curr) => {
       return prev.price > curr.price ? prev : curr;
     }),
     average: {
       time: undefined,
       currency: "EUR",
-      price: parseFloat((prices.reduce((prev, curr) => {
+      price: parseFloat((summaryPrices.reduce((prev, curr) => {
         return prev + curr.price;
-      }, 0) / prices.length).toFixed(2)),
-      price_with_tax: parseFloat((prices.reduce((prev, curr) => {
+      }, 0) / summaryPrices.length).toFixed(2)),
+      price_with_tax: parseFloat((summaryPrices.reduce((prev, curr) => {
         return prev + curr.price_with_tax;
-      }, 0) / prices.length).toFixed(2)),
+      }, 0) / summaryPrices.length).toFixed(2)),
       year: dayjs().year(),
       month: dayjs().month() + 1,
       day: dayjs().date(),

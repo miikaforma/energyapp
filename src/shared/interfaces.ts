@@ -20,6 +20,7 @@ export interface ISettings {
     showConsumptionEffects: boolean;
     showSpot: boolean;
     addMarginToShowSpot: boolean;
+    additionalHourInSpotPrices: boolean;
 }
 
 export interface ISpotPriceResponse {

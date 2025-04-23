@@ -1,4 +1,6 @@
+import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
 import { TimePeriod } from "@energyapp/shared/enums";
+import { type ISettings } from "@energyapp/shared/interfaces";
 import { api } from "@energyapp/trpc/react";
 import { TRPCClientError } from "@trpc/client";
 import dayjs, { type Dayjs } from "dayjs";
@@ -12,6 +14,7 @@ interface IUseGetSpotPrices {
 
 interface IPrefetchGetSpotPrices {
     utils: ReturnType<typeof api.useUtils>;
+    settings: ISettings;
     timePeriod: TimePeriod;
     startTime: Dayjs;
     endTime: Dayjs;
@@ -19,13 +22,15 @@ interface IPrefetchGetSpotPrices {
 
 const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices) => {
     const utils = api.useUtils();
+    const settingsStore = useSettingsStore();
+    const settings = settingsStore.settings;
 
     const query = api.spotPrice.get.useQuery({
-        timePeriod: timePeriod, startTime, endTime
+        timePeriod: timePeriod, startTime, endTime, additionalHour: settings.additionalHourInSpotPrices
     }, {
         select: data => data,
         onSuccess: (_data) => {
-            prefetchSpotPrices({ utils, timePeriod, startTime, endTime });
+            prefetchSpotPrices({ utils, settings, timePeriod, startTime, endTime });
         },
         onError: (err: unknown) => {
             if (err instanceof TRPCClientError) {
@@ -41,7 +46,7 @@ const useGetSpotPrices = ({ timePeriod, startTime, endTime }: IUseGetSpotPrices)
     return { ...query, prefetch: prefetchSpotPrices }
 }
 
-const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetchGetSpotPrices) => {
+const prefetchSpotPrices = ({ utils, settings, timePeriod, startTime, endTime }: IPrefetchGetSpotPrices) => {
     let previousStart: Dayjs = dayjs();
     let previousEnd: Dayjs = dayjs();
     let nextStart: Dayjs = dayjs();
@@ -78,7 +83,8 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
-        endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999)
+        endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999),
+        additionalHour: settings.additionalHourInSpotPrices
     }, {
 
     });
@@ -86,7 +92,8 @@ const prefetchSpotPrices = ({ utils, timePeriod, startTime, endTime }: IPrefetch
     void utils.spotPrice.get.prefetch({
         timePeriod: timePeriod,
         startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
-        endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999)
+        endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999),
+        additionalHour: settings.additionalHourInSpotPrices
     }, {
 
     });

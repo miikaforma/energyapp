@@ -319,7 +319,15 @@ const spotPricesToResponse = (timePeriod: TimePeriod, prices: ISpotPrice[], addi
 
   // Create a filtered array for summary calculations if additionalHour is true
   const summaryPrices =
-    additionalHour && timePeriod === TimePeriod.PT1H
+    additionalHour &&
+    timePeriod === TimePeriod.PT1H &&
+    prices.length > 1 &&
+    prices[prices.length - 1] &&
+    prices[prices.length - 2] &&
+    dayjs(prices[prices.length - 1]?.time).isAfter(
+      dayjs(prices[prices.length - 2]?.time).startOf("day"),
+      "day"
+    )
       ? prices.slice(0, -1) // Exclude the last hour
       : prices;
 

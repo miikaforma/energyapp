@@ -38,6 +38,21 @@ dayjs.updateLocale("fi", {
     "Marras",
     "Joulu",
   ],
+  relativeTime: {
+    future: "%s päästä",
+    past: "%s sitten",
+    s: "%d sekuntia",
+    m: "minuutti",
+    mm: "%d minuuttia",
+    h: "tunti",
+    hh: "%d tuntia",
+    d: "päivä",
+    dd: "%d päivää",
+    M: "kuukausi",
+    MM: "%d kuukautta",
+    y: "vuosi",
+    yy: "%d vuotta",
+  },
 });
 
 dayjs.locale("fi");

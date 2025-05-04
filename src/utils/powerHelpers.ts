@@ -8,7 +8,7 @@ export const kwhOrWattsString = (value: number) => {
 
 // Convert watts to kilowatts
 export const convertWatts = (value?: number) => {
-  if (!value) {
+  if (!value && value !== 0) {
     return "Ei tiedossa";
   }
 

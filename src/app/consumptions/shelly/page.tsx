@@ -1,17 +1,27 @@
-import { api } from "@energyapp/trpc/server";
+'use client'
+import { type api } from "@energyapp/trpc/server";
 
 import { Typography } from "@mui/material";
 import ShellyGroupList from "@energyapp/app/_components/Shelly/group-list";
 import ShellyDeviceList from "@energyapp/app/_components/Shelly/device-list";
+import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/useGetShellyDevicesWithInfo";
 
 type Device = Awaited<
   ReturnType<typeof api.shelly.getDevicesWithInfo.query>
 >[number];
 type GroupedDevices = Record<string, Device[]>;
 
-export default async function Shelly() {
-  const devices = await api.shelly.getDevicesWithInfo.query();
+export default function Shelly() {
+  const { data: devices } = useGetShellyDevicesWithInfo();
   // console.log("devices", devices);
+
+  if (!devices) {
+    return (
+      <div className="text-center text-2xl font-bold text-white">
+        Loading devices...
+      </div>
+    );
+  }
 
   if (devices.length === 0) {
     return (
@@ -38,7 +48,7 @@ export default async function Shelly() {
       return acc;
     }, {});
 
-  console.log(groupedDevices);
+  // console.log(groupedDevices);
 
   return (
     <>

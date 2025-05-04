@@ -52,6 +52,7 @@ const useGetShellyConsumptions = ({
           toast.error("Virhe haettaessa hintoja. Yritä myöhemmin uudelleen.");
         }
       },
+      refetchInterval: 60000, // Refetch every 60 seconds
     },
   );
 

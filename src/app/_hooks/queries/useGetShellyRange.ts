@@ -20,7 +20,8 @@ const useGetShellyRange = ({ timePeriod }: GetShellyRange) => {
                 }
                 toast.error('Virhe haettaessa aikaväliä. Yritä myöhemmin uudelleen.');
             }
-        }
+        },
+        refetchInterval: 5 * 60000, // Refetch every 5 minutes
     });
 
     return query

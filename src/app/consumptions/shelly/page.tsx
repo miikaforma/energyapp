@@ -11,7 +11,7 @@ type GroupedDevices = Record<string, Device[]>;
 
 export default async function Shelly() {
   const devices = await api.shelly.getDevicesWithInfo.query();
-  console.log("devices", devices);
+  // console.log("devices", devices);
 
   if (devices.length === 0) {
     return (
@@ -30,12 +30,11 @@ export default async function Shelly() {
       return groupKey !== undefined && groupKey !== null;
     })
     .reduce<GroupedDevices>((acc, device) => {
-      const groupKey = (device.serviceAccess.customData as { groupKey: string })
-        .groupKey;
-      if (!acc[groupKey]) {
-        acc[groupKey] = [];
+      const groupKey = (device.serviceAccess.customData as { groupKey: string })?.groupKey;
+      if (groupKey && acc) {
+        acc[groupKey] = acc[groupKey] ?? [];
+        acc[groupKey]?.push(device);
       }
-      acc[groupKey].push(device);
       return acc;
     }, {});
 

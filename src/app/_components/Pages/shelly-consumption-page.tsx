@@ -7,7 +7,6 @@ import {
   Radio,
   type RadioChangeEvent,
   Row,
-  Select,
   Space,
   Table,
   Tag,
@@ -20,14 +19,14 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { TimePeriod } from "@energyapp/shared/enums";
+import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
+import { type ShellyConsumption } from "@energyapp/shared/interfaces";
 import {
-  type ShellyConsumption,
-} from "@energyapp/shared/interfaces";
-import {
+  dateToShellyTimeString,
   dateToSpotTimeString,
   isCurrentDay,
   isCurrentHour,
+  isCurrentMinute,
   isCurrentMonth,
   isCurrentYear,
 } from "@energyapp/utils/timeHelpers";
@@ -36,9 +35,19 @@ import { MonthDatePicker } from "@energyapp/app/_components/FormItems/antd-month
 import { useSession } from "next-auth/react";
 import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
 import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
-import { useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetShellyRange from "@energyapp/app/_hooks/queries/useGetShellyRange";
 import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/useGetShellyConsumptions";
+import { Box, Button } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import {
+  convertAmps,
+  convertFrequency,
+  convertMilliwatts,
+  convertVoltage,
+  convertWatts,
+  getTemperatureC,
+} from "@energyapp/utils/powerHelpers";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -47,6 +56,7 @@ dayjs.extend(timezone);
 
 type ShellyConsumptionPageProps = {
   timePeriod: TimePeriod;
+  viewType: ShellyViewType;
 };
 
 const getDefaultStartDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
@@ -141,7 +151,17 @@ const getSelectedDate = (date: dayjs.Dayjs) => {
 
 export default function ShellyConsumptionPage({
   timePeriod,
+  viewType,
 }: ShellyConsumptionPageProps) {
+  const params = useParams();
+  const deviceId = params.deviceId;
+  const groupKey = params.groupKey;
+  const shellyId =
+    viewType === ShellyViewType.DEVICE
+      ? deviceId?.toString()
+      : groupKey?.toString();
+
+  const router = useRouter();
   const enablePrefetch = false;
   const searchParams = useSearchParams();
   const dateQuery = searchParams.get("date");
@@ -153,12 +173,6 @@ export default function ShellyConsumptionPage({
   const [endDate, setEndDate] = useState(
     getDefaultEndDate(timePeriod, dateQuery ? dayjs(dateQuery) : undefined),
   );
-  const [selectedDeviceId, setSelectedDeviceId] = useState<
-    string | undefined
-  >();
-  const [consumptions, setConsumptions] = useState<ShellyConsumption[]>();
-  const [filteredConsumptions, setFilteredConsumptions] =
-    useState<ShellyConsumption[]>();
 
   const utils = api.useUtils();
 
@@ -174,37 +188,14 @@ export default function ShellyConsumptionPage({
   });
 
   // Get consumptions
-  const { data: shellyConsumptions, prefetch: prefetchShellyConsumptions } =
+  const { data: shellyConsumptions, isLoading, prefetch: prefetchShellyConsumptions } =
     useGetShellyConsumptions({
       timePeriod: timePeriod,
       startTime: startDate,
       endTime: endDate,
+      viewType: viewType,
+      id: shellyId,
     });
-
-  // Set consumptions
-  useEffect(() => {
-    setConsumptions(shellyConsumptions?.consumptions ?? []);
-  }, [shellyConsumptions, selectedDeviceId]);
-
-  // Filter consumptions
-  useEffect(() => {
-    setFilteredConsumptions(
-      filterConsumptions(consumptions ?? [], selectedDeviceId),
-    );
-    console.log("Setting filtered consumptions");
-  }, [consumptions, selectedDeviceId]);
-
-  const filterConsumptions = (
-    consumptions: ShellyConsumption[],
-    selectedDeviceId?: string,
-  ) => {
-    if (selectedDeviceId) {
-      return consumptions.filter(
-        (consumption) => consumption.device_id === selectedDeviceId,
-      );
-    }
-    return [];
-  };
 
   // Prefetch consumptions when date changes
   useEffect(() => {
@@ -343,8 +334,9 @@ export default function ShellyConsumptionPage({
               <DayDatePicker
                 value={startDate}
                 onChange={onDateChange}
-                disabledNextDays={1}
-                minDate={session ? undefined : shellyRange?.min}
+                disabledNextDays={0}
+                minDate={session ? shellyRange?.min : undefined}
+                maxDate={session ? shellyRange?.max : undefined}
               ></DayDatePicker>
             </Col>
           </Row>
@@ -356,7 +348,8 @@ export default function ShellyConsumptionPage({
               <MonthDatePicker
                 value={startDate}
                 onChange={onDateChange}
-                minDate={session ? undefined : shellyRange?.min}
+                minDate={session ? shellyRange?.min : undefined}
+                maxDate={session ? shellyRange?.max : undefined}
               ></MonthDatePicker>
             </Col>
           </Row>
@@ -368,7 +361,8 @@ export default function ShellyConsumptionPage({
               <YearDatePicker
                 value={startDate}
                 onChange={onDateChange}
-                minDate={session ? undefined : shellyRange?.min}
+                minDate={session ? shellyRange?.min : undefined}
+                maxDate={session ? shellyRange?.max : undefined}
               ></YearDatePicker>
             </Col>
           </Row>
@@ -381,7 +375,8 @@ export default function ShellyConsumptionPage({
                 startYear={startDate}
                 endYear={endDate}
                 onChange={onDateRangeChange}
-                minDate={session ? undefined : shellyRange?.min}
+                minDate={session ? shellyRange?.min : undefined}
+                maxDate={session ? shellyRange?.max : undefined}
               />
             </Col>
           </Row>
@@ -397,7 +392,7 @@ export default function ShellyConsumptionPage({
     switch (timePeriod) {
       case TimePeriod.PT15M:
       case TimePeriod.PT1H:
-        return isCurrentHour(time);
+        return isCurrentMinute(time);
       case TimePeriod.P1D:
         return isCurrentDay(time);
       case TimePeriod.P1M:
@@ -409,20 +404,10 @@ export default function ShellyConsumptionPage({
     }
   };
 
-  const handleChange = (value: string) => {
-    setSelectedDeviceId(value);
+  const onRangeChange = (e: RadioChangeEvent) => {
+    const value = e.target.value as string;
+    router.push(`${value}`);
   };
-
-  const uniqueConsumptions = Array.from(
-    new Set(consumptions?.map((consumption) => consumption.device_id)),
-  ).map(
-    (id) => consumptions?.find((consumption) => consumption.device_id === id),
-  );
-
-  const options = uniqueConsumptions.map((consumption) => ({
-    value: consumption?.device_id,
-    label: consumption?.device_name ?? consumption?.device_id,
-  }));
 
   return (
     <Space
@@ -430,6 +415,27 @@ export default function ShellyConsumptionPage({
       className="text-center"
       style={{ width: "calc(100vw - 32px)" }}
     >
+      <Radio.Group
+        value={timePeriod}
+        onChange={onRangeChange}
+        style={{ width: "100%", marginBottom: 12 }}
+      >
+        <Radio.Button key={TimePeriod.P1Y} value={TimePeriod.P1Y}>
+          Vuosi
+        </Radio.Button>
+        <Radio.Button key={TimePeriod.P1M} value={TimePeriod.P1M}>
+          Kuukausi
+        </Radio.Button>
+        <Radio.Button key={TimePeriod.P1D} value={TimePeriod.P1D}>
+          Päivä
+        </Radio.Button>
+        <Radio.Button key={TimePeriod.PT1H} value={TimePeriod.PT1H}>
+          Tunti
+        </Radio.Button>
+        <Radio.Button key={TimePeriod.PT15M} value={TimePeriod.PT15M}>
+          15 Minuuttia
+        </Radio.Button>
+      </Radio.Group>
       {(timePeriod === TimePeriod.PT15M || timePeriod === TimePeriod.PT1H) && (
         <Radio.Group
           value={selectedDate}
@@ -438,30 +444,28 @@ export default function ShellyConsumptionPage({
         >
           <Radio.Button value="yesterday">Eilen</Radio.Button>
           <Radio.Button value="today">Tänään</Radio.Button>
-          <Radio.Button value="tomorrow">Huomenna</Radio.Button>
         </Radio.Group>
       )}
       {filters()}
 
-      <Select
-        style={{ width: 200 }}
-        options={options}
-        onChange={handleChange}
-      />
-      {/* <SpotPriceSummary spotResponse={spotResponse} />
-      <SpotPricesChart
-        spotPriceResponse={spotResponse}
-        startDate={startDate}
-        endDate={endDate}
-      /> */}
+      <Box sx={{ textAlign: "left" }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          href="/consumptions/shelly"
+        >
+          Takaisin laitevalintaan
+        </Button>
+      </Box>
       <Table
         rowClassName={(record, _index) =>
           isCurrentTimePeriod(record.time) ? "table-row-current" : ""
         }
         rowKey={"time"}
         size={"small"}
-        dataSource={filteredConsumptions}
+        dataSource={shellyConsumptions?.consumptions}
         pagination={false}
+        loading={isLoading}
       >
         <Column
           title=""
@@ -476,7 +480,7 @@ export default function ShellyConsumptionPage({
           title="Aika"
           dataIndex="time"
           key="time"
-          render={(data: Dayjs) => dateToSpotTimeString(data, timePeriod)}
+          render={(data: Dayjs) => dateToShellyTimeString(data, timePeriod)}
         />
         <Column
           title="Laite"
@@ -484,7 +488,7 @@ export default function ShellyConsumptionPage({
           key="device
         _id"
         />
-        <Column
+        {/* <Column
           title="Tiedot"
           dataIndex="device_id"
           key="device_id"
@@ -516,7 +520,7 @@ export default function ShellyConsumptionPage({
                       textAlign: "center",
                     }}
                   >
-                    {record.avg_temperature_c.toLocaleString("fi-FI", {
+                    {record.avg_temperature_c?.toLocaleString("fi-FI", {
                       minimumFractionDigits: 1,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -546,14 +550,13 @@ export default function ShellyConsumptionPage({
                       textAlign: "center",
                     }}
                   >
-                    {record.avg_voltage.toLocaleString("fi-FI", {
+                    {record.avg_voltage?.toLocaleString("fi-FI", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
                     V
                   </Tag>
                 </Col>
-                {/* <Col span={24}><Tag style={{ width: '80px', display: 'inline-block', textAlign: 'center' }}>{record.avg_freq.toLocaleString('fi-FI', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} Hz</Tag></Col> */}
                 <Col span={24}>
                   <Tag
                     style={{
@@ -562,7 +565,7 @@ export default function ShellyConsumptionPage({
                       textAlign: "center",
                     }}
                   >
-                    {record.avg_current.toLocaleString("fi-FI", {
+                    {record.avg_current?.toLocaleString("fi-FI", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -572,24 +575,50 @@ export default function ShellyConsumptionPage({
               </Row>
             );
           }}
-        />
+        /> */}
 
-        {/* <Column title="Kulutus" dataIndex="consumption" key="consumption" /> */}
+        <Column
+          title="Kulutus"
+          dataIndex="consumption"
+          key="consumption"
+          render={(data: number) => convertMilliwatts(data)}
+        />
         {/* <Column title="Kulutus" dataIndex="consumption2" key="consumption2" /> */}
-        {/* <Column
+        <Column
           title="Lämpötila (°C)"
           dataIndex="avg_temperature_c"
           key="avg_temperature_c"
+          render={(data: number) => getTemperatureC(data)}
         />
-        <Column
+        {/* <Column
           title="Lämpötila (°F)"
           dataIndex="avg_temperature_f"
           key="avg_temperature_f"
+        /> */}
+        <Column
+          title="Teho"
+          dataIndex="avg_apower"
+          key="avg_apower"
+          render={(data: number) => convertWatts(data)}
         />
-        <Column title="Teho (W)" dataIndex="avg_apower" key="avg_apower" />
-        <Column title="Jännite (V)" dataIndex="avg_voltage" key="avg_voltage" />
-        <Column title="Taajuus (Hz)" dataIndex="avg_freq" key="avg_freq" />
-        <Column title="Virta (A)" dataIndex="avg_current" key="avg_current" /> */}
+        <Column
+          title="Jännite (V)"
+          dataIndex="avg_voltage"
+          key="avg_voltage"
+          render={(data: number) => convertVoltage(data)}
+        />
+        <Column
+          title="Taajuus (Hz)"
+          dataIndex="avg_freq"
+          key="avg_freq"
+          render={(data: number) => convertFrequency(data)}
+        />
+        <Column
+          title="Virta (A)"
+          dataIndex="avg_current"
+          key="avg_current"
+          render={(data: number) => convertAmps(data)}
+        />
 
         {/* <Column
           title={electricityPriceTitle()}

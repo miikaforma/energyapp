@@ -12,7 +12,7 @@ import {
   type ShellyConsumptionSummary,
   type IContext,
 } from "@energyapp/shared/interfaces";
-import { TimePeriod } from "@energyapp/shared/enums";
+import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
 import { Prisma } from "@prisma/client";
 
@@ -28,6 +28,24 @@ const zodDay = z.custom<Dayjs>(
   "Invalid date",
 );
 const zodTimePeriod = z.nativeEnum(TimePeriod);
+const zodShellyViewType = z.nativeEnum(ShellyViewType);
+
+const mapIntervalToSQL = (interval: TimePeriod): string => {
+  switch (interval) {
+    case TimePeriod.PT1H:
+      return "1 hour";
+    case TimePeriod.PT15M:
+      return "15 minutes";
+    case TimePeriod.P1D:
+      return "1 day";
+    case TimePeriod.P1M:
+      return "1 month";
+    case TimePeriod.P1Y:
+      return "1 year";
+    default:
+      throw new Error(`Unsupported interval: ${interval as string}`);
+  }
+};
 
 const getAggregatedData = (
   ctx: IContext,
@@ -62,7 +80,7 @@ const getAggregatedData = (
               0 -- Reset delta if the interval is 2 minutes or more
         END AS delta
       FROM "shelly_historical_data"
-      WHERE "time" >= ${dayjs(startTime).subtract(1, 'hour').toDate()}
+      WHERE "time" >= ${dayjs(startTime).subtract(1, "hour").toDate()}
         AND "time" <= ${endTime}
         AND "device_id" IN (${Prisma.join(deviceIds)})
     ) AS delta_history
@@ -74,36 +92,149 @@ const getAggregatedData = (
   `;
 };
 
+const getAggregatedDataV2 = (
+  ctx: IContext,
+  startTime: Date,
+  endTime: Date,
+  interval: TimePeriod,
+  deviceIds: string[],
+): Promise<ShellyConsumption[]> => {
+  const sqlInterval = mapIntervalToSQL(interval);
+
+  return ctx.db.$queryRaw<ShellyConsumption[]>`
+    WITH avg_measurements AS (
+        SELECT
+            device_id,
+            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, "time") AS rounded_interval,
+            ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
+            ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
+            ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
+            ROUND(AVG(freq)::NUMERIC, 1) AS avg_freq,
+            ROUND(AVG(temperature_c)::NUMERIC, 1) AS avg_temp_c,
+            ROUND(AVG(temperature_f)::NUMERIC, 1) AS avg_temp_f
+        FROM shelly_historical_data
+        WHERE time >= ${startTime}
+          AND time <= ${endTime}
+          AND device_id IN (${Prisma.join(deviceIds)})
+        GROUP BY device_id, rounded_interval
+    )
+    SELECT
+        c.time AS time,
+        c.device_id,
+        c.energy_mw AS consumption,
+        m.avg_apower AS avg_apower,
+        m.avg_temp_c AS avg_temperature_c,
+        m.avg_temp_f AS avg_temperature_f,
+        m.avg_voltage AS avg_voltage,
+        m.avg_current AS avg_current,
+        m.avg_freq AS avg_freq
+    FROM shelly_historical_consumption_data c
+    LEFT JOIN avg_measurements m
+      ON m.device_id = c.device_id
+      AND m.rounded_interval = time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, c.time)
+    WHERE c.time >= ${startTime}
+      AND c.time <= ${endTime}
+      AND c.device_id IN (${Prisma.join(deviceIds)})
+    ORDER BY 1 DESC;
+  `;
+};
+
+const getAggregatedDataV3 = (
+  ctx: IContext,
+  startTime: Date,
+  endTime: Date,
+  interval: TimePeriod,
+  deviceIds: string[],
+): Promise<ShellyConsumption[]> => {
+  const sqlInterval = mapIntervalToSQL(interval);
+
+  return ctx.db.$queryRaw<ShellyConsumption[]>`
+    WITH avg_measurements AS (
+        SELECT
+            device_id,
+            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, time) AS rounded_time,
+            ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
+            ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
+            ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
+            ROUND(AVG(freq)::NUMERIC, 1) AS avg_freq,
+            ROUND(AVG(temperature_c)::NUMERIC, 1) AS avg_temp_c,
+            ROUND(AVG(temperature_f)::NUMERIC, 1) AS avg_temp_f
+        FROM shelly_historical_data
+        WHERE time >= ${startTime}
+          AND time <= ${endTime}
+          AND device_id IN (${Prisma.join(deviceIds)})
+        GROUP BY device_id, rounded_time
+    ),
+    consumption_data AS (
+        SELECT
+            device_id,
+            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, time) AS rounded_time,
+            SUM(energy_mw) AS energy_mw
+        FROM shelly_historical_consumption_data
+        WHERE time >= ${startTime}
+          AND time <= ${endTime}
+          AND device_id IN (${Prisma.join(deviceIds)})
+        GROUP BY device_id, rounded_time
+    )
+    SELECT
+        c.rounded_time AS time,
+        c.device_id,
+        c.energy_mw AS consumption,
+        m.avg_apower,
+        m.avg_temp_c AS avg_temperature_c,
+        m.avg_temp_f AS avg_temperature_f,
+        m.avg_voltage,
+        m.avg_current,
+        m.avg_freq
+    FROM consumption_data c
+    LEFT JOIN avg_measurements m
+      ON m.device_id = c.device_id
+    AND m.rounded_time = c.rounded_time
+    ORDER BY 1 DESC, 2 ASC;
+  `;
+};
+
+// time_bucket(${Prisma.raw(`'${interval}'`)}, "time") AS time,
+// "device_id",
+// SUM("delta") AS consumption,
+// MAX("aenergy") - MIN("aenergy") AS consumption2,
+// AVG("temperature_c") AS avg_temperature_c,
+// AVG("temperature_f") AS avg_temperature_f,
+// AVG("apower") AS avg_apower,
+// AVG("voltage") AS avg_voltage,
+// AVG("freq") AS avg_freq,
+// AVG("current") AS avg_current
+
 const getAggregatedDayData = (
   ctx: IContext,
   startTime: Date,
   endTime: Date,
   deviceIds: string[],
-) => getAggregatedData(ctx, startTime, endTime, "1 day", deviceIds);
+) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1D, deviceIds);
 const getAggregatedMonthData = (
   ctx: IContext,
   startTime: Date,
   endTime: Date,
   deviceIds: string[],
-) => getAggregatedData(ctx, startTime, endTime, "1 month", deviceIds);
+) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1M, deviceIds);
 const getAggregatedYearData = (
   ctx: IContext,
   startTime: Date,
   endTime: Date,
   deviceIds: string[],
-) => getAggregatedData(ctx, startTime, endTime, "1 year", deviceIds);
+) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1Y, deviceIds);
 const getAggregatedHourData = (
   ctx: IContext,
   startTime: Date,
   endTime: Date,
   deviceIds: string[],
-) => getAggregatedData(ctx, startTime, endTime, "1 hour", deviceIds);
+) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.PT1H, deviceIds);
 const getAggregated15MinutesData = (
   ctx: IContext,
   startTime: Date,
   endTime: Date,
   deviceIds: string[],
-) => getAggregatedData(ctx, startTime, endTime, "15 minutes", deviceIds);
+) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.PT15M, deviceIds);
 
 const getDevices = async (ctx: IContext) => {
   const userAccesses = await ctx.db.userAccess.findMany({
@@ -111,11 +242,17 @@ const getDevices = async (ctx: IContext) => {
       userId: ctx.session?.user?.id ?? "",
       type: "SHELLY",
     },
+    orderBy: {
+      serviceAccess: {
+        accessName: "asc",
+      },
+    },
     select: {
       accessId: true,
       serviceAccess: {
         select: {
           accessName: true,
+          customData: true,
         },
       },
     },
@@ -125,12 +262,46 @@ const getDevices = async (ctx: IContext) => {
 };
 
 export const shellyRouter = createTRPCRouter({
+  getDevices: protectedProcedure.query(async ({ ctx }) => {
+    const devices = await getDevices(ctx);
+    return devices;
+  }),
+  getDevicesWithInfo: protectedProcedure.query(async ({ ctx }) => {
+    const devices = await getDevices(ctx);
+
+    // Fetch the latest data for each device
+    const latestData = await ctx.db.shelly_historical_data.findMany({
+      where: {
+        device_id: {
+          in: devices.map((device) => device.accessId),
+        },
+      },
+      orderBy: {
+        time: "desc",
+      },
+    });
+
+    // Map the latest data to the devices
+    const devicesWithLatestData = devices.map((device) => {
+      const latest = latestData.find(
+        (data) => data.device_id === device.accessId,
+      );
+      return {
+        ...device,
+        latestData: latest ? latest : null,
+      };
+    });
+
+    return devicesWithLatestData;
+  }),
   get: protectedProcedure
     .input(
       z.object({
         timePeriod: zodTimePeriod,
         startTime: zodDay,
         endTime: zodDay,
+        viewType: zodShellyViewType.optional(),
+        id: z.string().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -138,7 +309,44 @@ export const shellyRouter = createTRPCRouter({
       const endTime = dayjs(input.endTime).toDate();
 
       const devices = await getDevices(ctx);
-      const deviceIds = devices.map((device) => device.accessId);
+      let deviceIds = devices.map((device) => device.accessId);
+
+      if (input.viewType === ShellyViewType.DEVICE) {
+        if (!input.id) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Device ID is required for device view type",
+          });
+        }
+        const device = devices.find((device) => device.accessId === input.id);
+        if (!device) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Device not found",
+          });
+        }
+
+        deviceIds = [device.accessId];
+      }
+
+      if (input.viewType === ShellyViewType.GROUP) {
+        if (!input.id) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Group ID is required for group view type",
+          });
+        }
+
+        const groupKey = decodeURIComponent(input.id);
+        deviceIds = devices
+          .filter((device) => {
+            const customData = device.serviceAccess.customData as {
+              groupKey?: string;
+            };
+            return customData?.groupKey === groupKey;
+          })
+          .map((device) => device.accessId);
+      }
       // const deviceIds = ['shellyplus1pm-a0dd6c2b81dc']
 
       switch (input.timePeriod) {
@@ -210,6 +418,7 @@ const getRange = async (
   let maxDate = dayjs(minMaxTime._max.time);
 
   switch (timePeriod) {
+    case TimePeriod.PT15M:
     case TimePeriod.PT1H:
       // No change needed for hourly range
       break;

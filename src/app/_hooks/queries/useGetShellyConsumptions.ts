@@ -1,4 +1,4 @@
-import { TimePeriod } from "@energyapp/shared/enums";
+import { type ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { api } from "@energyapp/trpc/react";
 import { TRPCClientError } from "@trpc/client";
 import dayjs, { type Dayjs } from "dayjs";
@@ -8,6 +8,8 @@ type GetShellyConsumptions = {
   timePeriod: TimePeriod;
   startTime: Dayjs;
   endTime: Dayjs;
+  viewType?: ShellyViewType;
+  id?: string;
 };
 
 type PrefetchShellyConsumptions = {
@@ -15,12 +17,16 @@ type PrefetchShellyConsumptions = {
   timePeriod: TimePeriod;
   startTime: Dayjs;
   endTime: Dayjs;
+  viewType?: ShellyViewType;
+  id?: string;
 };
 
 const useGetShellyConsumptions = ({
   timePeriod,
   startTime,
   endTime,
+  viewType,
+  id,
 }: GetShellyConsumptions) => {
   const utils = api.useUtils();
 
@@ -29,6 +35,8 @@ const useGetShellyConsumptions = ({
       timePeriod: timePeriod,
       startTime,
       endTime,
+      viewType,
+      id,
     },
     {
       select: (data) => data,

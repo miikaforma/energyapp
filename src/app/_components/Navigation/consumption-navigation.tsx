@@ -30,7 +30,7 @@ export default function ConsumptionNavigation({ hasWattivahti, hasMelcloud, hasS
         }
     }
 
-    const [selectedType, setSelectedType] = useState(currentPage ?? hasWattivahti ? 'wattivahti' : hasMelcloud ? 'melcloud' : 'shelly')
+    const [selectedType, setSelectedType] = useState((currentPage ?? (hasWattivahti ? 'wattivahti' : hasMelcloud ? 'melcloud' : 'shelly')))
     const [selectedRange, setSelectedRange] = useState(currentRange ?? 'hourly')
 
     const onTypeChange = (e: RadioChangeEvent) => {
@@ -64,7 +64,7 @@ export default function ConsumptionNavigation({ hasWattivahti, hasMelcloud, hasS
                     <Radio.Button key={'pt15m'} value="pt15m">15 Minuuttia</Radio.Button>
                 </Radio.Group>
             )}
-            {selectedType === 'shelly' && (
+            {/* {selectedType === 'shelly' && (
                 <Radio.Group value={selectedRange} onChange={onRangeChange} style={{ width: "100%", marginBottom: 12 }}>
                     <Radio.Button key={TimePeriod.P1Y} value={TimePeriod.P1Y}>Vuosi</Radio.Button>
                     <Radio.Button key={TimePeriod.P1M} value={TimePeriod.P1M}>Kuukausi</Radio.Button>
@@ -72,7 +72,7 @@ export default function ConsumptionNavigation({ hasWattivahti, hasMelcloud, hasS
                     <Radio.Button key={TimePeriod.PT1H} value={TimePeriod.PT1H}>Tunti</Radio.Button>
                     <Radio.Button key={TimePeriod.PT15M} value={TimePeriod.PT15M}>15 Minuuttia</Radio.Button>
                 </Radio.Group>
-            )}
+            )} */}
         </>
     )
 }

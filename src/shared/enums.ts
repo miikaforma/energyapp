@@ -9,3 +9,8 @@ export enum TimePeriod {
 export enum Currency {
     EUR = "EUR",
 }
+
+export enum ShellyViewType {
+    DEVICE = "DEVICE",
+    GROUP = "GROUP",
+}

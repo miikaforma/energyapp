@@ -14,7 +14,7 @@ import {
 } from "@energyapp/shared/interfaces";
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
-import { Prisma } from "@prisma/client";
+import { Prisma, shelly_historical_data } from "@prisma/client";
 
 export type DatePickerRange = {
   min?: Dayjs;
@@ -270,16 +270,28 @@ export const shellyRouter = createTRPCRouter({
     const devices = await getDevices(ctx);
 
     // Fetch the latest data for each device
-    const latestData = await ctx.db.shelly_historical_data.findMany({
-      where: {
-        device_id: {
-          in: devices.map((device) => device.accessId),
-        },
-      },
-      orderBy: {
-        time: "desc",
-      },
-    });
+    // const latestData = await ctx.db.shelly_historical_data.findMany({
+    //   where: {
+    //     device_id: {
+    //       in: devices.map((device) => device.accessId),
+    //     },
+    //   },
+    //   orderBy: {
+    //     time: "desc",
+    //   },
+    // });
+
+    const latestData = await ctx.db.$queryRaw<shelly_historical_data[]>`
+      SELECT sd.*
+      FROM shelly_historical_data sd
+      JOIN (
+        SELECT device_id, MAX("time") AS max_time
+        FROM shelly_historical_data
+        GROUP BY device_id
+      ) latest
+      ON sd.device_id = latest.device_id AND sd."time" = latest.max_time
+      WHERE sd.device_id IN (${Prisma.join(devices.map((device) => device.accessId))})
+    `;
 
     // Map the latest data to the devices
     const devicesWithLatestData = devices.map((device) => {

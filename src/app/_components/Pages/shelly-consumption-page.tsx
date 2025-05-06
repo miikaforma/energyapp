@@ -10,8 +10,10 @@ import {
   Space,
   Table,
   Tag,
+  Switch,
+  Tooltip,
 } from "antd";
-const { Column } = Table;
+const { Column, ColumnGroup } = Table;
 import { CaretRightFilled } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -23,7 +25,6 @@ import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { type ShellyConsumption } from "@energyapp/shared/interfaces";
 import {
   dateToShellyTimeString,
-  dateToSpotTimeString,
   isCurrentDay,
   isCurrentHour,
   isCurrentMinute,
@@ -33,12 +34,11 @@ import {
 import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
 import { MonthDatePicker } from "@energyapp/app/_components/FormItems/antd-month-datepicker";
 import { useSession } from "next-auth/react";
-import { ElectricitySpotPrice } from "@energyapp/app/_components/ColumnRenders/SpotPrice/electricity-spot-price";
 import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetShellyRange from "@energyapp/app/_hooks/queries/useGetShellyRange";
 import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/useGetShellyConsumptions";
-import { Box, Button } from "@mui/material";
+import { Box, Fab } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
   convertAmps,
@@ -48,6 +48,8 @@ import {
   convertWatts,
   getTemperatureC,
 } from "@energyapp/utils/powerHelpers";
+import { gray } from "@ant-design/colors";
+import ShellySummary from "../Descriptions/shelly-summary";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -174,6 +176,8 @@ export default function ShellyConsumptionPage({
     getDefaultEndDate(timePeriod, dateQuery ? dayjs(dateQuery) : undefined),
   );
 
+  const [showNonZero, setShowNonZero] = useState(true);
+
   const utils = api.useUtils();
 
   // Get the current hour
@@ -188,14 +192,17 @@ export default function ShellyConsumptionPage({
   });
 
   // Get consumptions
-  const { data: shellyConsumptions, isLoading, prefetch: prefetchShellyConsumptions } =
-    useGetShellyConsumptions({
-      timePeriod: timePeriod,
-      startTime: startDate,
-      endTime: endDate,
-      viewType: viewType,
-      id: shellyId,
-    });
+  const {
+    data: shellyConsumptions,
+    isLoading,
+    prefetch: prefetchShellyConsumptions,
+  } = useGetShellyConsumptions({
+    timePeriod: timePeriod,
+    startTime: startDate,
+    endTime: endDate,
+    viewType: viewType,
+    id: shellyId,
+  });
 
   // Prefetch consumptions when date changes
   useEffect(() => {
@@ -391,8 +398,9 @@ export default function ShellyConsumptionPage({
   ) => {
     switch (timePeriod) {
       case TimePeriod.PT15M:
-      case TimePeriod.PT1H:
         return isCurrentMinute(time);
+      case TimePeriod.PT1H:
+        return isCurrentHour(time);
       case TimePeriod.P1D:
         return isCurrentDay(time);
       case TimePeriod.P1M:
@@ -408,6 +416,11 @@ export default function ShellyConsumptionPage({
     const value = e.target.value as string;
     router.push(`${value}`);
   };
+
+  // Filter data based on toggle
+  const filteredConsumptions = showNonZero
+    ? shellyConsumptions?.consumptions.filter((item) => item.consumption > 0)
+    : shellyConsumptions?.consumptions;
 
   return (
     <Space
@@ -448,7 +461,15 @@ export default function ShellyConsumptionPage({
       )}
       {filters()}
 
-      <Box sx={{ textAlign: "left" }}>
+      {/* <Box
+        sx={{
+          position: "fixed",
+          bottom: 69,
+          left: 16,
+          zIndex: 1000, // Ensure it stays above other elements
+          textAlign: "left",
+        }}
+      >
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
@@ -456,6 +477,28 @@ export default function ShellyConsumptionPage({
         >
           Takaisin laitevalintaan
         </Button>
+      </Box> */}
+
+      <Fab
+        variant="extended"
+        size="small"
+        color="primary"
+        href="/consumptions/shelly"
+        sx={{ position: "fixed", bottom: 69, right: 16 }}
+      >
+        <ArrowBackIcon sx={{ mr: 1 }} />
+        Takaisin laitevalintaan
+      </Fab>
+
+      <ShellySummary response={shellyConsumptions} />
+
+      <Box textAlign="left">
+        <Switch
+          checked={showNonZero}
+          onChange={(checked) => setShowNonZero(checked)}
+          checkedChildren="Näytä vain kulutusta"
+          unCheckedChildren="Näytä kaikki arvot"
+        />
       </Box>
       <Table
         rowClassName={(record, _index) =>
@@ -463,145 +506,143 @@ export default function ShellyConsumptionPage({
         }
         rowKey={"time"}
         size={"small"}
-        dataSource={shellyConsumptions?.consumptions}
+        dataSource={filteredConsumptions}
         pagination={false}
         loading={isLoading}
       >
-        <Column
-          title=""
-          dataIndex="time"
-          key="current"
-          width={30}
-          render={(data: string | number | Date) => (
-            <>{isCurrentTimePeriod(data) && <CaretRightFilled />}</>
-          )}
-        />
-        <Column
-          title="Aika"
-          dataIndex="time"
-          key="time"
-          render={(data: Dayjs) => dateToShellyTimeString(data, timePeriod)}
-        />
-        <Column
-          title="Laite"
-          dataIndex="device_name"
-          key="device
-        _id"
-        />
-        {/* <Column
-          title="Tiedot"
-          dataIndex="device_id"
-          key="device_id"
-          width={100}
-          align="center"
-          render={(device_id: string, record: ShellyConsumption) => {
-            return (
-              <Row gutter={[4, 4]}>
-                <Col span={24}>
-                  <Tag
-                    style={{
-                      width: "80px",
-                      display: "inline-block",
-                      textAlign: "center",
-                    }}
-                  >
-                    {(record.consumption / 1000).toLocaleString("fi-FI", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    kWh
-                  </Tag>
-                </Col>
-                <Col span={24}>
-                  <Tag
-                    style={{
-                      width: "80px",
-                      display: "inline-block",
-                      textAlign: "center",
-                    }}
-                  >
-                    {record.avg_temperature_c?.toLocaleString("fi-FI", {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    °C
-                  </Tag>
-                </Col>
-                <Col span={24}>
-                  <Tag
-                    style={{
-                      width: "80px",
-                      display: "inline-block",
-                      textAlign: "center",
-                    }}
-                  >
-                    {(record.avg_apower / 1000).toLocaleString("fi-FI", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    W
-                  </Tag>
-                </Col>
-                <Col span={24}>
-                  <Tag
-                    style={{
-                      width: "80px",
-                      display: "inline-block",
-                      textAlign: "center",
-                    }}
-                  >
-                    {record.avg_voltage?.toLocaleString("fi-FI", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    V
-                  </Tag>
-                </Col>
-                <Col span={24}>
-                  <Tag
-                    style={{
-                      width: "80px",
-                      display: "inline-block",
-                      textAlign: "center",
-                    }}
-                  >
-                    {record.avg_current?.toLocaleString("fi-FI", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    A
-                  </Tag>
-                </Col>
-              </Row>
-            );
-          }}
-        /> */}
+        <ColumnGroup title={decodeURIComponent(shellyConsumptions?.consumptions[0]?.device_name ?? shellyId ?? "")}>
+          <Column
+            title=""
+            dataIndex="time"
+            key="current"
+            width={30}
+            render={(data: string | number | Date) => (
+              <>{isCurrentTimePeriod(data) && <CaretRightFilled />}</>
+            )}
+          />
+          <Column
+            title="Aika"
+            dataIndex="time"
+            key="time"
+            render={(data: Dayjs) => dateToShellyTimeString(data, timePeriod)}
+          />
 
-        <Column
-          title="Kulutus"
-          dataIndex="consumption"
-          key="consumption"
-          render={(data: number) => convertMilliwatts(data)}
-        />
-        {/* <Column title="Kulutus" dataIndex="consumption2" key="consumption2" /> */}
-        <Column
+          {/* <Column title="Laite" dataIndex="device_name" key="device_id" /> */}
+
+          <Column
+            title="Kulutus"
+            dataIndex="consumption"
+            key="consumption"
+            render={(data: number) => (
+              <span style={{ color: data === 0 ? gray[1] : "inherit" }}>
+                {convertMilliwatts(data)}
+              </span>
+            )}
+          />
+
+          {/* <Column
+            title="Teho"
+            dataIndex="avg_apower"
+            key="avg_apower"
+            render={(data: string) => (
+              <span style={{ color: data === "0" ? gray[1] : "inherit" }}>
+                {convertWatts(parseFloat(data))}
+              </span>
+            )}
+          /> */}
+
+          {/* <Column
           title="Lämpötila (°C)"
           dataIndex="avg_temperature_c"
           key="avg_temperature_c"
           render={(data: number) => getTemperatureC(data)}
-        />
-        {/* <Column
+        /> */}
+
+          <Column
+            title="Muut tiedot"
+            dataIndex="device_id"
+            key="device_id"
+            width={100}
+            align="center"
+            render={(device_id: string, record: ShellyConsumption) => {
+              return (
+                <Row gutter={[4, 4]}>
+                  <Col span={24}>
+                    <Tooltip title="Teho (keskimääräinen)">
+                      <Tag
+                        style={{
+                          width: "80px",
+                          display: "inline-block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {convertWatts(record.avg_apower)}
+                      </Tag>
+                    </Tooltip>
+                  </Col>
+                  <Col span={24}>
+                    <Tooltip title="Lämpötila (keskimääräinen)">
+                      <Tag
+                        style={{
+                          width: "80px",
+                          display: "inline-block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {getTemperatureC(record.avg_temperature_c)}
+                      </Tag>
+                    </Tooltip>
+                  </Col>
+                  <Col span={24}>
+                    <Tooltip title="Jännite (keskimääräinen)">
+                      <Tag
+                        style={{
+                          width: "80px",
+                          display: "inline-block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {convertVoltage(record.avg_voltage)}
+                      </Tag>
+                    </Tooltip>
+                  </Col>
+                  <Col span={24}>
+                    <Tooltip title="Taajuus (keskimääräinen)">
+                      <Tag
+                        style={{
+                          width: "80px",
+                          display: "inline-block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {convertFrequency(record.avg_freq)}
+                      </Tag>
+                    </Tooltip>
+                  </Col>
+                  <Col span={24}>
+                    <Tooltip title="Virta (keskimääräinen)">
+                      <Tag
+                        style={{
+                          width: "80px",
+                          display: "inline-block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {convertAmps(record.avg_current)}
+                      </Tag>
+                    </Tooltip>
+                  </Col>
+                </Row>
+              );
+            }}
+          />
+          {/* <Column
           title="Lämpötila (°F)"
           dataIndex="avg_temperature_f"
           key="avg_temperature_f"
         /> */}
-        <Column
-          title="Teho"
-          dataIndex="avg_apower"
-          key="avg_apower"
-          render={(data: number) => convertWatts(data)}
-        />
-        <Column
+
+          {/* <Column
           title="Jännite (V)"
           dataIndex="avg_voltage"
           key="avg_voltage"
@@ -618,9 +659,9 @@ export default function ShellyConsumptionPage({
           dataIndex="avg_current"
           key="avg_current"
           render={(data: number) => convertAmps(data)}
-        />
+        /> */}
 
-        {/* <Column
+          {/* <Column
           title={electricityPriceTitle()}
           dataIndex="price"
           key="electricity_price"
@@ -628,7 +669,7 @@ export default function ShellyConsumptionPage({
             ElectricitySpotPrice({ spotPrice: row })
           }
         /> */}
-        {/* {(timePeriod === TimePeriod.PT15M ||
+          {/* {(timePeriod === TimePeriod.PT15M ||
           timePeriod === TimePeriod.PT1H) && (
           <Column
             title="Sähkön hinta"
@@ -639,6 +680,7 @@ export default function ShellyConsumptionPage({
             }
           />
         )} */}
+        </ColumnGroup>
       </Table>
     </Space>
   );

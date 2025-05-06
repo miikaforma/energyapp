@@ -18,7 +18,7 @@ export default function Shelly() {
   if (!devices) {
     return (
       <div className="text-center text-2xl font-bold text-white">
-        Loading devices...
+        Ladataan laitteita...
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function Shelly() {
   if (devices.length === 0) {
     return (
       <div className="text-center text-2xl font-bold text-white">
-        No Shelly devices found.
+        Ei laitteita
       </div>
     );
   }

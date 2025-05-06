@@ -14,7 +14,7 @@ import {
 } from "@energyapp/shared/interfaces";
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
-import { Prisma, shelly_historical_data } from "@prisma/client";
+import { Prisma, type shelly_historical_data } from "@prisma/client";
 
 export type DatePickerRange = {
   min?: Dayjs;
@@ -105,7 +105,9 @@ const getAggregatedDataV2 = (
     WITH avg_measurements AS (
         SELECT
             device_id,
-            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, "time") AS rounded_interval,
+            time_bucket(${Prisma.raw(
+              `'${sqlInterval}'`,
+            )}, "time") AS rounded_interval,
             ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
             ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
             ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
@@ -131,7 +133,9 @@ const getAggregatedDataV2 = (
     FROM shelly_historical_consumption_data c
     LEFT JOIN avg_measurements m
       ON m.device_id = c.device_id
-      AND m.rounded_interval = time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, c.time)
+      AND m.rounded_interval = time_bucket(${Prisma.raw(
+        `'${sqlInterval}'`,
+      )}, c.time)
     WHERE c.time >= ${startTime}
       AND c.time <= ${endTime}
       AND c.device_id IN (${Prisma.join(deviceIds)})
@@ -145,14 +149,66 @@ const getAggregatedDataV3 = (
   endTime: Date,
   interval: TimePeriod,
   deviceIds: string[],
+  viewType?: ShellyViewType,
+  groupKey?: string,
 ): Promise<ShellyConsumption[]> => {
   const sqlInterval = mapIntervalToSQL(interval);
+
+  if (viewType === ShellyViewType.GROUP && groupKey) {
+    return ctx.db.$queryRaw<ShellyConsumption[]>`
+      WITH avg_measurements AS (
+          SELECT
+              time_bucket(${Prisma.raw(
+                `'${sqlInterval}'`,
+              )}, time) AS rounded_time,
+              ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
+              ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
+              ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
+              ROUND(AVG(freq)::NUMERIC, 1) AS avg_freq,
+              ROUND(AVG(temperature_c)::NUMERIC, 1) AS avg_temp_c,
+              ROUND(AVG(temperature_f)::NUMERIC, 1) AS avg_temp_f
+          FROM shelly_historical_data
+          WHERE time >= ${startTime}
+            AND time <= ${endTime}
+            AND device_id IN (${Prisma.join(deviceIds)})
+          GROUP BY rounded_time
+      ),
+      consumption_data AS (
+          SELECT
+              time_bucket(${Prisma.raw(
+                `'${sqlInterval}'`,
+              )}, time) AS rounded_time,
+              SUM(energy_mw) AS energy_mw
+          FROM shelly_historical_consumption_data
+          WHERE time >= ${startTime}
+            AND time <= ${endTime}
+            AND device_id IN (${Prisma.join(deviceIds)})
+          GROUP BY rounded_time
+      )
+      SELECT
+          c.rounded_time AS time,
+          ${Prisma.raw(`'${groupKey}'`)} AS device_id,
+          c.energy_mw AS consumption,
+          m.avg_apower,
+          m.avg_temp_c AS avg_temperature_c,
+          m.avg_temp_f AS avg_temperature_f,
+          m.avg_voltage,
+          m.avg_current,
+          m.avg_freq
+      FROM consumption_data c
+      LEFT JOIN avg_measurements m
+        ON m.rounded_time = c.rounded_time
+      ORDER BY 1 DESC, 2 ASC;
+    `;
+  }
 
   return ctx.db.$queryRaw<ShellyConsumption[]>`
     WITH avg_measurements AS (
         SELECT
             device_id,
-            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, time) AS rounded_time,
+            time_bucket(${Prisma.raw(
+              `'${sqlInterval}'`,
+            )}, time) AS rounded_time,
             ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
             ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
             ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
@@ -168,7 +224,9 @@ const getAggregatedDataV3 = (
     consumption_data AS (
         SELECT
             device_id,
-            time_bucket(${Prisma.raw(`'${sqlInterval}'`)}, time) AS rounded_time,
+            time_bucket(${Prisma.raw(
+              `'${sqlInterval}'`,
+            )}, time) AS rounded_time,
             SUM(energy_mw) AS energy_mw
         FROM shelly_historical_consumption_data
         WHERE time >= ${startTime}
@@ -290,7 +348,9 @@ export const shellyRouter = createTRPCRouter({
         GROUP BY device_id
       ) latest
       ON sd.device_id = latest.device_id AND sd."time" = latest.max_time
-      WHERE sd.device_id IN (${Prisma.join(devices.map((device) => device.accessId))})
+      WHERE sd.device_id IN (${Prisma.join(
+        devices.map((device) => device.accessId),
+      )})
     `;
 
     // Map the latest data to the devices
@@ -361,46 +421,60 @@ export const shellyRouter = createTRPCRouter({
       }
       // const deviceIds = ['shellyplus1pm-a0dd6c2b81dc']
 
-      switch (input.timePeriod) {
-        case TimePeriod.PT1H:
-          return getAggregatedHourData(ctx, startTime, endTime, deviceIds).then(
-            (data) => {
-              return consumptionsToResponse(input.timePeriod, data, devices);
-            },
-          );
-        case TimePeriod.P1D:
-          return getAggregatedDayData(ctx, startTime, endTime, deviceIds).then(
-            (data) => {
-              return consumptionsToResponse(input.timePeriod, data, devices);
-            },
-          );
-        case TimePeriod.P1M:
-          return getAggregatedMonthData(
-            ctx,
-            startTime,
-            endTime,
-            deviceIds,
-          ).then((data) => {
-            return consumptionsToResponse(input.timePeriod, data, devices);
-          });
-        case TimePeriod.P1Y:
-          return getAggregatedYearData(ctx, startTime, endTime, deviceIds).then(
-            (data) => {
-              return consumptionsToResponse(input.timePeriod, data, devices);
-            },
-          );
-        case TimePeriod.PT15M:
-          return getAggregated15MinutesData(
-            ctx,
-            startTime,
-            endTime,
-            deviceIds,
-          ).then((data) => {
-            return consumptionsToResponse(input.timePeriod, data, devices);
-          });
-        default:
-          return Promise.reject("Not implemented");
-      }
+      return getAggregatedDataV3(
+        ctx,
+        startTime,
+        endTime,
+        input.timePeriod,
+        deviceIds,
+        input.viewType,
+        input.viewType === ShellyViewType.GROUP && input.id
+          ? decodeURIComponent(input.id)
+          : "",
+      ).then((data) => {
+        return consumptionsToResponse(input.timePeriod, data, devices);
+      });
+
+      // switch (input.timePeriod) {
+      //   case TimePeriod.PT1H:
+      //     return getAggregatedHourData(ctx, startTime, endTime, deviceIds).then(
+      //       (data) => {
+      //         return consumptionsToResponse(input.timePeriod, data, devices);
+      //       },
+      //     );
+      //   case TimePeriod.P1D:
+      //     return getAggregatedDayData(ctx, startTime, endTime, deviceIds).then(
+      //       (data) => {
+      //         return consumptionsToResponse(input.timePeriod, data, devices);
+      //       },
+      //     );
+      //   case TimePeriod.P1M:
+      //     return getAggregatedMonthData(
+      //       ctx,
+      //       startTime,
+      //       endTime,
+      //       deviceIds,
+      //     ).then((data) => {
+      //       return consumptionsToResponse(input.timePeriod, data, devices);
+      //     });
+      //   case TimePeriod.P1Y:
+      //     return getAggregatedYearData(ctx, startTime, endTime, deviceIds).then(
+      //       (data) => {
+      //         return consumptionsToResponse(input.timePeriod, data, devices);
+      //       },
+      //     );
+      //   case TimePeriod.PT15M:
+      //     return getAggregated15MinutesData(
+      //       ctx,
+      //       startTime,
+      //       endTime,
+      //       deviceIds,
+      //     ).then((data) => {
+      //       return consumptionsToResponse(input.timePeriod, data, devices);
+      //     });
+      //   default:
+      //     return Promise.reject("Not implemented");
+      // }
     }),
   // getCurrentPrice: publicProcedure
   //   .query(({ ctx }) => {
@@ -474,7 +548,7 @@ const consumptionsToResponse = (
   // Populate device names
   consumptions.forEach((consumption) => {
     const device = devices.find((d) => d.accessId === consumption.device_id);
-    consumption.device_name = device?.serviceAccess.accessName ?? undefined;
+    consumption.device_name = device?.serviceAccess.accessName ?? consumption.device_id;
   });
 
   const summary = {

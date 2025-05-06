@@ -239,7 +239,7 @@ export type ShellyConsumptionSummary = {
 }
 
 export type ShellyConsumption = {
-    time?: Dayjs;
+    time: Dayjs;
     device_name?: string;
     device_id: string;
     consumption: number;

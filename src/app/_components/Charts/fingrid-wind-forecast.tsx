@@ -45,6 +45,16 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
         return <p>Ladataan...</p>
     }
 
+    if (hourlyForecast.length === 0) {
+        return <p style={{ color: 'grey' }}>Ei tuntikohtaista ennustetta</p>
+    }
+    if (produced.length === 0) {
+        return <p style={{ color: 'grey' }}>Ei tuotantoa</p>
+    }
+    if (dailyForecast.length === 0) {
+        return <p style={{ color: 'grey' }}>Ei päiväkohtaista ennustetta</p>
+    }
+
     const hourlyForecastData = mapEventsToData(hourlyForecast, 'Ennuste tunneittain', 'rgb(0,210,255)', false, true)
 
     const mappedData = {
@@ -57,7 +67,7 @@ export default function FingridWindForecast({ produced, hourlyForecast, dailyFor
     }
 
     const minYPoint = hourlyForecast?.reduce((minPoint, point) => point.value < minPoint.value ? point : minPoint);
-    const maxYPoint = hourlyForecast?.reduce((maxPoint, point) => point.value > maxPoint.value ? point : maxPoint);    
+    const maxYPoint = hourlyForecast?.reduce((maxPoint, point) => point.value > maxPoint.value ? point : maxPoint);
 /*
     const minXValue = Math.min(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));
     const maxXValue = Math.max(...hourlyForecastData.data.map(point => new Date((point as Point).x).getTime()));    

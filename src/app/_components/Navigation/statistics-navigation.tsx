@@ -1,6 +1,6 @@
 "use client";
 
-import {Radio, type RadioChangeEvent} from "antd";
+import { Radio, type RadioChangeEvent } from "antd";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,7 +21,7 @@ export default function StatisticsNavigation() {
   const [selectedType, setSelectedType] = useState(currentPage ?? "fingrid");
 
   const onTypeChange = (e: RadioChangeEvent) => {
-    const value = e.target.value as string
+    const value = e.target.value as string;
     setSelectedType(value);
     router.push(`/statistics/${value}`);
   };
@@ -40,9 +40,14 @@ export default function StatisticsNavigation() {
         Ilmatieteen laitos
       </Radio.Button> */}
       {status === "authenticated" && (
-        <Radio.Button key={"solar"} value="solar">
-          Aurinko
-        </Radio.Button>
+        <>
+          <Radio.Button key={"solar"} value="solar">
+            Aurinko
+          </Radio.Button>
+          <Radio.Button key={"tankille"} value="tankille">
+            Tankille
+          </Radio.Button>
+        </>
       )}
     </Radio.Group>
   );

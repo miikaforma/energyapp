@@ -400,6 +400,25 @@ model electricity_observations {
   @@index([period_start(sort: Desc)])
 }
 
+model tankille_gas_prices {
+  time                  DateTime              @default(now()) @db.Timestamptz(6)
+  station_id            String                @db.VarChar(24)
+  fuel                  String                @db.VarChar(6)
+  price                 Decimal               @db.Decimal(4, 3)
+  tankille_gas_stations tankille_gas_stations @relation(fields: [station_id], references: [station_id], map: "FK_tankille_gas_prices_tankille_gas_stations")
+
+  @@unique([time, station_id, fuel])
+  @@index([time(sort: Desc)])
+}
+
+model tankille_gas_stations {
+  station_id          String                @id @db.VarChar(24)
+  name                String
+  chain               String?
+  brand               String?
+  tankille_gas_prices tankille_gas_prices[]
+}
+
 view average_kwh_price_day_by_day {
   date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?

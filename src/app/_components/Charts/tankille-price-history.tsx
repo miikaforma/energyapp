@@ -80,7 +80,8 @@ export default function TankillePriceHistory({
     if (!acc[stationId]) {
       acc[stationId] = [];
     }
-    acc[stationId].push(item);
+    // TypeScript: ensure acc[stationId] is always initialized
+    (acc[stationId]!).push(item);
     return acc;
   }, {});
 

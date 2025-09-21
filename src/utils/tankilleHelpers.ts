@@ -13,7 +13,7 @@ export const getCheapestWeekday = (priceHistory: PriceHistory[]) => {
     if (!weekdayPrices[weekday]) {
       weekdayPrices[weekday] = [];
     }
-    weekdayPrices[weekday].push(Number(entry.price));
+    (weekdayPrices[weekday]!).push(Number(entry.price));
   });
 
   // Step 2: Calculate the average price for each weekday
@@ -58,17 +58,18 @@ export const getWeeklyData = (priceHistory: PriceHistory[]) => {
       prices: Record<number, number[]>;
     }
   > = {};
-  priceHistory.forEach((entry) => {
-    const week = dayjs(entry.time).week(); // Get the week number
-    const weekday = dayjs(entry.time).day(); // Get the weekday (0 = Sunday, ..., 6 = Saturday)
-    if (!weeklyData[week]) {
-      weeklyData[week] = { week, prices: {} };
-    }
-    if (!weeklyData[week].prices[weekday]) {
-      weeklyData[week].prices[weekday] = [];
-    }
-    weeklyData[week].prices[weekday].push(Number(entry.price));
-  });
+  // priceHistory.forEach((entry) => {
+  //   const week = dayjs(entry.time).week(); // Get the week number
+  //   const weekday = dayjs(entry.time).day(); // Get the weekday (0 = Sunday, ..., 6 = Saturday)
+  //   if (!weeklyData[week]) {
+  //     weeklyData[week] = { week, prices: {} };
+  //   }
+  //   const weekObj = weeklyData[week]!;
+  //   if (!weekObj.prices[weekday]) {
+  //     weekObj.prices[weekday] = [];
+  //   }
+  //   weekObj.prices[weekday].push(Number(entry.price));
+  // });
 
   // Step 2: Calculate the cheapest price for each weekday and week
   const tableData = Object.values(weeklyData).map((weekData) => {

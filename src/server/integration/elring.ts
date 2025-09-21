@@ -34,7 +34,7 @@ export const updateFromElring = async ({
     const response = await fetch(
       `${API_URL}/nps/price?start=${dayjs(startDate).toISOString()}&end=${dayjs(
         endDate,
-      ).toISOString()}`,
+      ).add(1, 'hour').toISOString()}`,
       {
         method: "GET",
         headers: {
@@ -102,6 +102,7 @@ export const addPricesToDb = async (data: PriceData[]) => {
 
   await Promise.all(upsertPromises);
 
+  await db.$queryRaw`CALL refresh_continuous_aggregate('average_kwh_price_hour_by_hour', NULL, NULL);`;
   await db.$queryRaw`CALL refresh_continuous_aggregate('average_kwh_price_day_by_day', NULL, NULL);`;
   await db.$queryRaw`CALL refresh_continuous_aggregate('average_kwh_price_month_by_month', NULL, NULL);`;
   await db.$queryRaw`CALL refresh_continuous_aggregate('average_kwh_price_year_by_year', NULL, NULL);`;

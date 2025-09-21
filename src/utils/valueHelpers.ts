@@ -1,5 +1,3 @@
-import { formatNumberToFI } from "./wattivahtiHelpers";
-
 export const displayFuelType = (fuelType: string) => {
   switch (fuelType) {
     case "95":

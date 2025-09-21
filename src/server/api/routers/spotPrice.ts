@@ -39,6 +39,10 @@ export const spotPriceRouter = createTRPCRouter({
       }
 
       switch (input.timePeriod) {
+        case TimePeriod.PT15M:
+          return get15MinuteSpotPrices(ctx, startTime, endTime).then((prices) => {
+            return spotPricesToResponse(input.timePeriod, prices, input.additionalHour);
+          });
         case TimePeriod.PT1H:
           return getHourlySpotPrices(ctx, startTime, endTime).then((prices) => {
             return spotPricesToResponse(input.timePeriod, prices, input.additionalHour);
@@ -72,10 +76,15 @@ export const spotPriceRouter = createTRPCRouter({
     .input(z.object({ timePeriod: zodTimePeriod, startTime: zodDay, endTime: zodDay }))
     .mutation(async ({ input }) => {
       // Attempt updating from ENTSO-E first
-      const entsoeResult = await updateFromEntsoe({ startDate: input.startTime, endDate: input.endTime });
-      console.info('ENTSO-E update result', entsoeResult)
-      if (entsoeResult) {
-        return "ok";
+      try {
+        const entsoeResult = await updateFromEntsoe({ startDate: input.startTime, endDate: input.endTime });
+        console.info('ENTSO-E update result', entsoeResult)
+        if (entsoeResult) {
+          return "ok";
+        }
+      }
+      catch (error) {
+        console.error('Error updating from ENTSO-E', error);
       }
 
       // Only update Elring hourly prices
@@ -128,7 +137,7 @@ const getCurrentSpotPrices = (ctx: IContext): Promise<ISpotPrice | null> => {
   })
 }
 
-const getHourlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
+const get15MinuteSpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
   return ctx.db.day_ahead_prices.findMany({
     orderBy: { time: "asc" },
     where: {
@@ -138,15 +147,72 @@ const getHourlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Pro
       },
     },
   }).then((prices) => {
-    return prices.map((price) => {
+    const result: ISpotPrice[] = [];
+    let i = 0;
+    while (i < prices.length) {
+      const price = prices[i];
+      if (!price) {
+        i++;
+        continue;
+      }
       const time = dayjs(price.time);
+      const tzTime = time.tz('Europe/Helsinki');
+      const next = prices[i + 1];
+      const isHourly = next && dayjs(next.time).diff(time, 'minute') === 60;
+      if (isHourly) {
+        for (let j = 0; j < 4; j++) {
+          const intervalTime = time.add(j * 15, 'minute');
+          const intervalTzTime = intervalTime.tz('Europe/Helsinki');
+          result.push({
+            time: intervalTime,
+            currency: 'EUR',
+            price: parseFloat((price.price / 10).toFixed(2)),
+            price_with_tax: parseFloat(((price.price * (1 + price.tax_percentage / 100)) / 10).toFixed(2)),
+            year: intervalTzTime.year(),
+            month: intervalTzTime.month() + 1,
+            day: intervalTzTime.date(),
+            hour: intervalTzTime.hour(),
+          } as ISpotPrice);
+        }
+        i++;
+        continue;
+      }
+      // Otherwise, treat as native 15min interval
+      result.push({
+        time: time,
+        currency: 'EUR',
+        price: parseFloat((price.price / 10).toFixed(2)),
+        price_with_tax: parseFloat(((price.price * (1 + price.tax_percentage / 100)) / 10).toFixed(2)),
+        year: tzTime.year(),
+        month: tzTime.month() + 1,
+        day: tzTime.date(),
+        hour: tzTime.hour(),
+      } as ISpotPrice);
+      i++;
+    }
+    return result;
+  })
+}
+
+const getHourlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Promise<ISpotPrice[]> => {
+  return ctx.db.average_kwh_price_hour_by_hour.findMany({
+    orderBy: { date: "asc" },
+    where: {
+      date: {
+        gte: startTime,
+        lte: endTime,
+      },
+    },
+  }).then((prices) => {
+    return prices.map((price) => {
+      const time = dayjs(price.date);
       const tzTime = time.tz('Europe/Helsinki');
 
       return {
         time: time,
         currency: 'EUR',
-        price: parseFloat((price.price / 10).toFixed(2)),
-        price_with_tax: parseFloat(((price.price * (1 + price.tax_percentage / 100)) / 10).toFixed(2)),
+        price: parseFloat((price.avg_price ?? 0).toFixed(2)),
+        price_with_tax: parseFloat((price.avg_price_with_tax ?? 0).toFixed(2)),
         year: tzTime.year(),
         month: tzTime.month() + 1,
         day: tzTime.date(),
@@ -242,6 +308,7 @@ const getYearlySpotPrices = (ctx: IContext, startTime: Date, endTime: Date): Pro
 
 const getRange = async (ctx: IContext, timePeriod: TimePeriod): Promise<DatePickerRange> => {
   switch (timePeriod) {
+    case TimePeriod.PT15M:
     case TimePeriod.PT1H: {
       const minMaxTime = await ctx.db.average_kwh_price_day_by_day.aggregate({
         _min: {

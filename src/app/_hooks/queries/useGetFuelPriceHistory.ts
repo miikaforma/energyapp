@@ -3,13 +3,13 @@ import { TRPCClientError } from "@trpc/client";
 import { type Dayjs } from "dayjs";
 import toast from "react-hot-toast";
 
-type GetFuelStations = {
+type GetFuelPriceHistory = {
   startTime: Dayjs;
-  endTime?: Dayjs;
+  endTime: Dayjs;
 };
 
-const useGetFuelStations = ({ startTime, endTime }: GetFuelStations) => {
-  const query = api.tankille.getStations.useQuery(
+const useGetFuelPriceHistory = ({ startTime, endTime }: GetFuelPriceHistory) => {
+  const query = api.tankille.getPriceHistory.useQuery(
     {
       startTime,
       endTime,
@@ -19,10 +19,10 @@ const useGetFuelStations = ({ startTime, endTime }: GetFuelStations) => {
       onError: (err: unknown) => {
         if (err instanceof TRPCClientError) {
           if (err.data?.code === "NOT_FOUND") {
-            toast.error("Tankkaus asemia ei löytynyt.");
+            toast.error("Historiaa ei löytynyt.");
             return;
           }
-          toast.error("Virhe haettaessa tankkaus asemia. Yritä myöhemmin uudelleen.");
+          toast.error("Virhe haettaessa historiaa. Yritä myöhemmin uudelleen.");
         }
       },
     },
@@ -31,4 +31,4 @@ const useGetFuelStations = ({ startTime, endTime }: GetFuelStations) => {
   return query;
 };
 
-export default useGetFuelStations;
+export default useGetFuelPriceHistory;

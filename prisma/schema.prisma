@@ -419,6 +419,12 @@ model tankille_gas_stations {
   tankille_gas_prices tankille_gas_prices[]
 }
 
+view average_kwh_price_hour_by_hour {
+  date               DateTime @unique @db.Timestamptz(6)
+  avg_price          Float?
+  avg_price_with_tax Float?
+}
+
 view average_kwh_price_day_by_day {
   date               DateTime @unique @db.Timestamptz(6)
   avg_price          Float?

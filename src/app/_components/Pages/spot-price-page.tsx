@@ -26,6 +26,7 @@ import {
   isCurrentDay,
   isCurrentHour,
   isCurrentMonth,
+  isCurrentPT15M,
   isCurrentYear,
 } from "@energyapp/utils/timeHelpers";
 import { YearDatePicker } from "@energyapp/app/_components/FormItems/antd-year-datepicker";
@@ -54,7 +55,6 @@ type SpotPricePageProps = {
 const getDefaultStartDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
   switch (timePeriod) {
     case TimePeriod.PT15M:
-      return dayjs().hour(0).minute(0).second(0).millisecond(0);
     case TimePeriod.PT1H:
       if (dateQuery) {
         return dateQuery.hour(0).minute(0).second(0).millisecond(0);
@@ -85,7 +85,6 @@ const getDefaultStartDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
 const getDefaultEndDate = (timePeriod: TimePeriod, dateQuery?: Dayjs) => {
   switch (timePeriod) {
     case TimePeriod.PT15M:
-      return dayjs().hour(23).minute(59).second(59).millisecond(999);
     case TimePeriod.PT1H:
       if (dateQuery) {
         return dateQuery.hour(23).minute(59).second(59).millisecond(999);
@@ -407,6 +406,7 @@ export default function SpotPricePage({ timePeriod }: SpotPricePageProps) {
   ) => {
     switch (timePeriod) {
       case TimePeriod.PT15M:
+        return isCurrentPT15M(time);
       case TimePeriod.PT1H:
         return isCurrentHour(time);
       case TimePeriod.P1D:

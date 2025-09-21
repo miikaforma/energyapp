@@ -44,9 +44,9 @@ export default function StatisticsNavigation() {
           <Radio.Button key={"solar"} value="solar">
             Aurinko
           </Radio.Button>
-          <Radio.Button key={"tankille"} value="tankille">
+          {/* <Radio.Button key={"tankille"} value="tankille">
             Tankille
-          </Radio.Button>
+          </Radio.Button> */}
         </>
       )}
     </Radio.Group>

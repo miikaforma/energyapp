@@ -27,7 +27,7 @@ export default function SpotPriceNavigation() {
                 <Radio.Button key={TimePeriod.P1M} value={TimePeriod.P1M}>Kuukausi</Radio.Button>
                 <Radio.Button key={TimePeriod.P1D} value={TimePeriod.P1D}>Päivä</Radio.Button>
                 <Radio.Button key={TimePeriod.PT1H} value={TimePeriod.PT1H}>Tunti</Radio.Button>
-                {/*<Radio.Button key={TimePeriod.PT15M} value="hourly">15-minuuttia</Radio.Button>*/}
+                <Radio.Button key={TimePeriod.PT15M} value={TimePeriod.PT15M}>15 Minuuttia</Radio.Button>
             </Radio.Group>
         </>
     )

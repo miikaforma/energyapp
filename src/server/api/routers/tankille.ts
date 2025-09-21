@@ -6,6 +6,7 @@ import {
 } from "@energyapp/server/api/trpc";
 import dayjs, { type Dayjs } from "dayjs";
 import { type IContext } from "@energyapp/shared/interfaces";
+import { type api } from "@energyapp/trpc/server";
 // import { TRPCError } from "@trpc/server";
 
 const zodDay = z.custom<Dayjs>(
@@ -18,6 +19,10 @@ export type DatePickerRange = {
   max?: Dayjs;
 };
 
+export type PriceHistory = Awaited<
+  ReturnType<typeof api.tankille.getPriceHistory.query>
+>[number];
+
 export const tankilleRouter = createTRPCRouter({
   getStations: protectedProcedure
     .input(z.object({ startTime: zodDay, endTime: zodDay.optional() }))
@@ -27,6 +32,29 @@ export const tankilleRouter = createTRPCRouter({
         dayjs(input.startTime).toDate(),
         input.endTime ? dayjs(input.endTime).toDate() : undefined,
       );
+    }),
+  getPriceHistory: protectedProcedure
+    .input(z.object({ startTime: zodDay, endTime: zodDay }))
+    .query(async ({ input, ctx }) => {
+      const startTime = dayjs(input.startTime).toDate();
+      const endTime = dayjs(input.endTime).toDate();
+
+      const results = await ctx.db.tankille_gas_prices.findMany({
+        where: {
+          time: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
+        include: {
+          tankille_gas_stations: true,
+        },
+        orderBy: {
+          time: "asc",
+        },
+      });
+
+      return results;
     }),
   getRange: protectedProcedure.query(({ ctx }) => {
     return getRange(ctx);

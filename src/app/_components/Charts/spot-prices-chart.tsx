@@ -19,7 +19,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { calculateTotalPrice } from "@energyapp/utils/spotPriceHelpers";
-import { isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentYear } from "@energyapp/utils/timeHelpers";
+import { isCurrentDay, isCurrentHour, isCurrentMonth, isCurrentPT15M, isCurrentYear } from "@energyapp/utils/timeHelpers";
 import dayjs, { type Dayjs } from "dayjs";
 import { type ISettings, type ISpotPrice, type ISpotPriceResponse } from '@energyapp/shared/interfaces';
 import { TimePeriod } from '@energyapp/shared/enums';
@@ -82,9 +82,11 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
 
         const date = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M:
+                return `${date.format("HH:mm")} - ${date.add(15, "minute").format("HH:mm")}`;
             case TimePeriod.PT1H:
             default:
-                return `${date.hour()}:00 - ${date.hour()}:59`;
+                return `${date.format("HH:mm")} - ${date.add(1, "hour").format("HH:mm")}`;
             case TimePeriod.P1D:
                 return `${date.format('DD.MM.YYYY - dddd')}`;
             case TimePeriod.P1M:
@@ -173,7 +175,7 @@ export default function SpotPricesChart({ spotPriceResponse, startDate, endDate,
         ],
     } as ChartData<'bar'>;
 
-    if (timePeriod === TimePeriod.PT1H) {
+    if (timePeriod === TimePeriod.PT1H || timePeriod === TimePeriod.PT15M) {
         mappedData.datasets.push({
             label: 'Hinta (c/kWh)',
             data: totalPrices,
@@ -221,8 +223,12 @@ const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: 
 
         const parsedTime = dayjs(row.time)
         switch (timePeriod) {
+            case TimePeriod.PT15M: {
+                labels.push(parsedTime.format('HH:mm'))
+                break;
+            }
             case TimePeriod.PT1H: {
-                labels.push(`${dayjs(row.time).hour().toString().padStart(2, '0')}`)
+                labels.push(parsedTime.format('HH'))
                 // labels.push(`klo ${new Date(row.time).getHours().toString().padStart(2, '0')} - ${(new Date(row.time).getHours() + 1).toString().padStart(2, '0')}`)
                 break;
             }
@@ -242,6 +248,10 @@ const mapper = ({ data, settings, timePeriod }: { data: ISpotPrice[], settings: 
 
         let isCurrent = false
         switch (timePeriod) {
+            case TimePeriod.PT15M: {
+                isCurrent = isCurrentPT15M(row.time)
+                break;
+            }
             case TimePeriod.PT1H:
             default:
                 isCurrent = isCurrentHour(row.time)

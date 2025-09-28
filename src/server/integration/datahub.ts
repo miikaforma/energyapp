@@ -153,12 +153,21 @@ export const recalculateWithContract = async ({
       }
 
       // Get the spot price for the observation
-      const truncatedPeriodStart = dayjs(observation.period_start)
-        .startOf("hour")
-        .toDate();
-      const dayAheadPrice = spotPrices.find(
-        (price) => price.time.getTime() === truncatedPeriodStart.getTime(),
+      
+      // Try to match PT15M spot price first
+      let dayAheadPrice = spotPrices.find(
+        (price) => price.time.getTime() === observation.period_start.getTime()
       );
+
+      // If not found, fall back to PT1H spot price
+      if (!dayAheadPrice) {
+        const truncatedPeriodStart = dayjs(observation.period_start)
+          .startOf("hour")
+          .toDate();
+        dayAheadPrice = spotPrices.find(
+          (price) => price.time.getTime() === truncatedPeriodStart.getTime()
+        );
+      }
 
       let spotPrice = dayAheadPrice?.price ?? null;
       if (spotPrice !== null) {
@@ -185,11 +194,7 @@ export const recalculateWithContract = async ({
         tax_percentage: contract.tax_percentage,
         night: is_night(contract, observation),
         spot_price: spotPrice ?? 0.0,
-        // Temp fix because I've previously been using incorrect resolution
-        resolution_duration:
-          observation.resolution_duration === "PT15M"
-            ? "PT15MIN"
-            : observation.resolution_duration,
+        resolution_duration: observation.resolution_duration,
       });
     }
 

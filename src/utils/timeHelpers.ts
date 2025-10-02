@@ -28,7 +28,12 @@ export function isCurrentHour(
 export function isCurrentPT15M(
   time: string | number | Date | dayjs.Dayjs | null | undefined,
 ) {
-  return dayjs(time).isSame(dayjs(), "minute");
+  const now = dayjs();
+  const t = dayjs(time);
+  // Find the start of the current 15-min interval
+  const start = now.startOf("hour").add(Math.floor(now.minute() / 15) * 15, "minute");
+  const end = start.add(15, "minute");
+  return t.isSameOrAfter(start) && t.isBefore(end);
 }
 
 export function isCurrentMinute(

@@ -142,7 +142,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                 >
                   {dateToShortSpotTimeString(
                     currentSpotPrice.time,
-                    TimePeriod.PT1H,
+                    TimePeriod.PT15M,
                   )}
                 </Box>
               </Box>

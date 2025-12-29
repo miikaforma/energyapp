@@ -1,5 +1,9 @@
 // Helper function to format number to Finnish locale with 2 decimal places
 export function formatNumberToFI(num: number | undefined, minDigits = 2, maxDigits = 2): string {
+    // Check for NaN
+    if (num !== undefined && isNaN(num)) {
+        num = 0;
+    }
     return num?.toLocaleString('fi-FI', { minimumFractionDigits: minDigits, maximumFractionDigits: maxDigits }) ?? '';
 }
 

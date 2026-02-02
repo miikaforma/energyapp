@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "@energyapp/trpc/react";
-import { Button, Col, Row, Space, Table } from "antd";
+import { Button, Col, Row, Space, Switch, Table } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -40,6 +40,7 @@ export default function Page() {
   const [endDate, setEndDate] = useState(
     dayjs().endOf("year").hour(23).minute(59).second(59).millisecond(999),
   );
+  const [showSpot, setShowSpot] = useState<boolean>(settings.showSpot);
   const utils = api.useUtils();
 
   // Get consumptions
@@ -169,10 +170,31 @@ export default function Page() {
           }
         </Col>
       </Row>
+        {(hasHybridConsumption || true) && (
+        <Row style={{ paddingBottom: 8 }} justify="end">
+          <Col>
+            <Switch
+              value={showSpot}
+              onChange={(val) => {
+                setShowSpot(val);
+                settingsStore.setSettings({
+                  ...settings,
+                  showSpot: val,
+                });
+              }}
+              checkedChildren="Spot-hinnalla"
+              unCheckedChildren="Sopimuksen hinnalla"
+            />
+          </Col>
+        </Row>
+      )}
       <WattiVahtiConsumptionSummary
         timePeriod={timePeriod}
         summary={consumptionResponse?.summary}
         isLoading={isLoading}
+        hasFixedConsumption={true}
+        hasHybridConsumption={hasHybridConsumption}
+        showSpot={showSpot}
       />
       <WattiVahtiConsumptionsChart
         wattivahtiResponse={consumptionResponse}

@@ -30,11 +30,24 @@ export const updateFromElring = async ({
 }: UpdateParams): Promise<boolean> => {
   console.debug({ startDate, endDate });
 
+  // Add 1 hour to endDate as originally intended
+  const endDateWithHour = dayjs(endDate).add(1, 'hour');
+  
+  // Elring API has a maximum period of 1 year
+  // If the period exceeds 365 days, adjust the end date
+  const maxEndDate = dayjs(startDate).add(365, 'days').subtract(1, 'second');
+  const adjustedEndDate = endDateWithHour.isAfter(maxEndDate) ? maxEndDate : endDateWithHour;
+
+  // console.debug({ 
+  //   startDate: dayjs(startDate).toISOString(), 
+  //   originalEndDate: dayjs(endDate).toISOString(),
+  //   endDateWithHour: endDateWithHour.toISOString(),
+  //   adjustedEndDate: adjustedEndDate.toISOString() 
+  // });
+
   try {
     const response = await fetch(
-      `${API_URL}/nps/price?start=${dayjs(startDate).toISOString()}&end=${dayjs(
-        endDate,
-      ).add(1, 'hour').toISOString()}`,
+      `${API_URL}/nps/price?start=${dayjs(startDate).toISOString()}&end=${adjustedEndDate.toISOString()}`,
       {
         method: "GET",
         headers: {
@@ -45,6 +58,9 @@ export const updateFromElring = async ({
     );
 
     if (!response.ok) {
+      // Print the error response for debugging
+      const errorText = await response.text();
+      console.error("Error response from Elring API:", errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 

@@ -16,7 +16,7 @@ import {
   type SolarmanProductionResponse,
   type SolarmanLatestProduction,
 } from "@energyapp/shared/interfaces";
-import { TRPCError } from "@trpc/server";
+// import { TRPCError } from "@trpc/server";
 
 const zodDay = z.custom<Dayjs>(
   (val: unknown) => dayjs(val as string).isValid(),
@@ -133,9 +133,8 @@ export const solarmanRouter = createTRPCRouter({
     }),
   update: protectedProcedure
     .input(z.object({ timePeriod: zodTimePeriod }))
-    .mutation(async ({ input, ctx }) => {
-      return
-      //await refreshViewByTimePeriod(ctx, input.timePeriod);
+    .mutation(async (_input) => {
+      //await refreshViewByTimePeriod(ctx, _input.timePeriod);
     }),
 });
 
@@ -176,19 +175,11 @@ const getProductionsByTimePeriod = async (
   }
   query += ` GROUP BY 1,2,3 ORDER BY 1,2,3`;
 
-  const productions = await ctx.db.$queryRawUnsafe(query, ...params) as {
-    time: Date;
-    plant_id: number;
-    device_id: number;
-    production: number;
-  }[];
-
-  return productions.map((production) => {
-    return {
-      ...production,
-      time: dayjs(production.time),
-    } as SolarmanProduction;
-  });
+  const productions = await ctx.db.$queryRawUnsafe(query, ...params);
+  return (productions as Array<{ time: Date; plant_id: number; device_id: number; production: number }>).map((production) => ({
+    ...production,
+    time: dayjs(production.time),
+  }));
 };
 
 // Productions
@@ -238,10 +229,9 @@ const get15MinuteProductionSummary = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  // Total: sum of all production in the range
   let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
   let bestQuery = `SELECT time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
-  const params: any[] = [startTime];
+  const params: Date[] = [startTime];
   if (endTime) {
     totalQuery += " AND time <= $2";
     bestQuery += " AND time <= $2";
@@ -251,18 +241,18 @@ const get15MinuteProductionSummary = async (
   bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
-    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
-    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
   ]);
 
-  const total = totalResult && totalResult[0]
+  const total = totalResult?.[0]
     ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
-    : null;
-  const best = bestResult && bestResult[0]
+    : undefined;
+  const best = bestResult?.[0]
     ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
-    : null;
+    : undefined;
 
-  return { total, best } as SolarmanProductionSummary;
+  return { total, best };
 };
 
 const getHourlyProductionSummary = async (
@@ -270,10 +260,9 @@ const getHourlyProductionSummary = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  // Total: sum of all production in the range
   let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
   let bestQuery = `SELECT time_bucket('1 hour', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
-  const params: any[] = [startTime];
+  const params: Date[] = [startTime];
   if (endTime) {
     totalQuery += " AND time <= $2";
     bestQuery += " AND time <= $2";
@@ -283,18 +272,18 @@ const getHourlyProductionSummary = async (
   bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
-    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
-    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
   ]);
 
-  const total = totalResult && totalResult[0]
+  const total = totalResult?.[0]
     ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
-    : null;
-  const best = bestResult && bestResult[0]
+    : undefined;
+  const best = bestResult?.[0]
     ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
-    : null;
+    : undefined;
 
-  return { total, best } as SolarmanProductionSummary;
+  return { total, best };
 };
 
 const getDailyProductionSummary = async (
@@ -302,10 +291,9 @@ const getDailyProductionSummary = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  // Total: sum of all production in the range
   let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
   let bestQuery = `SELECT time_bucket('1 day', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
-  const params: any[] = [startTime];
+  const params: Date[] = [startTime];
   if (endTime) {
     totalQuery += " AND time <= $2";
     bestQuery += " AND time <= $2";
@@ -315,18 +303,18 @@ const getDailyProductionSummary = async (
   bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
-    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
-    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
   ]);
 
-  const total = totalResult && totalResult[0]
+  const total = totalResult?.[0]
     ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
-    : null;
-  const best = bestResult && bestResult[0]
+    : undefined;
+  const best = bestResult?.[0]
     ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
-    : null;
+    : undefined;
 
-  return { total, best } as SolarmanProductionSummary;
+  return { total, best };
 };
 
 const getMonthlyProductionSummary = async (
@@ -334,10 +322,9 @@ const getMonthlyProductionSummary = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  // Total: sum of all production in the range
   let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
   let bestQuery = `SELECT time_bucket('1 month', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
-  const params: any[] = [startTime];
+  const params: Date[] = [startTime];
   if (endTime) {
     totalQuery += " AND time <= $2";
     bestQuery += " AND time <= $2";
@@ -347,18 +334,18 @@ const getMonthlyProductionSummary = async (
   bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
-    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
-    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
   ]);
 
-  const total = totalResult && totalResult[0]
+  const total = totalResult?.[0]
     ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
-    : null;
-  const best = bestResult && bestResult[0]
+    : undefined;
+  const best = bestResult?.[0]
     ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
-    : null;
+    : undefined;
 
-  return { total, best } as SolarmanProductionSummary;
+  return { total, best };
 };
 
 const getYearlyProductionSummary = async (
@@ -366,10 +353,9 @@ const getYearlyProductionSummary = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  // Total: sum of all production in the range
   let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
   let bestQuery = `SELECT time_bucket('1 year', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
-  const params: any[] = [startTime];
+  const params: Date[] = [startTime];
   if (endTime) {
     totalQuery += " AND time <= $2";
     bestQuery += " AND time <= $2";
@@ -379,18 +365,18 @@ const getYearlyProductionSummary = async (
   bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
-    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
-    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
   ]);
 
-  const total = totalResult && totalResult[0]
+  const total = totalResult?.[0]
     ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
-    : null;
-  const best = bestResult && bestResult[0]
+    : undefined;
+  const best = bestResult?.[0]
     ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
-    : null;
+    : undefined;
 
-  return { total, best } as SolarmanProductionSummary;
+  return { total, best };
 };
 
 const refreshTimestamps = new Map<TimePeriod, number>();

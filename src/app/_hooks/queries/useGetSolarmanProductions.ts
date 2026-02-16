@@ -59,6 +59,7 @@ const useGetSolarmanProductions = ({
 };
 
 const prefetchSolarmanProductions = ({ utils, timePeriod, startTime, endTime, singlePrefetch = false }: PrefetchSolarmanProductions) => {
+  console.log('Prefetching solarman productions', { timePeriod, startTime, endTime, singlePrefetch });
   if (singlePrefetch) {
       void utils.wattivahti.getProductions.prefetch({
           timePeriod: timePeriod,
@@ -75,6 +76,7 @@ const prefetchSolarmanProductions = ({ utils, timePeriod, startTime, endTime, si
   let nextEnd: Dayjs = dayjs();
 
   switch (timePeriod) {
+      case TimePeriod.PT15M:
       case TimePeriod.PT1H:
           previousStart = startTime.add(-1, 'day');
           previousEnd = startTime.add(-1, 'day');

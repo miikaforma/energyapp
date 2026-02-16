@@ -6,11 +6,6 @@ import dayjs, { type Dayjs } from "dayjs";
 import { z } from "zod";
 
 import {
-  type solarman_production_15_minutes,
-  type solarman_production_hour_by_hour,
-  type solarman_production_day_by_day,
-  type solarman_production_month_by_month,
-  type solarman_production_year_by_year,
   type solarman_inverter_data,
 } from "@prisma/client";
 import { TimePeriod } from "@energyapp/shared/enums";
@@ -139,9 +134,62 @@ export const solarmanRouter = createTRPCRouter({
   update: protectedProcedure
     .input(z.object({ timePeriod: zodTimePeriod }))
     .mutation(async ({ input, ctx }) => {
-      await refreshViewByTimePeriod(ctx, input.timePeriod);
+      return
+      //await refreshViewByTimePeriod(ctx, input.timePeriod);
     }),
 });
+
+const getProductionsByTimePeriod = async (
+  ctx: IContext,
+  timePeriod: TimePeriod,
+  startTime: Date,
+  endTime?: Date,
+): Promise<SolarmanProduction[]> => {
+  // Determine table name based on timePeriod
+  let timeBucket = "";
+  switch (timePeriod) {
+    case TimePeriod.PT15M:
+      timeBucket = "15 minutes";
+      break;
+    case TimePeriod.PT1H:
+      timeBucket = "1 hour";
+      break;
+    case TimePeriod.P1D:
+      timeBucket = "1 day";
+      break;
+    case TimePeriod.P1M:
+      timeBucket = "1 month";
+      break;
+    case TimePeriod.P1Y:
+      timeBucket = "1 year";
+      break;
+    default:
+      throw new Error("Unsupported time period");
+  }
+
+  // Build the query with GROUP BY and ORDER BY on time, plant_id, device_id, and time filter
+  let query = `SELECT time_bucket('${timeBucket}', "time") AS time, plant_id, device_id, sum(production) AS production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
+  if (endTime) {
+    query += " AND time <= $2";
+    params.push(endTime);
+  }
+  query += ` GROUP BY 1,2,3 ORDER BY 1,2,3`;
+
+  const productions = await ctx.db.$queryRawUnsafe(query, ...params) as {
+    time: Date;
+    plant_id: number;
+    device_id: number;
+    production: number;
+  }[];
+
+  return productions.map((production) => {
+    return {
+      ...production,
+      time: dayjs(production.time),
+    } as SolarmanProduction;
+  });
+};
 
 // Productions
 const getPT15MProductions = async (
@@ -149,29 +197,7 @@ const getPT15MProductions = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProduction[]> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
-  if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
-  }
-
-  return await ctx.db.solarman_production_15_minutes
-    .findMany({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((productions: solarman_production_15_minutes[]) => {
-      return productions.map((production: solarman_production_15_minutes) => {
-        return {
-          ...production,
-          time: dayjs(production.time),
-        } as SolarmanProduction;
-      });
-    });
+  return getProductionsByTimePeriod(ctx, TimePeriod.PT15M, startTime, endTime);
 };
 
 const getHourlyProductions = async (
@@ -179,29 +205,7 @@ const getHourlyProductions = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProduction[]> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
-  if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
-  }
-
-  return await ctx.db.solarman_production_hour_by_hour
-    .findMany({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((productions: solarman_production_hour_by_hour[]) => {
-      return productions.map((production: solarman_production_hour_by_hour) => {
-        return {
-          ...production,
-          time: dayjs(production.time),
-        } as SolarmanProduction;
-      });
-    });
+  return getProductionsByTimePeriod(ctx, TimePeriod.PT1H, startTime, endTime);
 };
 
 const getDailyProductions = async (
@@ -209,29 +213,7 @@ const getDailyProductions = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProduction[]> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
-  if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
-  }
-
-  return await ctx.db.solarman_production_day_by_day
-    .findMany({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((productions: solarman_production_day_by_day[]) => {
-      return productions.map((production: solarman_production_day_by_day) => {
-        return {
-          ...production,
-          time: dayjs(production.time),
-        } as SolarmanProduction;
-      });
-    });
+  return getProductionsByTimePeriod(ctx, TimePeriod.P1D, startTime, endTime);
 };
 
 const getMonthlyProductions = async (
@@ -239,31 +221,7 @@ const getMonthlyProductions = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProduction[]> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
-  if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
-  }
-
-  return await ctx.db.solarman_production_month_by_month
-    .findMany({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((productions: solarman_production_month_by_month[]) => {
-      return productions.map(
-        (production: solarman_production_month_by_month) => {
-          return {
-            ...production,
-            time: dayjs(production.time),
-          } as SolarmanProduction;
-        },
-      );
-    });
+  return getProductionsByTimePeriod(ctx, TimePeriod.P1M, startTime, endTime);
 };
 
 const getYearlyProductions = async (
@@ -271,285 +229,168 @@ const getYearlyProductions = async (
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProduction[]> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
-  if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
-  }
-
-  return await ctx.db.solarman_production_year_by_year
-    .findMany({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((productions: solarman_production_year_by_year[]) => {
-      return productions.map((production: solarman_production_year_by_year) => {
-        return {
-          ...production,
-          time: dayjs(production.time),
-        } as SolarmanProduction;
-      });
-    });
+  return getProductionsByTimePeriod(ctx, TimePeriod.P1Y, startTime, endTime);
 };
 
 // Summary
-const get15MinuteProductionSummary = (
+const get15MinuteProductionSummary = async (
   ctx: IContext,
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
+  // Total: sum of all production in the range
+  let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  let bestQuery = `SELECT time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
   if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
+    totalQuery += " AND time <= $2";
+    bestQuery += " AND time <= $2";
+    params.push(endTime);
   }
+  totalQuery += " GROUP BY plant_id, device_id";
+  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
-  const total = ctx.db.solarman_production_day_by_day
-    .findFirst({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
+  const [totalResult, bestResult] = await Promise.all([
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+  ]);
 
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
+  const total = totalResult && totalResult[0]
+    ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
+    : null;
+  const best = bestResult && bestResult[0]
+    ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
+    : null;
 
-  const best = ctx.db.solarman_production_15_minutes
-    .findFirst({
-      orderBy: { production: "desc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
-
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
-
-  return Promise.all([total, best]).then(([total, best]) => {
-    return {
-      total,
-      best,
-    } as SolarmanProductionSummary;
-  });
+  return { total, best } as SolarmanProductionSummary;
 };
 
-const getHourlyProductionSummary = (
+const getHourlyProductionSummary = async (
   ctx: IContext,
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
+  // Total: sum of all production in the range
+  let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  let bestQuery = `SELECT time_bucket('1 hour', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
   if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
+    totalQuery += " AND time <= $2";
+    bestQuery += " AND time <= $2";
+    params.push(endTime);
   }
+  totalQuery += " GROUP BY plant_id, device_id";
+  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
-  const total = ctx.db.solarman_production_day_by_day
-    .findFirst({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
+  const [totalResult, bestResult] = await Promise.all([
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+  ]);
 
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
+  const total = totalResult && totalResult[0]
+    ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
+    : null;
+  const best = bestResult && bestResult[0]
+    ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
+    : null;
 
-  const best = ctx.db.solarman_production_hour_by_hour
-    .findFirst({
-      orderBy: { production: "desc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
-
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
-
-  return Promise.all([total, best]).then(([total, best]) => {
-    return {
-      total,
-      best,
-    } as SolarmanProductionSummary;
-  });
+  return { total, best } as SolarmanProductionSummary;
 };
 
-const getDailyProductionSummary = (
+const getDailyProductionSummary = async (
   ctx: IContext,
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
+  // Total: sum of all production in the range
+  let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  let bestQuery = `SELECT time_bucket('1 day', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
   if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
+    totalQuery += " AND time <= $2";
+    bestQuery += " AND time <= $2";
+    params.push(endTime);
   }
+  totalQuery += " GROUP BY plant_id, device_id";
+  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
-  const total = ctx.db.solarman_production_month_by_month
-    .findFirst({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
+  const [totalResult, bestResult] = await Promise.all([
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+  ]);
 
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
+  const total = totalResult && totalResult[0]
+    ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
+    : null;
+  const best = bestResult && bestResult[0]
+    ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
+    : null;
 
-  const best = ctx.db.solarman_production_day_by_day
-    .findFirst({
-      orderBy: { production: "desc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
-
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
-
-  return Promise.all([total, best]).then(([total, best]) => {
-    return {
-      total,
-      best,
-    } as SolarmanProductionSummary;
-  });
+  return { total, best } as SolarmanProductionSummary;
 };
 
-const getMonthlyProductionSummary = (
+const getMonthlyProductionSummary = async (
   ctx: IContext,
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
+  // Total: sum of all production in the range
+  let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  let bestQuery = `SELECT time_bucket('1 month', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
   if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
+    totalQuery += " AND time <= $2";
+    bestQuery += " AND time <= $2";
+    params.push(endTime);
   }
+  totalQuery += " GROUP BY plant_id, device_id";
+  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
-  const total = ctx.db.solarman_production_year_by_year
-    .findFirst({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
+  const [totalResult, bestResult] = await Promise.all([
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+  ]);
 
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
+  const total = totalResult && totalResult[0]
+    ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
+    : null;
+  const best = bestResult && bestResult[0]
+    ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
+    : null;
 
-  const best = ctx.db.solarman_production_month_by_month
-    .findFirst({
-      orderBy: { production: "desc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
-
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
-
-  return Promise.all([total, best]).then(([total, best]) => {
-    return {
-      total,
-      best,
-    } as SolarmanProductionSummary;
-  });
+  return { total, best } as SolarmanProductionSummary;
 };
 
-const getYearlyProductionSummary = (
+const getYearlyProductionSummary = async (
   ctx: IContext,
   startTime: Date,
   endTime?: Date,
 ): Promise<SolarmanProductionSummary | null> => {
-  const whereClause: { time: { gte: Date; lte?: Date } } = {
-    time: {
-      gte: dayjs(startTime).toDate(),
-    },
-  };
-
+  // Total: sum of all production in the range
+  let totalQuery = `SELECT MIN(time) as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  let bestQuery = `SELECT time_bucket('1 year', "time") as time, plant_id, device_id, SUM(production) as production FROM solarman_production_15m_live WHERE time >= $1`;
+  const params: any[] = [startTime];
   if (endTime) {
-    whereClause.time.lte = dayjs(endTime).toDate();
+    totalQuery += " AND time <= $2";
+    bestQuery += " AND time <= $2";
+    params.push(endTime);
   }
+  totalQuery += " GROUP BY plant_id, device_id";
+  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
 
-  const total = ctx.db.solarman_production_year_by_year
-    .findFirst({
-      orderBy: { time: "asc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
+  const [totalResult, bestResult] = await Promise.all([
+    ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<any[]>,
+    ctx.db.$queryRawUnsafe(bestQuery, ...params) as Promise<any[]>,
+  ]);
 
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
+  const total = totalResult && totalResult[0]
+    ? { ...totalResult[0], time: dayjs(totalResult[0].time) }
+    : null;
+  const best = bestResult && bestResult[0]
+    ? { ...bestResult[0], time: dayjs(bestResult[0].time) }
+    : null;
 
-  const best = ctx.db.solarman_production_year_by_year
-    .findFirst({
-      orderBy: { production: "desc" },
-      where: whereClause,
-    })
-    .then((production) => {
-      if (!production) return Promise.resolve(null);
-
-      return {
-        ...production,
-        time: dayjs(production.time),
-      };
-    });
-
-  return Promise.all([total, best]).then(([total, best]) => {
-    return {
-      total,
-      best,
-    } as SolarmanProductionSummary;
-  });
+  return { total, best } as SolarmanProductionSummary;
 };
 
 const refreshTimestamps = new Map<TimePeriod, number>();

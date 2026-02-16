@@ -71,6 +71,7 @@ const prefetchShellyConsumptions = ({
   let nextEnd: Dayjs = dayjs();
 
   switch (timePeriod) {
+    case TimePeriod.PT15M:
     case TimePeriod.PT1H:
       previousStart = startTime.add(-1, "day");
       previousEnd = startTime.add(-1, "day");

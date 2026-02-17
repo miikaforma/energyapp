@@ -237,8 +237,8 @@ const get15MinuteProductionSummary = async (
     bestQuery += " AND time <= $2";
     params.push(endTime);
   }
-  totalQuery += " GROUP BY plant_id, device_id";
-  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
+  totalQuery += " GROUP BY 2, 3";
+  bestQuery += " GROUP BY 1, 2, 3 ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
     ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
@@ -268,8 +268,8 @@ const getHourlyProductionSummary = async (
     bestQuery += " AND time <= $2";
     params.push(endTime);
   }
-  totalQuery += " GROUP BY plant_id, device_id";
-  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
+  totalQuery += " GROUP BY 2, 3";
+  bestQuery += " GROUP BY 1, 2, 3 ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
     ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
@@ -299,8 +299,8 @@ const getDailyProductionSummary = async (
     bestQuery += " AND time <= $2";
     params.push(endTime);
   }
-  totalQuery += " GROUP BY plant_id, device_id";
-  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
+  totalQuery += " GROUP BY 2, 3";
+  bestQuery += " GROUP BY 1, 2, 3 ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
     ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
@@ -330,8 +330,8 @@ const getMonthlyProductionSummary = async (
     bestQuery += " AND time <= $2";
     params.push(endTime);
   }
-  totalQuery += " GROUP BY plant_id, device_id";
-  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
+  totalQuery += " GROUP BY 2, 3";
+  bestQuery += " GROUP BY 1, 2, 3 ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
     ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,
@@ -361,8 +361,8 @@ const getYearlyProductionSummary = async (
     bestQuery += " AND time <= $2";
     params.push(endTime);
   }
-  totalQuery += " GROUP BY plant_id, device_id";
-  bestQuery += " GROUP BY time, plant_id, device_id ORDER BY production DESC LIMIT 1";
+  totalQuery += " GROUP BY 2, 3";
+  bestQuery += " GROUP BY 1, 2, 3 ORDER BY production DESC LIMIT 1";
 
   const [totalResult, bestResult] = await Promise.all([
     ctx.db.$queryRawUnsafe(totalQuery, ...params) as Promise<Array<{ time: Date; plant_id: number; device_id: number; production: number }>>,

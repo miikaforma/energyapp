@@ -21,7 +21,7 @@
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"
@@ -36,7 +36,7 @@
       ]
     },
     /* Custom options */
-    "noImplicitAny": false,
+    "noImplicitAny": false
   },
   "include": [
     ".eslintrc.cjs",
@@ -46,7 +46,8 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts",
-    "dist/types/**/*.ts"
+    "dist/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -54,6 +55,6 @@
     "worker/**/*",
     "public/workbox-*.js",
     "public/worker-*.js",
-    "src/app/_fingrid/**/*",
+    "src/app/_fingrid/**/*"
   ]
 }

@@ -6,13 +6,15 @@ await import("./src/env.js");
 import withPWAInit from "@ducanh2912/next-pwa";
 
 /** @type {import("next").NextConfig} */
+
 const config = {
     reactStrictMode: true, // Enable React strict mode for improved error handling
-    swcMinify: true,      // Enable SWC minification for improved performance
+    // swcMinify: true,      // Removed for Next.js 16 compatibility
     compiler: {
         removeConsole: process.env.NODE_ENV !== "development" ? { exclude: ["error", "warn"] } : false,
     },
     output: "standalone", // Output PWA as a standalone app (no browser chrome)
+    turbopack: {}, // Added for Next.js 16 to silence Turbopack/webpack warning
 };
 
 // Configuration object tells the next-pwa plugin 

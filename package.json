@@ -43,12 +43,12 @@
     "energyapp": "file:",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
-    "next": "^14.1.0",
-    "next-auth": "^4.24.5",
-    "react": "18.2.0",
+    "next": "16.1.6",
+    "next-auth": "^4.24.13",
+    "react": "19.2.4",
     "react-apexcharts": "^1.4.1",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "18.2.0",
+    "react-dom": "19.2.4",
     "react-hot-toast": "^2.4.1",
     "react-tailwindcss-datepicker": "^1.6.6",
     "server-only": "^0.0.1",
@@ -58,11 +58,11 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^14.0.3",
+    "@next/eslint-plugin-next": "16.1.6",
     "@types/eslint": "^8.44.7",
     "@types/node": "^18.17.0",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "autoprefixer": "^10.4.14",
@@ -80,5 +80,9 @@
   "packageManager": "yarn@4.0.0-rc.37",
   "volta": {
     "node": "22.22.0"
+  },
+  "overrides": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
   }
 }

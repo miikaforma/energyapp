@@ -45,7 +45,7 @@ export default function PushSubscriber({
                 .subscribe({
                   userVisibleOnly: true,
                   applicationServerKey:
-                    urlBase64ToUint8Array(applicationServerKey),
+                    urlBase64ToUint8Array(applicationServerKey) as BufferSource,
                 })
                 .then((newSub) => {
                   console.log("User is subscribed:", newSub);

@@ -4,7 +4,6 @@ import {
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import { headers, cookies } from "next/headers";
 import KeycloakProvider from 'next-auth/providers/keycloak';
 
 import { env } from "@energyapp/env";
@@ -127,8 +126,7 @@ export const authOptions: NextAuthOptions = {
  *
  * @see https://next-auth.js.org/configuration/nextjs
  */
-export const getServerAuthSession = async () =>
-  await getServerSession({ ...authOptions, headers: await headers(), cookies: await cookies() });
+export const getServerAuthSession = () => getServerSession(authOptions);
 
 const updateUserAccesses = async (userId: string, token?: string) => {
   if (!token) { return; }

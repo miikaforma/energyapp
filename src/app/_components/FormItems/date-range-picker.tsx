@@ -113,8 +113,8 @@ export default function DateRangePicker({
           currentYear: {
             text: "Tämä vuosi",
             period: {
-              start: dayjs().startOf("year").format("YYYY-MM-DD"),
-              end: dayjs().endOf("year").format("YYYY-MM-DD"),
+              start: dayjs().startOf("year").toDate(),
+              end: dayjs().endOf("year").toDate(),
             },
           },
           pastYear: {
@@ -123,11 +123,11 @@ export default function DateRangePicker({
               start: dayjs()
                 .subtract(1, "year")
                 .startOf("year")
-                .format("YYYY-MM-DD"),
+                .toDate(),
               end: dayjs()
                 .subtract(1, "year")
                 .endOf("year")
-                .format("YYYY-MM-DD"),
+                .toDate(),
             },
           },
         },

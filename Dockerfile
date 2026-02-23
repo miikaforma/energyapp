@@ -1,14 +1,16 @@
-FROM node:20.1.0-alpine AS builder
+FROM node:22.22.0-alpine AS builder
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 COPY package.json package-lock.json ./
-RUN npm ci
 COPY . .
+RUN npm ci
 ENV SKIP_ENV_VALIDATION=true
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:20.1.0-alpine AS runner
+FROM node:22.22.0-alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /app/package.json .

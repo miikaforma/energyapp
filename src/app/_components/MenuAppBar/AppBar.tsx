@@ -77,7 +77,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
         : currentSpotPrice.price_with_tax < 20
           ? "orange"
           : "red"
-    : "none";
+    : "default";
 
   const production = latestProduction
     ? latestProduction.output_power_active / 1000
@@ -90,7 +90,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
         : production < 4
           ? "orange"
           : "volcano"
-    : "none";
+    : "default";
 
   return (
     <Box sx={{ flexGrow: 1 }}>

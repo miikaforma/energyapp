@@ -131,12 +131,15 @@ export default function Settings() {
           }
           rules={[validator]}
         >
-          <InputNumber
-            style={{ width: "100%" }}
-            decimalSeparator={","}
-            precision={2}
-            addonAfter={cKWHSuffix}
-          />
+          <Space.Compact>
+            <InputNumber
+              style={{ width: "100%" }}
+              decimalSeparator={","}
+              precision={2}
+            />
+            {cKWHSuffix}
+          </Space.Compact>
+
         </Form.Item>
         <Form.Item
           name="transferDay"
@@ -191,7 +194,7 @@ export default function Settings() {
           name="addElectricityTax"
           label="Sähkövero"
           help={
-            <Space.Compact direction="vertical">
+            <Space.Compact orientation="vertical">
               <Text type="secondary">
                 2,79372 c/kWh (sis. alv. 24 % ja huoltovarmuusmaksun)
               </Text>

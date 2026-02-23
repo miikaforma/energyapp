@@ -3,7 +3,7 @@ import { type IWattiVahtiProduction } from "@energyapp/shared/interfaces";
 import { TimePeriod } from "@energyapp/shared/enums";
 
 export function WattiVahtiProduction({ production, timePeriod }: { production: IWattiVahtiProduction, timePeriod: TimePeriod }) {
-    let color = 'none';
+    let color = 'default';
 
     if (production.energy_production > 0) {
         switch (timePeriod) {

@@ -42,7 +42,7 @@ export default function FingridSummary({ latestTotals }: IFingridSummaryProps) {
             size={'small'}
             title=""
             layout={isSx ? 'horizontal' : 'vertical'}
-            labelStyle={{ color: 'white' }}
+            styles={{ label: { color: 'white' } }}
             bordered
         >
             {getConsumption()}

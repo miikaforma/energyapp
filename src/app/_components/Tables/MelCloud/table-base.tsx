@@ -98,7 +98,7 @@ export default function EnergyCostReportTable({
   }
 
   return (
-    <div style={{ overflowX: 'auto', maxWidth: 'calc(100vw - 8px)' }}>
+    <div style={{ maxWidth: 'calc(100vw - 8px)' }}>
       <Table
         rowKey={"time"}
         size={"small"}

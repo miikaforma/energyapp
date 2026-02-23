@@ -3,6 +3,8 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
+RUN ln -s /usr/lib/libssl.so.3 /lib/libssl.so.3
+
 COPY package.json package-lock.json ./
 COPY . .
 RUN npm ci

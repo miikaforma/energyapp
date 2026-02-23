@@ -54,7 +54,6 @@
     "public/sw.js",
     "worker/**/*",
     "public/workbox-*.js",
-    "public/worker-*.js",
-    "src/app/_fingrid/**/*"
+    "public/worker-*.js"
   ]
 }

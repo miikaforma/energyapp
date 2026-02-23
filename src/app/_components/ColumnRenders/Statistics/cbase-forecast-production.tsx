@@ -6,7 +6,7 @@ export function CBaseForecastProduction({
 }: {
   forecast: cbase_pv_forecast;
 }) {
-  let color = "none";
+  let color = "default";
 
   if (forecast.pv_po !== null && forecast.pv_po > 0) {
     color =

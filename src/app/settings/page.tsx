@@ -194,7 +194,7 @@ export default function Settings() {
           name="addElectricityTax"
           label="Sähkövero"
           help={
-            <Space.Compact direction="vertical">
+            <Space.Compact orientation="vertical">
               <Text type="secondary">
                 2,79372 c/kWh (sis. alv. 24 % ja huoltovarmuusmaksun)
               </Text>

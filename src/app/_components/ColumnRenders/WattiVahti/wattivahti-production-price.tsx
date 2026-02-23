@@ -5,7 +5,7 @@ import { TimePeriod } from "@energyapp/shared/enums";
 export function WattiVahtiProductionPrice({ production, timePeriod }: { production: IWattiVahtiProduction, timePeriod: TimePeriod }) {
     const price = production.price / 100;
 
-    let color = 'none';
+    let color = 'default';
     if (price > 0) {
         switch (timePeriod) {
             case TimePeriod.PT15M:

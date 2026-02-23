@@ -59,7 +59,7 @@ export default function SolarmanLatestProductionSummary({ summary }: { summary?:
         const production = summary.solar_production_total / 1000;
         return (
             <Descriptions.Item key={'allTimeProduction'} label={<span>Tuotto yhteensä</span>} style={{ padding: 8 }}>
-                <Tag color='none' key='allTimeProduction' style={{ fontSize: isSx ? 14 : 15, padding: 4, width: '100%', textAlign: 'center' }}>
+                <Tag color='default' key='allTimeProduction' style={{ fontSize: isSx ? 14 : 15, padding: 4, width: '100%', textAlign: 'center' }}>
                     {formatNumberToFI(production)} MWh
                 </Tag>
             </Descriptions.Item>
@@ -71,7 +71,7 @@ export default function SolarmanLatestProductionSummary({ summary }: { summary?:
             size={'small'}
             title=""
             layout={isSx ? 'horizontal' : 'vertical'}
-            labelStyle={{ color: 'white' }}
+            styles={{ label: { color: 'white' } }}
             bordered
         >
             {getLatestProduction()}

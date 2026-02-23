@@ -7,7 +7,7 @@ export function SolarmanProductionProduced({
   time: Date;
   produced?: number;
 }) {
-  let color = "none";
+  let color = "default";
 
   if (!produced) {
     produced = 0;

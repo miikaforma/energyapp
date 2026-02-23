@@ -325,7 +325,7 @@ export default function WattivahtiProductionPage({
 
   return (
     <Space
-      direction="vertical"
+      orientation="vertical"
       className="text-center"
       style={{ width: "calc(100vw - 32px)" }}
     >

@@ -46,7 +46,7 @@ export default function ShellySummary({ response }: { response?: ShellyConsumpti
             size={'small'}
             title=""
             layout={isSx ? 'horizontal' : 'vertical'}
-            labelStyle={{ color: 'white' }}
+            styles={{ label: { color: 'white' } }}
             bordered
         >
             {getHighestConsumption()}

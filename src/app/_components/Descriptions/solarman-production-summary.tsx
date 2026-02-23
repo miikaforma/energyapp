@@ -92,7 +92,7 @@ export default function SolarmanProductionSummary({ timePeriod, summary }: { tim
             size={'small'}
             title=""
             layout={isSx ? 'horizontal' : 'vertical'}
-            labelStyle={{ color: 'white' }}
+            styles={{ label: { color: 'white' } }}
             bordered
         >
             {getBestProduction()}

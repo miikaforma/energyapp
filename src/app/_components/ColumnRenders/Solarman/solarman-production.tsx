@@ -5,7 +5,7 @@ import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import dayjs from "dayjs";
 
 export function SolarmanProductionColumn({ production, timePeriod }: { production: SolarmanProduction, timePeriod: TimePeriod }) {
-    let color = 'none';
+    let color = 'default';
 
     const produced = production.production / 1000;
 

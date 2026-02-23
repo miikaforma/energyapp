@@ -131,12 +131,15 @@ export default function Settings() {
           }
           rules={[validator]}
         >
-          <InputNumber
-            style={{ width: "100%" }}
-            decimalSeparator={","}
-            precision={2}
-            addonAfter={cKWHSuffix}
-          />
+          <Space.Compact>
+            <InputNumber
+              style={{ width: "100%" }}
+              decimalSeparator={","}
+              precision={2}
+            />
+            {cKWHSuffix}
+          </Space.Compact>
+
         </Form.Item>
         <Form.Item
           name="transferDay"

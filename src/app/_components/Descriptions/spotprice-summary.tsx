@@ -47,7 +47,7 @@ export default function SpotPriceSummary({ spotResponse, settings }: { spotRespo
             size={'small'}
             title=""
             layout={isSx ? 'horizontal' : 'vertical'}
-            labelStyle={{ color: 'white' }}
+            styles={{ label: { color: 'white' } }}
             bordered
         >
             {getMostExpensive()}

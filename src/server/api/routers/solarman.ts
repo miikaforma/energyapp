@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import {
   type solarman_inverter_data,
-} from "@prisma/client";
+} from "@energyapp/generated/client";
 import { TimePeriod } from "@energyapp/shared/enums";
 import {
   type SolarmanProductionSummary,

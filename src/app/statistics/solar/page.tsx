@@ -9,7 +9,7 @@ import CBasePvForecast from "@energyapp/app/_components/Charts/cbase-pv-forecast
 import { Space, Table, type TableProps } from "antd";
 import { dateToTableString, isCurrentHour } from "@energyapp/utils/timeHelpers";
 import { TimePeriod } from "@energyapp/shared/enums";
-import { type cbase_pv_forecast } from "@prisma/client";
+import { type cbase_pv_forecast } from "@energyapp/generated/client";
 import { CBaseForecastProduction } from "@energyapp/app/_components/ColumnRenders/Statistics/cbase-forecast-production";
 import { CaretRightFilled } from "@ant-design/icons";
 import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolarmanProductions";

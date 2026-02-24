@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Line} from "react-chartjs-2";
-import { type fingrid_time_series_data } from '@prisma/client'
+import { type fingrid_time_series_data } from '@energyapp/generated/client'
 import {
     Chart as ChartJS,
     CategoryScale,

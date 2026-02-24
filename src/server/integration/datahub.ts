@@ -5,7 +5,7 @@ import {
   type energies,
   type electricity_observations,
   type contracts,
-} from "@prisma/client";
+} from "@energyapp/generated/client";
 import { TimePeriod } from "@energyapp/shared/enums";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";

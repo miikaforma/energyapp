@@ -15,7 +15,7 @@ import {
     type ChartDataset,
 } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-import { type cbase_pv_forecast } from "@prisma/client";
+import { type cbase_pv_forecast } from "@energyapp/generated/client";
 import { type SolarmanProduction } from "@energyapp/shared/interfaces";
 
 ChartJS.register(  CategoryScale,

@@ -47,7 +47,7 @@ export default function Page() {
     return <p style={{ color: "grey" }}>Historiatietoja ei löytynyt</p>;
   }
 
-  const fuelTypes = Array.from(new Set(priceHistory.map((item) => item.fuel)));
+  const fuelTypes: string[] = Array.from(new Set(priceHistory.map((item) => item.fuel)));
 
   const onDateChange = (startDate: Dayjs, endDate?: Dayjs | null) => {
     console.log("onDateChange", startDate, endDate);

@@ -14,7 +14,7 @@ import {
 } from "@energyapp/shared/interfaces";
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
-import { Prisma, type shelly_historical_data } from "@prisma/client";
+import { Prisma, type shelly_historical_data } from "@energyapp/generated/client";
 
 export type DatePickerRange = {
   min?: Dayjs;

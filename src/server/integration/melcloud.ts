@@ -4,7 +4,7 @@ import dayjs, {type Dayjs} from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import {type IEnergyCostReport} from "@energyapp/shared/interfaces";
-import {type melcloud_daily_energy_consumption, type melcloud_hourly_energy_consumption,} from "@prisma/client";
+import {type melcloud_daily_energy_consumption, type melcloud_hourly_energy_consumption,} from "@energyapp/generated/client";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

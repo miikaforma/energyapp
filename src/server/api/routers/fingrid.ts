@@ -13,7 +13,7 @@ import { type IContext } from "@energyapp/shared/interfaces";
 import {
   type fingrid_time_series_data,
   type fingrid_latest_data,
-} from "@prisma/client";
+} from "@energyapp/generated/client";
 import { TRPCError } from "@trpc/server";
 import dayjs, { type Dayjs } from "dayjs";
 import { z } from "zod";

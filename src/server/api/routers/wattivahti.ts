@@ -9,7 +9,7 @@ import { type IWattiVahtiConsumption, type IContext, type IWattiVahtiConsumption
 import { TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
 import { updateFromWattiVahti } from "@energyapp/server/integration/wattivahti";
-import { type energies_production_15min_by_15min, type energies_production_day_by_day, type energies_production_hour_by_hour, type energies_production_month_by_month, type energies_production_year_by_year, type energies_consumption_15min_by_15min, type energies_consumption_day_by_day, type energies_consumption_hour_by_hour, type energies_consumption_month_by_month, type energies_consumption_year_by_year } from '@prisma/client';
+import { type energies_production_15min_by_15min, type energies_production_day_by_day, type energies_production_hour_by_hour, type energies_production_month_by_month, type energies_production_year_by_year, type energies_consumption_15min_by_15min, type energies_consumption_day_by_day, type energies_consumption_hour_by_hour, type energies_consumption_month_by_month, type energies_consumption_year_by_year } from '@energyapp/generated/client';
 
 const zodDay = z.custom<Dayjs>((val: unknown) => dayjs(val as string).isValid(), 'Invalid date');
 const zodTimePeriod = z.nativeEnum(TimePeriod);

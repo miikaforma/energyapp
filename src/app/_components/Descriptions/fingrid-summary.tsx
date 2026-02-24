@@ -1,7 +1,7 @@
 import { Descriptions, Tag } from "antd";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { FingridRealTimeEvents } from "@energyapp/shared/constants";
-import { type fingrid_latest_data } from "@prisma/client";
+import { type fingrid_latest_data } from "@energyapp/generated/client";
 
 interface IFingridSummaryProps {
     latestTotals?: fingrid_latest_data[];

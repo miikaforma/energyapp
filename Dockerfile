@@ -1,14 +1,11 @@
 FROM node:22.22.0-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache openssl
-
-RUN ln -s /usr/lib/libssl.so.3 /lib/libssl.so.3
-
 COPY package.json package-lock.json ./
+ENV SKIP_ENV_VALIDATION=true
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
 COPY . .
 RUN npm ci
-ENV SKIP_ENV_VALIDATION=true
 RUN npx prisma generate
 RUN npm run build
 

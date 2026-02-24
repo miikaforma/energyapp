@@ -1,5 +1,5 @@
 import { Tag, Tooltip } from "antd";
-import { type cbase_pv_forecast } from "@prisma/client";
+import { type cbase_pv_forecast } from "@energyapp/generated/client";
 
 export function CBaseForecastProduction({
   forecast,

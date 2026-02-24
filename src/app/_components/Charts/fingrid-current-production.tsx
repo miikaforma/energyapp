@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Doughnut} from "react-chartjs-2";
-import { type fingrid_latest_data } from '@prisma/client'
+import { type fingrid_latest_data } from '@energyapp/generated/client'
 import {
     Chart as ChartJS,
     ArcElement,

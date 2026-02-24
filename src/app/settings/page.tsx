@@ -131,15 +131,12 @@ export default function Settings() {
           }
           rules={[validator]}
         >
-          <Space.Compact>
-            <InputNumber
-              style={{ width: "100%" }}
-              decimalSeparator={","}
-              precision={2}
-            />
-            {cKWHSuffix}
-          </Space.Compact>
-
+          <InputNumber
+            style={{ width: "100%" }}
+            decimalSeparator={","}
+            precision={2}
+            suffix={cKWHSuffix}
+          />
         </Form.Item>
         <Form.Item
           name="transferDay"
@@ -150,7 +147,7 @@ export default function Settings() {
             style={{ width: "100%" }}
             decimalSeparator={","}
             precision={2}
-            addonAfter={cKWHSuffix}
+            suffix={cKWHSuffix}
           />
         </Form.Item>
         <Form.Item name="nightTransfer" label="Yösiirto" rules={[validator]}>
@@ -166,7 +163,7 @@ export default function Settings() {
             style={{ width: "100%" }}
             decimalSeparator={","}
             precision={2}
-            addonAfter={cKWHSuffix}
+            suffix={cKWHSuffix}
           />
         </Form.Item>
         <Form.Item

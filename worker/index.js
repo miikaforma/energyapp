@@ -43,12 +43,12 @@ self.addEventListener("notificationclick", (event) => {
             }
           }
           if (type === "NewSpotPriceUpdate") {
-            return client.focus().then(() => client.navigate(`/spotPrices/PT1H?date=${date}`));
+            return client.focus().then(() => client.navigate(`/spotPrices/PT15M?date=${date}`));
           }
           return client.focus();
         }
         if (type === "NewSpotPriceUpdate") {
-          return clients.openWindow(`/spotPrices/PT1H?date=${date}`);
+          return clients.openWindow(`/spotPrices/PT15M?date=${date}`);
         }
         return clients.openWindow("/");
       })

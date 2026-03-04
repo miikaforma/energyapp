@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import StatisticsNavigation from "@energyapp/app/_components/Navigation/statistics-navigation";
+import { api } from "@energyapp/trpc/server";
 
 export const metadata = {
   title: "Statistiikka",
@@ -12,11 +13,15 @@ export default async function StatisticsLayout({
 }: {
   children: ReactNode;
 }) {
+  const userAccesses = await api.access.getUserAccesses.query();
+
+  const hasRuuvi = userAccesses.some((access: { type: string }) => access.type === "RUUVI");
+
   return (
     <main className="app-main-background flex min-h-screen-nhf flex-col items-center justify-center text-white">
       <div className="container flex flex-col items-center justify-center gap-2 px-4 py-16 ">
         <div className="text-center">
-          <StatisticsNavigation />
+          <StatisticsNavigation hasRuuvi />
         </div>
         {children}
       </div>

@@ -5,7 +5,11 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function StatisticsNavigation() {
+type StatisticsNavigationProps = {
+  hasRuuvi: boolean;
+}
+
+export default function StatisticsNavigation({ hasRuuvi }: StatisticsNavigationProps) {
   const { status } = useSession();
 
   const router = useRouter();
@@ -48,6 +52,11 @@ export default function StatisticsNavigation() {
             Tankille
           </Radio.Button> */}
         </>
+      )}
+      {hasRuuvi && (
+        <Radio.Button key={"ruuvi"} value="ruuvi">
+          Ruuvi
+        </Radio.Button>
       )}
     </Radio.Group>
   );

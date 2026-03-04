@@ -162,6 +162,19 @@ const updateUserAccesses = async (userId: string, token?: string) => {
     const id = accessId.id;
     const type = accessId.type;
 
+    // Check if the serviceAccess exists
+    const serviceAccessExists = await db.serviceAccess.findUnique({
+      where: {
+        accessId: id,
+      },
+    });
+
+    // Skip if serviceAccess doesn't exist (it hasn't been set up yet)
+    if (!serviceAccessExists) {
+      console.warn(`Service access with id ${id} not found, skipping userAccess creation`);
+      continue;
+    }
+
     const access = await db.userAccess.findFirst({
       where: {
         accessId: id,

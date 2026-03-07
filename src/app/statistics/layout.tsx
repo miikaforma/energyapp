@@ -1,6 +1,8 @@
 import { type ReactNode } from "react";
 import StatisticsNavigation from "@energyapp/app/_components/Navigation/statistics-navigation";
 import { api } from "@energyapp/trpc/server";
+import { getServerAuthSession } from "@energyapp/server/auth";
+import { IUserAccessResponse } from "@energyapp/shared/interfaces";
 
 export const metadata = {
   title: "Statistiikka",
@@ -13,7 +15,9 @@ export default async function StatisticsLayout({
 }: {
   children: ReactNode;
 }) {
-  const userAccesses = await api.access.getUserAccesses.query();
+  const session = await getServerAuthSession();
+  const userAccesses: IUserAccessResponse[] = session ? await api.access.getUserAccesses.query()
+    .catch(() => []) : [];
 
   const hasRuuvi = userAccesses.some((access: { type: string }) => access.type === "RUUVI");
 
@@ -21,7 +25,7 @@ export default async function StatisticsLayout({
     <main className="app-main-background flex min-h-screen-nhf flex-col items-center justify-center text-white">
       <div className="container flex flex-col items-center justify-center gap-2 px-4 py-16 ">
         <div className="text-center">
-          <StatisticsNavigation hasRuuvi />
+          <StatisticsNavigation hasRuuvi={hasRuuvi} />
         </div>
         {children}
       </div>

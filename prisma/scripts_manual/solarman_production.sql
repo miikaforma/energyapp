@@ -16,7 +16,7 @@ SELECT add_continuous_aggregate_policy('solarman_today_end_15m',
 );
 
 -- Production per 15m view
-CREATE VIEW solarman_production_15m_live AS
+CREATE OR REPLACE VIEW solarman_production_15m_live AS
 WITH params AS (
   SELECT now() - interval '30 minutes' AS cutoff
 ),
@@ -58,12 +58,13 @@ raw_prod AS (
       ELSE r.end_val - lag(r.end_val) OVER (PARTITION BY r.plant_id, r.device_id ORDER BY r.bucket)
     END AS production
   FROM raw_end r, params p
-  WHERE r.bucket >= p.cutoff
+  WHERE r.bucket >= p.cutoff - interval '15 minutes'
 )
 
 SELECT bucket AS "time", plant_id, device_id, production FROM cagg_prod
 UNION ALL
-SELECT bucket AS "time", plant_id, device_id, production FROM raw_prod;
+SELECT bucket AS "time", plant_id, device_id, production FROM raw_prod
+WHERE bucket >= (SELECT cutoff FROM params);
 
 --Fetch query
 -- SELECT

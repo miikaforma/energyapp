@@ -1,12 +1,11 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated"
+  provider        = "prisma-client"
+  output          = "../src/generated"
   previewFeatures = ["views"]
 }
 
 datasource db {
   provider = "postgresql"
-  // url      = env("DATABASE_URL")
 }
 
 /// This table has subclasses and requires additional setup for migrations. Visit https://pris.ly/d/table-inheritance for more info.
@@ -335,20 +334,19 @@ model shelly_historical_data {
 }
 
 model meteringPoint {
-  metering_point_ean      String     @id
+  metering_point_ean      String                     @id
   type                    accountingPointType
   street_name             String?
   building_number         String?
   postal_code             String?
   post_office             String?
-  start_date              DateTime      @db.Timestamptz(6)
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  start_date              DateTime                   @default(now()) @db.Timestamptz(6)
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  contracts               contracts[]
+  electricityObservations electricity_observations[]
 
   @@index([metering_point_ean])
-
-  electricityObservations electricity_observations[]
-  contracts contracts[]
 }
 
 model contracts {
@@ -385,8 +383,8 @@ model contracts {
 }
 
 model electricity_observations {
-  period_start        DateTime @db.Timestamptz(6)
-  metering_point_ean  String 
+  period_start        DateTime      @db.Timestamptz(6)
+  metering_point_ean  String
   resolution_duration String
   product_type        String
   unit_type           String
@@ -394,8 +392,7 @@ model electricity_observations {
   measurement_source  String?
   quantity            Float?
   quality             String?
-
-  meteringPoint meteringPoint @relation(fields: [metering_point_ean], references: [metering_point_ean])
+  meteringPoint       meteringPoint @relation(fields: [metering_point_ean], references: [metering_point_ean])
 
   @@unique([period_start, metering_point_ean, resolution_duration, product_type, unit_type, reading_type])
   @@index([period_start(sort: Desc)])
@@ -418,6 +415,146 @@ model tankille_gas_stations {
   chain               String?
   brand               String?
   tankille_gas_prices tankille_gas_prices[]
+}
+
+model ruuvi_measurements {
+  time                        DateTime            @db.Timestamptz(6)
+  mac                         String
+  data_format                 String?
+  temperature                 Float?              @db.Real
+  humidity                    Float?              @db.Real
+  pressure                    Float?              @db.Real
+  acceleration_x              Float?              @db.Real
+  acceleration_y              Float?              @db.Real
+  acceleration_z              Float?              @db.Real
+  movement_counter            Int?
+  battery_voltage             Float?              @db.Real
+  tx_power                    Int?
+  measurement_sequence_number Int?
+  rssi                        Int?
+  pm1_0                       Float?              @db.Real
+  pm2_5                       Float?              @db.Real
+  pm4_0                       Float?              @db.Real
+  pm10_0                      Float?              @db.Real
+  co2                         Float?              @db.Real
+  voc                         Int?
+  nox                         Int?
+  luminosity                  Float?              @db.Real
+  flags                       Int?
+  status                      measurement_status? @default(raw)
+
+  @@id([time, mac])
+  @@index([status, time, mac], map: "idx_raw_status_time_mac")
+  @@index([data_format], map: "idx_ruuvi_measurements_data_format")
+  @@index([status], map: "idx_ruuvi_measurements_status")
+  @@index([status, time])
+  @@index([time(sort: Desc)])
+}
+
+model ruuvi_measurements_downsampled_15min {
+  time                            DateTime @db.Timestamptz(6)
+  mac                             String
+  avg_temperature                 Float?   @db.Real
+  min_temperature                 Float?   @db.Real
+  max_temperature                 Float?   @db.Real
+  avg_humidity                    Float?   @db.Real
+  min_humidity                    Float?   @db.Real
+  max_humidity                    Float?   @db.Real
+  avg_pressure                    Float?   @db.Real
+  min_pressure                    Float?   @db.Real
+  max_pressure                    Float?   @db.Real
+  avg_acceleration_x              Float?   @db.Real
+  avg_acceleration_y              Float?   @db.Real
+  avg_acceleration_z              Float?   @db.Real
+  max_movement_counter            Int?
+  avg_battery_voltage             Float?   @db.Real
+  min_battery_voltage             Float?   @db.Real
+  max_battery_voltage             Float?   @db.Real
+  max_tx_power                    Int?
+  max_measurement_sequence_number Int?
+  avg_rssi                        Float?   @db.Real
+  avg_pm1_0                       Float?   @db.Real
+  min_pm1_0                       Float?   @db.Real
+  max_pm1_0                       Float?   @db.Real
+  avg_pm2_5                       Float?   @db.Real
+  min_pm2_5                       Float?   @db.Real
+  max_pm2_5                       Float?   @db.Real
+  avg_pm4_0                       Float?   @db.Real
+  min_pm4_0                       Float?   @db.Real
+  max_pm4_0                       Float?   @db.Real
+  avg_pm10_0                      Float?   @db.Real
+  min_pm10_0                      Float?   @db.Real
+  max_pm10_0                      Float?   @db.Real
+  avg_co2                         Float?   @db.Real
+  min_co2                         Float?   @db.Real
+  max_co2                         Float?   @db.Real
+  avg_voc                         Float?   @db.Real
+  min_voc                         Float?   @db.Real
+  max_voc                         Float?   @db.Real
+  avg_nox                         Float?   @db.Real
+  min_nox                         Float?   @db.Real
+  max_nox                         Float?   @db.Real
+  avg_luminosity                  Float?   @db.Real
+  min_luminosity                  Float?   @db.Real
+  max_luminosity                  Float?   @db.Real
+  max_flags                       Int?
+
+  @@id([time, mac])
+  @@index([mac, time], map: "idx_downsampled_15min_mac_time")
+  @@index([time(sort: Desc)])
+}
+
+model ruuvi_measurements_downsampled_5min {
+  time                            DateTime @db.Timestamptz(6)
+  mac                             String
+  avg_temperature                 Float?   @db.Real
+  min_temperature                 Float?   @db.Real
+  max_temperature                 Float?   @db.Real
+  avg_humidity                    Float?   @db.Real
+  min_humidity                    Float?   @db.Real
+  max_humidity                    Float?   @db.Real
+  avg_pressure                    Float?   @db.Real
+  min_pressure                    Float?   @db.Real
+  max_pressure                    Float?   @db.Real
+  avg_acceleration_x              Float?   @db.Real
+  avg_acceleration_y              Float?   @db.Real
+  avg_acceleration_z              Float?   @db.Real
+  max_movement_counter            Int?
+  avg_battery_voltage             Float?   @db.Real
+  min_battery_voltage             Float?   @db.Real
+  max_battery_voltage             Float?   @db.Real
+  max_tx_power                    Int?
+  max_measurement_sequence_number Int?
+  avg_rssi                        Float?   @db.Real
+  avg_pm1_0                       Float?   @db.Real
+  min_pm1_0                       Float?   @db.Real
+  max_pm1_0                       Float?   @db.Real
+  avg_pm2_5                       Float?   @db.Real
+  min_pm2_5                       Float?   @db.Real
+  max_pm2_5                       Float?   @db.Real
+  avg_pm4_0                       Float?   @db.Real
+  min_pm4_0                       Float?   @db.Real
+  max_pm4_0                       Float?   @db.Real
+  avg_pm10_0                      Float?   @db.Real
+  min_pm10_0                      Float?   @db.Real
+  max_pm10_0                      Float?   @db.Real
+  avg_co2                         Float?   @db.Real
+  min_co2                         Float?   @db.Real
+  max_co2                         Float?   @db.Real
+  avg_voc                         Float?   @db.Real
+  min_voc                         Float?   @db.Real
+  max_voc                         Float?   @db.Real
+  avg_nox                         Float?   @db.Real
+  min_nox                         Float?   @db.Real
+  max_nox                         Float?   @db.Real
+  avg_luminosity                  Float?   @db.Real
+  min_luminosity                  Float?   @db.Real
+  max_luminosity                  Float?   @db.Real
+  max_flags                       Int?
+
+  @@id([time, mac])
+  @@index([mac, time], map: "idx_downsampled_5min_mac_time")
+  @@index([time(sort: Desc)])
 }
 
 view average_kwh_price_hour_by_hour {
@@ -920,6 +1057,7 @@ enum accessType {
   SOLARMAN
   MELCLOUD
   SHELLY
+  RUUVI
 }
 
 enum dayAheadState {
@@ -932,4 +1070,9 @@ enum dayAheadState {
 enum accountingPointType {
   AG01
   AG02
+}
+
+enum measurement_status {
+  raw
+  downsampled
 }

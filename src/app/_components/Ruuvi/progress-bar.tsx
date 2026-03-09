@@ -1,5 +1,7 @@
 "use client";
 
+// Based on code from https://github.com/ruuvi/com.ruuvi.station.webui
+// Copyright (c) 2021, Ruuvi - BSD 3-Clause License
 // https://github.com/ruuvi/com.ruuvi.station.webui/blob/master/src/components/BigValue.jsx
 
 import React from "react";

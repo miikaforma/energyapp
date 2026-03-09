@@ -3,11 +3,11 @@
 import { redirect, useParams } from "next/navigation";
 import { TimePeriod } from "@energyapp/shared/enums";
 
-export default function ShellyDevice() {
+export default function RuuviDevice() {
   const params = useParams();
   const deviceId = params.deviceId;
 
   redirect(
-    `/consumptions/shelly/device/${deviceId?.toString()}/${TimePeriod.PT1H}`,
+    `/statistics/ruuvi/${deviceId?.toString()}/${TimePeriod.PT15M}`,
   );
 }

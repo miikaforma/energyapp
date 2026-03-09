@@ -4,6 +4,7 @@ export enum TimePeriod {
     P1D = "P1D",
     PT1H = "PT1H",
     PT15M = "PT15M",
+    PT5M = "PT5M",
 }
 
 export enum Currency {

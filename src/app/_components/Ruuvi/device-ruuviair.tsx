@@ -8,6 +8,7 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { type api } from "@energyapp/trpc/server";
 import RelativeTime from "../Helpers/relative-time";
 import dayjs from "dayjs";
@@ -20,8 +21,18 @@ type Device = Awaited<
 >[number];
 
 export default function RuuviAirDevice({ device }: { device: Device }) {
+    const router = useRouter();
+
+    const handleClick = () => {
+        router.push(`./ruuvi/${device.accessId}`);
+    };
+
     return (
-        <Card key={device.accessId} sx={{ minWidth: 320, display: 'flex' }}>
+        <Card
+            key={device.accessId}
+            onClick={handleClick}
+            sx={{ minWidth: 320, display: 'flex', cursor: 'pointer', '&:hover': { boxShadow: 'rgb(31, 147, 133) 0px 0px 0px 1px' } }}
+        >
             <DeviceImage imageUrl={getPictureUrl(device.serviceAccess.customData)} alt="Ruuvi Air Device" />
             <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
                 <CardContent sx={{ pl: '1rem', pb: 0 }}>

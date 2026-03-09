@@ -9,7 +9,7 @@ type Device = Awaited<
 >[number];
 
 export default function Ruuvi() {
-  const { data: devices } = useGetRuuviDevicesWithInfo();
+  const { data: devices } = useGetRuuviDevicesWithInfo({ enabled: true });
   // console.log("devices", devices);
 
   if (!devices) {

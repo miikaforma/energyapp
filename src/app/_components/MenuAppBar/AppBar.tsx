@@ -16,15 +16,17 @@ import useGetLatestSolarmanProduction from "@energyapp/app/_hooks/queries/useGet
 import { Flex, Tag, Tooltip } from "antd";
 import EuroIcon from "@mui/icons-material/Euro";
 import SolarPowerIcon from "@mui/icons-material/SolarPower";
+import ThermostatIcon from "@mui/icons-material/Thermostat";
 import useGetCurrentSpotPrice from "@energyapp/app/_hooks/queries/useGetCurrentSpotPrice";
 import { Stack } from "@mui/material";
-import { kwhOrWattsString } from "@energyapp/utils/powerHelpers";
+import { getTemperatureC, kwhOrWattsString } from "@energyapp/utils/powerHelpers";
 import RelativeTime from "@energyapp/app/_components/Helpers/relative-time";
 import { type Dayjs } from "dayjs";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { dateToShortSpotTimeString } from "@energyapp/utils/timeHelpers";
 import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
+import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/useGetRuuviDevicesWithInfo";
 
 const getRelativeTimeStamp = (time: string | number | Date | Dayjs) => {
   if (!time) {
@@ -49,12 +51,17 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const hasSolarman = userAccesses.some((access: { type: string }) => access.type === "SOLARMAN");
+  const hasRuuvi = userAccesses.some((access: { type: string }) => access.type === "RUUVI");
 
   // Get current spot price
   const { data: currentSpotPrice } = useGetCurrentSpotPrice();
 
   // Get latest production
   const { data: latestProduction } = useGetLatestSolarmanProduction({ enabled: hasSolarman });
+
+  // Get ruuvi devices with info
+  const { data: devices } = useGetRuuviDevicesWithInfo({ enabled: hasRuuvi });
+  const ruuviAir = devices?.find(device => device.latestData?.mac?.includes("C6D1A71DE3F8"));
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -91,6 +98,15 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
           ? "orange"
           : "volcano"
     : "default";
+  const latestTemperatureColor = ruuviAir?.latestData?.temperature
+    ? ruuviAir.latestData.temperature < 0
+      ? "cyan"
+      : ruuviAir.latestData.temperature < 15
+        ? "green"
+        : ruuviAir.latestData.temperature < 25
+          ? "yellow"
+          : "red"
+    : "default";
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -118,11 +134,10 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                     <EuroIcon fontSize="small" />
                     <Tooltip
                       placement={"left"}
-                      title={`${
-                        formatNumberToFI(currentSpotPrice.price) ?? "0"
-                      } c/kWh`}
+                      title={`${formatNumberToFI(currentSpotPrice.price) ?? "0"
+                        } c/kWh`}
                       trigger={"click"}
-                      // style={tooltipStyles}
+                    // style={tooltipStyles}
                     >
                       <Typography variant="body1">
                         {formatNumberToFI(currentSpotPrice.price_with_tax)}{" "}
@@ -148,7 +163,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
               </Box>
             )}
             {hasSolarman && latestProduction && (
-              <Box>
+              <Box onClick={() => router.push(`/productions/solarman/${TimePeriod.PT15M}`)} sx={{ cursor: "pointer" }}>
                 <Tag color={latestProductionColor}>
                   <Stack direction="row" alignItems="center" gap={1}>
                     <SolarPowerIcon fontSize="small" />
@@ -170,6 +185,31 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                 </Box>
               </Box>
             )}
+            {
+              hasRuuvi && ruuviAir && ruuviAir.latestData && (
+                <Box onClick={() => router.push("/statistics/ruuvi")} sx={{ cursor: "pointer" }}>
+                  <Tag color={latestTemperatureColor}>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <ThermostatIcon fontSize="small" />
+                      <Typography variant="body1">
+                        {getTemperatureC(ruuviAir.latestData.temperature ?? undefined)}
+                      </Typography>
+                    </Stack>
+                  </Tag>
+                  <Box
+                    sx={{
+                      fontStyle: "italic",
+                      color: "gray",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    {getRelativeTimeStamp(ruuviAir.latestData.time)}
+                  </Box>
+                </Box>
+              )
+            }
           </Flex>
           {!session && (
             <Link

@@ -1,6 +1,9 @@
 "use client";
 
-import { api } from "@energyapp/trpc/react";
+// import { Dropdown } from "antd";
+// import MoreVertIcon from '@mui/icons-material/MoreVert';
+// import IconButton from '@mui/material/IconButton';
+import RuuviImageUpload from "../RuuviImageUpload";
 import {
   Col,
   Radio,
@@ -9,7 +12,7 @@ import {
   Space,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import utc from "dayjs/plugin/utc";
@@ -19,11 +22,12 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import useGetRuuviRange from "@energyapp/app/_hooks/queries/useGetRuuviRange";
 import useGetRuuviDetails from "@energyapp/app/_hooks/queries/useGetRuuviDetails";
-import { Fab } from "@mui/material";
+import { Avatar, ButtonBase, Fab, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { DayRangeDatePicker } from "../FormItems/antd-day-range-datepicker";
 import RuuviChart from "../Charts/ruuvi-chart";
-import { transformRuuviDataToChartResponse } from "@energyapp/utils/ruuviHelpers";
+import { getPictureUrl, transformRuuviDataToChartResponse } from "@energyapp/utils/ruuviHelpers";
+import useGetRuuviDevice from "@energyapp/app/_hooks/queries/useGetRuuviDevice";
 // import RuuviSummary from "../Descriptions/ruuvi-summary";
 
 dayjs.extend(isSameOrAfter);
@@ -51,22 +55,23 @@ export default function RuuviDetailsPage({
   const ruuviId = deviceId?.toString();
 
   const router = useRouter();
-  const enablePrefetch = false;
 
   const { data: session } = useSession();
-  const [startDate, setStartDate] = useState(
-    getDefaultStartDate(),
-  );
-  const [endDate, setEndDate] = useState<Dayjs | undefined>(
-    getDefaultEndDate(),
-  );
+  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  const [endDate, setEndDate] = useState<Dayjs | undefined>(getDefaultEndDate());
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Get ruuvi range
   const { data: ruuviRange } = useGetRuuviRange({
     timePeriod: timePeriod,
   });
 
-  // Get consumptions
+  // Get ruuvi device
+  const { data: ruuviDevice } = useGetRuuviDevice({
+    id: ruuviId ?? "",
+  });
+
+  // Get values for selected range
   const {
     data: ruuviDetails,
     isLoading,
@@ -91,12 +96,23 @@ export default function RuuviDetailsPage({
     router.push(`${value}`);
   };
 
+  // const menuItems = [
+  //   {
+  //     key: "upload",
+  //     label: "Vaihda kuva",
+  //     onClick: () => {
+  //       inputRef.current?.click();
+  //     },
+  //   },
+  // ];
+
   return (
     <Space
       orientation="vertical"
       className="text-center"
       style={{ width: "calc(100vw - 32px)" }}
     >
+      <RuuviImageUpload deviceId={ruuviId ?? ""} inputRef={inputRef} />
       <Radio.Group
         value={timePeriod}
         onChange={onRangeChange}
@@ -109,7 +125,14 @@ export default function RuuviDetailsPage({
           5 Minuuttia
         </Radio.Button>
       </Radio.Group>
-      <Row style={{ paddingBottom: 8 }}>
+      <DayRangeDatePicker
+        startDate={startDate}
+        endDate={endDate}
+        onChange={onDateRangeChange}
+        minDate={session ? ruuviRange?.min : undefined}
+        maxDate={session ? ruuviRange?.max : undefined}
+      />
+      {/* <Row style={{ paddingBottom: 8, alignItems: "center" }}>
         <Col flex="auto">
           <DayRangeDatePicker
             startDate={startDate}
@@ -117,10 +140,20 @@ export default function RuuviDetailsPage({
             onChange={onDateRangeChange}
             minDate={session ? ruuviRange?.min : undefined}
             maxDate={session ? ruuviRange?.max : undefined}
-          ></DayRangeDatePicker>
+          />
         </Col>
-      </Row>
-
+        <Col>
+          <Dropdown
+            menu={{ items: menuItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <IconButton aria-label="asetukset" size="small">
+              <MoreVertIcon />
+            </IconButton>
+          </Dropdown>
+        </Col>
+      </Row> */}
       <Fab
         variant="extended"
         size="small"
@@ -131,8 +164,45 @@ export default function RuuviDetailsPage({
         <ArrowBackIcon sx={{ mr: 1 }} />
         Takaisin laitevalintaan
       </Fab>
-
       {/* <RuuviSummary response={RuuviDetailss} /> */}
+      <Row style={{ paddingBottom: 8, alignItems: "center", justifyContent: 'start' /* justifyContent: "space-between" */ }}>
+        <Col>
+          <ButtonBase
+            component="label"
+            role={undefined}
+            tabIndex={-1} // prevent label from tab focus
+            aria-label="Ruuvi avatar"
+            sx={{
+              borderRadius: '40px',
+              '&:has(:focus-visible)': {
+                outline: '2px solid',
+                outlineOffset: '2px',
+              },
+            }}
+            onClick={() => {
+              inputRef.current?.click();
+            }}
+          >
+            <Avatar
+              alt={ruuviDevice?.accessName ?? "Ruuvi Device"}
+              src={getPictureUrl(ruuviDevice?.customData)}
+              sx={{ width: 56, height: 56 }}
+            />
+            <Typography variant="h5" sx={{ ml: 2, fontWeight: 'bold' }}>{ruuviDevice?.accessName}</Typography>
+          </ButtonBase>
+        </Col>
+        <Col>
+          {/* <Dropdown
+            menu={{ items: menuItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <IconButton aria-label="asetukset" size="small">
+              <MoreVertIcon />
+            </IconButton>
+          </Dropdown> */}
+        </Col>
+      </Row>
       <RuuviChart
         ruuviResponse={transformRuuviDataToChartResponse(ruuviDetails, timePeriod)}
         metricType="temperature"

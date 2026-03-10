@@ -128,7 +128,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
           ></Typography>
           <Flex gap="4px 0" style={{ flexGrow: 1 }}>
             {currentSpotPrice && (
-              <Box>
+              <Box sx={{ userSelect: "none" }}>
                 <Tag color={spotPriceColor}>
                   <Stack direction="row" alignItems="center" gap={1}>
                     <EuroIcon fontSize="small" />
@@ -163,7 +163,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
               </Box>
             )}
             {hasSolarman && latestProduction && (
-              <Box onClick={() => router.push(`/productions/solarman/${TimePeriod.PT15M}`)} sx={{ cursor: "pointer" }}>
+              <Box onClick={() => router.push(`/productions/solarman/${TimePeriod.PT15M}`)} sx={{ cursor: "pointer", userSelect: "none" }}>
                 <Tag color={latestProductionColor}>
                   <Stack direction="row" alignItems="center" gap={1}>
                     <SolarPowerIcon fontSize="small" />
@@ -187,7 +187,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
             )}
             {
               hasRuuvi && ruuviAir && ruuviAir.latestData && (
-                <Box onClick={() => router.push("/statistics/ruuvi")} sx={{ cursor: "pointer" }}>
+                <Box onClick={() => router.push("/statistics/ruuvi")} sx={{ cursor: "pointer", userSelect: "none" }}>
                   <Tag color={latestTemperatureColor}>
                     <Stack direction="row" alignItems="center" gap={1}>
                       <ThermostatIcon fontSize="small" />

@@ -11,37 +11,20 @@ import {
 } from "@energyapp/shared/interfaces";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
-import { Prisma, ruuvi_measurements, type shelly_historical_data } from "@energyapp/generated/client";
+import { Prisma, ruuvi_measurements } from "@energyapp/generated/client";
+import axios from "axios";
+import { env } from "@energyapp/env";
 
 export type DatePickerRange = {
   min?: Dayjs;
   max?: Dayjs;
 };
 
-// const tz = "Europe/Helsinki";
-
 const zodDay = z.custom<Dayjs>(
   (val: unknown) => dayjs(val as string).isValid(),
   "Invalid date",
 );
 const zodTimePeriod = z.nativeEnum(TimePeriod);
-
-const mapIntervalToSQL = (interval: TimePeriod): string => {
-  switch (interval) {
-    case TimePeriod.PT1H:
-      return "1 hour";
-    case TimePeriod.PT15M:
-      return "15 minutes";
-    case TimePeriod.P1D:
-      return "1 day";
-    case TimePeriod.P1M:
-      return "1 month";
-    case TimePeriod.P1Y:
-      return "1 year";
-    default:
-      throw new Error(`Unsupported interval: ${interval as string}`);
-  }
-};
 
 const getDevices = async (ctx: IContext) => {
   const userAccesses = await ctx.db.userAccess.findMany({
@@ -64,8 +47,29 @@ const getDevices = async (ctx: IContext) => {
       },
     },
   });
-
   return userAccesses;
+};
+
+const checkDeviceAccess = async (ctx: IContext, deviceId: string) => {
+  const device = await ctx.db.serviceAccess.findFirst({
+    where: {
+      accessId: deviceId,
+      userAccesses: {
+        some: {
+          userId: ctx.session?.user?.id ?? "",
+          type: "RUUVI",
+        },
+      },
+    },
+    select: { accessId: true },
+  });
+  if (!device) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You don't have access to this device",
+    });
+  }
+  return device;
 };
 
 export const ruuviRouter = createTRPCRouter({
@@ -106,6 +110,33 @@ export const ruuviRouter = createTRPCRouter({
 
     return devicesWithLatestData;
   }),
+  getDevice: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const device = await ctx.db.serviceAccess.findFirst({
+        where: {
+          accessId: input.id,
+          userAccesses: {
+            some: {
+              userId: ctx.session?.user?.id ?? "",
+              type: "RUUVI",
+            },
+          },
+        },
+        select: {
+          accessId: true,
+          accessName: true,
+          customData: true,
+        },
+      });
+      if (!device) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Device not found or you don't have access to it",
+        });
+      }
+      return device;
+    }),
   get: protectedProcedure
     .input(
       z.object({
@@ -125,8 +156,6 @@ export const ruuviRouter = createTRPCRouter({
           message: "You don't have access to this device",
         });
       }
-
-      console.log(`Fetching Ruuvi data with parameters: timePeriod=${input.timePeriod}, startTime=${input.startTime}, endTime=${input.endTime}, id=${input.id}`);
 
       const requestedStart = dayjs(input.startTime);
       const requestedEnd = input.endTime ? dayjs(input.endTime) : dayjs();
@@ -297,6 +326,50 @@ export const ruuviRouter = createTRPCRouter({
     .input(z.object({ timePeriod: zodTimePeriod }))
     .query(({ input, ctx }) => {
       return getRange(ctx, input.timePeriod);
+    }),
+  uploadImage: protectedProcedure
+    .input(
+      z.object({
+        deviceId: z.string(),
+        image: z.string(), // base64 or file URL
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Permission check
+      await checkDeviceAccess(ctx, input.deviceId);
+
+      // Upload image to Cloudinary with Basic Auth, overwrite previous image
+      const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/image/upload`;
+      const uploadPreset = env.CLOUDINARY_UPLOAD_PRESET;
+      const formData = new FormData();
+      formData.append("file", input.image);
+      formData.append("upload_preset", uploadPreset);
+      // Set public_id to deviceId to overwrite previous image
+      formData.append("public_id", input.deviceId);
+
+      // Basic Auth credentials from env
+      const apiKey = env.CLOUDINARY_API_KEY;
+      const apiSecret = env.CLOUDINARY_API_SECRET;
+      const basicAuth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+
+      const response = await axios.post(cloudinaryUrl, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Basic ${basicAuth}`,
+        },
+      });
+      const imageUrl = response.data.secure_url;
+
+      // Update serviceAccess.customData for the device
+      await ctx.db.serviceAccess.update({
+        where: { accessId: input.deviceId },
+        data: {
+          customData: {
+            picture: imageUrl,
+          },
+        },
+      });
+      return { success: true, imageUrl };
     }),
 });
 

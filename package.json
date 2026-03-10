@@ -47,6 +47,7 @@
     "flowbite-react": "^0.7.2",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
+    "next-cloudinary": "^6.17.5",
     "react": "19.2.4",
     "react-apexcharts": "^2.0.1",
     "react-chartjs-2": "^5.2.0",

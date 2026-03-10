@@ -4,10 +4,11 @@ import { ruuvi_measurements, ruuvi_measurements_downsampled_15min, ruuvi_measure
 import { TimePeriod } from "@energyapp/shared/enums";
 import dayjs from "dayjs";
 import type { IRuuviChartResponse } from "@energyapp/app/_components/Charts/ruuvi-chart";
+import { isValueDefined } from "./valueHelpers";
 
 // Get humidity as a percentage string
 export const getHumidityString = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 
@@ -16,7 +17,7 @@ export const getHumidityString = (value?: number | null) => {
 
 // Get air pressure as a string (converts from Pa to hPa)
 export const getAirPressureString = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 
@@ -25,7 +26,7 @@ export const getAirPressureString = (value?: number | null) => {
 
 // Get temperature in Celsius
 export const getTemperatureC = (value?: number) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
   return formatNumberToFI(value, 1) + " °C";
@@ -64,7 +65,7 @@ export const getIAQSByValues = (co2?: number | null, pm2_5?: number | null) => {
   const clamp = (x: number, lo: number, hi: number): number =>
     Math.min(Math.max(x, lo), hi);
 
-  if (pm2_5 == null || co2 == null) {
+  if (!isValueDefined(pm2_5) || !isValueDefined(co2)) {
     return NaN;
   }
 
@@ -80,7 +81,7 @@ export const getIAQSByValues = (co2?: number | null, pm2_5?: number | null) => {
 
 // Get CO2 as a ppm string
 export const getCO2String = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 
@@ -89,16 +90,16 @@ export const getCO2String = (value?: number | null) => {
 
 // Get PM2.5 as a µg/m³ string
 export const getPM25String = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 
-  return value + " µg/m³";
+  return formatNumberToFI(value, 1) + " µg/m³";
 };
 
 // Get VOC index as a string
 export const getVocIndexString = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 
@@ -107,7 +108,7 @@ export const getVocIndexString = (value?: number | null) => {
 
 // Get NOx index as a string
 export const getNOxIndexString = (value?: number | null) => {
-  if (!value && value !== 0) {
+  if (!isValueDefined(value)) {
     return "Ei tiedossa";
   }
 

@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import { getAirPressureString, getCO2String, getHumidityString, getIAQS, getNOxIndexString, getPictureUrl, getPM25String, getTemperatureC, getVocIndexString } from "@energyapp/utils/ruuviHelpers";
 import DeviceImage from "./device-image";
 import BigValue from "./progress-bar";
+import { isValueDefined } from "@energyapp/utils/valueHelpers";
 
 type Device = Awaited<
     ReturnType<typeof api.ruuvi.getDevicesWithInfo.query>
@@ -57,7 +58,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', pl: '1rem', pb: 1 }}>
                     <Grid container spacing={1} columns={2}>
-                        {device.latestData?.co2 && (
+                        {isValueDefined(device.latestData?.co2) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -81,7 +82,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.pm2_5 && (
+                        {isValueDefined(device.latestData?.pm2_5) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -105,7 +106,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.voc && (
+                        {isValueDefined(device.latestData?.voc) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -129,7 +130,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.nox && (
+                        {isValueDefined(device.latestData?.nox) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -153,7 +154,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.temperature && (
+                        {isValueDefined(device.latestData?.temperature) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -177,7 +178,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.humidity && (
+                        {isValueDefined(device.latestData?.humidity) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -201,7 +202,7 @@ export default function RuuviAirDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.pressure && (
+                        {isValueDefined(device.latestData?.pressure) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography

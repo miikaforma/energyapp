@@ -18,6 +18,7 @@ import DeviceImage from "./device-image";
 import BigValue from "./progress-bar";
 import { orange } from "@mui/material/colors";
 import Battery2BarTwoToneIcon from '@mui/icons-material/Battery2BarTwoTone';
+import { isValueDefined } from "@energyapp/utils/valueHelpers";
 
 type Device = Awaited<
     ReturnType<typeof api.ruuvi.getDevicesWithInfo.query>
@@ -60,7 +61,7 @@ export default function RuuviTagDevice({ device }: { device: Device }) {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', pl: '1rem', pb: 1 }}>
                     <Grid container spacing={3} columns={2}>
-                        {device.latestData?.humidity && (
+                        {isValueDefined(device.latestData?.humidity) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography
@@ -84,7 +85,7 @@ export default function RuuviTagDevice({ device }: { device: Device }) {
                                 </Stack>
                             </Grid>
                         )}
-                        {device.latestData?.pressure && (
+                        {isValueDefined(device.latestData?.pressure) && (
                             <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Stack spacing={0}>
                                     <Typography

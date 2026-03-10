@@ -24,3 +24,7 @@ export const displayFuelType = (fuelType: string) => {
       return fuelType;
   }
 }
+
+export function isValueDefined(value: number | null | undefined): value is number {
+  return value !== undefined && value !== null;
+}

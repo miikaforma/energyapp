@@ -42,9 +42,16 @@ export const getPictureUrl = (customData?: JsonValue | DeviceGroup | null) => {
   if (!customData) {
     return null;
   }
-  
+
   try {
-    return (customData as any).picture || null;
+    const url = (customData as any).picture || null;
+    if (!url) return null;
+    // Check if it's a Cloudinary URL
+    if (typeof url === 'string' && url.includes('res.cloudinary.com')) {
+      // Insert transformation after '/upload/'
+      return url.replace('/upload/', '/upload/c_fill,w_400,h_400,q_auto,f_auto/');
+    }
+    return url;
   } catch (error) {
     console.error("Error parsing customData:", error);
     return null;

@@ -50,6 +50,11 @@ import {
 } from "@energyapp/utils/powerHelpers";
 import { gray } from "@ant-design/colors";
 import ShellySummary from "../Descriptions/shelly-summary";
+import ShellyDeviceList from "../Shelly/device-list";
+import useGetShellyGroup from "@energyapp/app/_hooks/queries/shelly/useGetShellyGroup";
+import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/shelly/useGetShellyDevicesWithInfo";
+import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -203,6 +208,9 @@ export default function ShellyConsumptionPage({
     viewType: viewType,
     id: shellyId,
   });
+
+  const { data: group } = useGetShellyGroup({ groupKey: shellyId });
+  const { data: devices } = useGetShellyDevicesWithInfo({ deviceIds: group?.devices.map((device) => device.accessId), enabled: viewType === ShellyViewType.GROUP });
 
   // Prefetch consumptions when date changes
   useEffect(() => {
@@ -489,6 +497,17 @@ export default function ShellyConsumptionPage({
         <ArrowBackIcon sx={{ mr: 1 }} />
         Takaisin laitevalintaan
       </Fab>
+
+      {viewType === ShellyViewType.GROUP && devices && (
+        <Accordion sx={{ mt: 2, backgroundImage: 'linear-gradient(to bottom right, var(--tw-gradient-stops))' }}>
+          <AccordionSummary sx={{ backgroundColor: '#1e1e1e'}} expandIcon={<ExpandMoreIcon />}>
+            <span>Ryhmän laitteet</span>
+          </AccordionSummary>
+          <AccordionDetails sx={{ px: 0, py: 2 }}>
+            <ShellyDeviceList devices={devices} />
+          </AccordionDetails>
+        </Accordion>
+      )}
 
       <ShellySummary response={shellyConsumptions} />
 

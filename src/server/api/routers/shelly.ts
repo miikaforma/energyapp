@@ -225,36 +225,47 @@ export const shellyRouter = createTRPCRouter({
     const devices = await getDevices(ctx);
     return devices;
   }),
-  getDevicesWithInfo: protectedProcedure.query(async ({ ctx }) => {
-    const devices = await getDevices(ctx);
+  getDevicesWithInfo: protectedProcedure
+    .input(
+      z.object({
+        deviceIds: z.array(z.string()).optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const devices = await getDevices(ctx);
 
-    const latestData = await ctx.db.$queryRaw<shelly_historical_data[]>`
-      SELECT sd.*
-      FROM shelly_historical_data sd
-      JOIN (
-        SELECT device_id, MAX("time") AS max_time
-        FROM shelly_historical_data
-        GROUP BY device_id
-      ) latest
-      ON sd.device_id = latest.device_id AND sd."time" = latest.max_time
-      WHERE sd.device_id IN (${Prisma.join(
-      devices.map((device) => device.accessId),
-    )})
-    `;
+      // If deviceIds were provided, filter the devices
+      const filteredDevices = input.deviceIds
+        ? devices.filter((device) => input.deviceIds?.includes(device.accessId))
+        : devices;
 
-    // Map the latest data to the devices
-    const devicesWithLatestData = devices.map((device) => {
-      const latest = latestData.find(
-        (data) => data.device_id === device.accessId,
-      );
-      return {
-        ...device,
-        latestData: latest ? latest : null,
-      };
-    });
+      const latestData = await ctx.db.$queryRaw<shelly_historical_data[]>`
+        SELECT sd.*
+        FROM shelly_historical_data sd
+        JOIN (
+          SELECT device_id, MAX("time") AS max_time
+          FROM shelly_historical_data
+          GROUP BY device_id
+        ) latest
+        ON sd.device_id = latest.device_id AND sd."time" = latest.max_time
+        WHERE sd.device_id IN (${Prisma.join(
+          filteredDevices.map((device) => device.accessId),
+        )})
+      `;
 
-    return devicesWithLatestData;
-  }),
+      // Map the latest data to the devices
+      const devicesWithLatestData = filteredDevices.map((device) => {
+        const latest = latestData.find(
+          (data) => data.device_id === device.accessId,
+        );
+        return {
+          ...device,
+          latestData: latest ? latest : null,
+        };
+      });
+
+      return devicesWithLatestData;
+    }),
   getGroups: protectedProcedure.query(async ({ ctx }) => {
     const groups = await ctx.db.shellyGroup.findMany({
       where: {

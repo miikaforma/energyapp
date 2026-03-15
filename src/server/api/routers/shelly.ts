@@ -207,11 +207,8 @@ const checkDeviceAccess = async (ctx: IContext, deviceId: string) => {
 };
 
 const checkGroupAccess = async (ctx: IContext, groupKey: string) => {
-  const group = await ctx.db.shellyGroup.findFirst({
-    where: {
-      groupKey,
-      userId: ctx.session?.user?.id ?? "",
-    },
+  const group = await ctx.db.shellyGroup.findUnique({
+    where: { groupKey_userId: { groupKey: groupKey, userId: ctx.session?.user?.id ?? "" } },
     select: { groupKey: true },
   });
   if (!group) {
@@ -276,6 +273,26 @@ export const shellyRouter = createTRPCRouter({
 
     return groups;
   }),
+  getGroup: protectedProcedure.input(
+    z.object({
+      groupKey: z.string(),
+    }),
+  ).query(async ({ input, ctx }) => {
+    const group = await ctx.db.shellyGroup.findUnique({
+      where: { groupKey_userId: { groupKey: input.groupKey, userId: ctx.session?.user?.id ?? "" } },
+      include: {
+        devices: {
+          select: {
+            id: true,
+            accessId: true,
+            accessName: true
+          },
+        },
+      },
+    });
+
+    return group;
+  }),
   get: protectedProcedure
     .input(
       z.object({
@@ -321,11 +338,8 @@ export const shellyRouter = createTRPCRouter({
           });
         }
 
-        const group = await ctx.db.shellyGroup.findFirst({
-          where: {
-            userId: ctx.session?.user?.id ?? "", // Permission check to ensure the group belongs to the user
-            groupKey: decodeURIComponent(input.id),
-          },
+        const group = await ctx.db.shellyGroup.findUnique({
+          where: { groupKey_userId: { groupKey: decodeURIComponent(input.id), userId: ctx.session?.user?.id ?? "" } },
           include: {
             devices: {
               select: {
@@ -366,6 +380,68 @@ export const shellyRouter = createTRPCRouter({
     .input(z.object({ timePeriod: zodTimePeriod }))
     .query(({ input, ctx }) => {
       return getRange(ctx, input.timePeriod);
+    }),
+
+  upsertGroup: protectedProcedure
+    .input(
+      z.object({
+        groupKey: z.string().optional(), // Optional for creation, required for update
+        groupName: z.string(),
+        deviceAccessIds: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Check if group exists
+      const existingGroup = await ctx.db.shellyGroup.findUnique({
+        where: { groupKey_userId: { groupKey: input.groupKey ?? "", userId: ctx.session?.user?.id ?? "" } },
+      });
+
+      console.log("Upsert group input:", input, "Existing group:", existingGroup);
+
+      if (existingGroup) {
+        // Update existing group
+        await ctx.db.shellyGroup.update({
+          where: {
+            groupKey_userId: {
+              groupKey: existingGroup.groupKey,
+              userId: ctx.session?.user?.id ?? "",
+            },
+          },
+          data: {
+            name: input.groupName,
+            devices: {
+              set: input.deviceAccessIds.map((accessId) => ({
+                accessId,
+              })),
+            },
+          },
+        });
+      } else {
+        // Create new group
+        await ctx.db.shellyGroup.create({
+          data: {
+            groupKey: generateGroupKey(), // Generate a new groupKey if not provided
+            name: input.groupName,
+            userId: ctx.session?.user?.id ?? "",
+            devices: {
+              connect: input.deviceAccessIds.map((accessId) => ({
+                accessId,
+              })),
+            },
+          },
+        });
+      }
+
+      return { success: true };
+    }),
+
+  deleteGroup: protectedProcedure
+    .input(z.object({ groupKey: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await ctx.db.shellyGroup.delete({
+        where: { groupKey_userId: { groupKey: input.groupKey, userId: ctx.session?.user?.id ?? "" } },
+      });
+      return { success: true };
     }),
 
   uploadImage: protectedProcedure
@@ -540,3 +616,8 @@ const consumptionsToResponse = (
     consumptions,
   };
 };
+function generateGroupKey(): string {
+  // Generate a unique group key, e.g., using a UUID or a similar approach
+  return `group_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+

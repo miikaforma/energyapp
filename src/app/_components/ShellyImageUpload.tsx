@@ -1,5 +1,5 @@
 import React from "react";
-import useUploadShellyImage from "../_hooks/mutations/useUploadShellyImage";
+import useUploadShellyImage from "../_hooks/mutations/Shelly/useUploadShellyImage";
 import { ShellyViewType } from "@energyapp/shared/enums";
 
 interface ShellyImageUploadProps {

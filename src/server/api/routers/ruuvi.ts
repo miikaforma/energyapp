@@ -346,7 +346,7 @@ export const ruuviRouter = createTRPCRouter({
       formData.append("file", input.image);
       formData.append("upload_preset", uploadPreset);
       // Set public_id to deviceId to overwrite previous image
-      formData.append("public_id", input.deviceId);
+      formData.append("public_id", `ruuvi/${input.deviceId}`);
 
       // Basic Auth credentials from env
       const apiKey = env.CLOUDINARY_API_KEY;

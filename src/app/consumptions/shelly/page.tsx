@@ -1,11 +1,13 @@
 'use client'
 import { type api } from "@energyapp/trpc/server";
 
-import { Typography } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import ShellyGroupList from "@energyapp/app/_components/Shelly/group-list";
 import ShellyDeviceList from "@energyapp/app/_components/Shelly/device-list";
 import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/shelly/useGetShellyDevicesWithInfo";
 import useGetShellyGroups from "@energyapp/app/_hooks/queries/shelly/useGetShellyGroups";
+import { useRouter } from "next/navigation";
+import AddIcon from '@mui/icons-material/Add';
 
 type DeviceGroup = Awaited<
   ReturnType<typeof api.shelly.getGroups.query>
@@ -16,6 +18,7 @@ type Device = Awaited<
 type GroupedDevices = Record<string, Device[]>;
 
 export default function Shelly() {
+  const router = useRouter();
   const { data: devices } = useGetShellyDevicesWithInfo();
   const { data: groups } = useGetShellyGroups();
   // console.log("devices", devices);
@@ -48,9 +51,34 @@ export default function Shelly() {
     <>
       {groupDeviceMap && groupDeviceMap.size > 0 ? (
         <>
-          <Typography variant="h6" gutterBottom>
-            Ryhmät
-          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr auto 1fr",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Box />
+
+            <Typography textAlign="center" variant="h6" gutterBottom>
+              Ryhmät
+            </Typography>
+
+            <Box display="flex" justifyContent="flex-end">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => {
+                  router.push(`/consumptions/shelly/group/edit`);
+                }}
+                sx={{ whiteSpace: 'nowrap' }}
+                startIcon={<AddIcon />}
+              >
+                Luo ryhmä
+              </Button>
+            </Box>
+          </Box>
           <ShellyGroupList groupedDevices={groupDeviceMap} />
         </>
       ) : null}

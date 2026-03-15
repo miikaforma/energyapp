@@ -49,39 +49,41 @@ export default function Shelly() {
 
   return (
     <>
-      {groupDeviceMap && groupDeviceMap.size > 0 ? (
-        <>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto 1fr",
-              alignItems: "center",
-              width: "100%",
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        <Box />
+
+        <Typography textAlign="center" variant="h6" gutterBottom>
+          Ryhmät
+        </Typography>
+
+        <Box display="flex" justifyContent="flex-end">
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              router.push(`/consumptions/shelly/group/edit`);
             }}
+            sx={{ whiteSpace: 'nowrap' }}
+            startIcon={<AddIcon />}
           >
-            <Box />
-
-            <Typography textAlign="center" variant="h6" gutterBottom>
-              Ryhmät
-            </Typography>
-
-            <Box display="flex" justifyContent="flex-end">
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => {
-                  router.push(`/consumptions/shelly/group/edit`);
-                }}
-                sx={{ whiteSpace: 'nowrap' }}
-                startIcon={<AddIcon />}
-              >
-                Luo ryhmä
-              </Button>
-            </Box>
-          </Box>
-          <ShellyGroupList groupedDevices={groupDeviceMap} />
-        </>
-      ) : null}
+            Luo ryhmä
+          </Button>
+        </Box>
+      </Box>
+      {groupDeviceMap && groupDeviceMap.size > 0 ? (
+        <ShellyGroupList groupedDevices={groupDeviceMap} />
+      ) : (
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 0 }}>
+          Ei ryhmiä
+        </Typography>
+      )}
       <Typography variant="h6" gutterBottom>
         Shelly laitteet
       </Typography>

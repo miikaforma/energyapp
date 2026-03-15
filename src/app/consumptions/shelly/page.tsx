@@ -4,8 +4,12 @@ import { type api } from "@energyapp/trpc/server";
 import { Typography } from "@mui/material";
 import ShellyGroupList from "@energyapp/app/_components/Shelly/group-list";
 import ShellyDeviceList from "@energyapp/app/_components/Shelly/device-list";
-import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/useGetShellyDevicesWithInfo";
+import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/shelly/useGetShellyDevicesWithInfo";
+import useGetShellyGroups from "@energyapp/app/_hooks/queries/shelly/useGetShellyGroups";
 
+type DeviceGroup = Awaited<
+  ReturnType<typeof api.shelly.getGroups.query>
+>[number];
 type Device = Awaited<
   ReturnType<typeof api.shelly.getDevicesWithInfo.query>
 >[number];
@@ -13,6 +17,7 @@ type GroupedDevices = Record<string, Device[]>;
 
 export default function Shelly() {
   const { data: devices } = useGetShellyDevicesWithInfo();
+  const { data: groups } = useGetShellyGroups();
   // console.log("devices", devices);
 
   if (!devices) {
@@ -31,33 +36,22 @@ export default function Shelly() {
     );
   }
 
-  // Filter devices with a valid groupKey and group them
-  const groupedDevices = devices
-    .filter((device) => {
-      const groupKey = (
-        device.serviceAccess.customData as { groupKey?: string }
-      )?.groupKey;
-      return groupKey !== undefined && groupKey !== null;
-    })
-    .reduce<GroupedDevices>((acc, device) => {
-      const groupKey = (device.serviceAccess.customData as { groupKey: string })?.groupKey;
-      if (groupKey && acc) {
-        acc[groupKey] = acc[groupKey] ?? [];
-        acc[groupKey]?.push(device);
-      }
-      return acc;
-    }, {});
-
-  // console.log(groupedDevices);
+  const groupDeviceMap = new Map<DeviceGroup, Device[]>();
+  groups?.forEach((group) => {
+    const devicesInGroup = devices.filter((device) => {
+      return group.devices.some((groupDevice) => groupDevice.accessId === device.accessId);
+    });
+    groupDeviceMap.set(group, devicesInGroup);
+  });
 
   return (
     <>
-      {groupedDevices && Object.keys(groupedDevices).length > 0 ? (
+      {groupDeviceMap && groupDeviceMap.size > 0 ? (
         <>
           <Typography variant="h6" gutterBottom>
             Ryhmät
           </Typography>
-          <ShellyGroupList groupedDevices={groupedDevices} />
+          <ShellyGroupList groupedDevices={groupDeviceMap} />
         </>
       ) : null}
       <Typography variant="h6" gutterBottom>

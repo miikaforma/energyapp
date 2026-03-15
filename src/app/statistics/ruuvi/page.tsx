@@ -1,7 +1,7 @@
 'use client'
 import { type api } from "@energyapp/trpc/server";
 
-import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/useGetRuuviDevicesWithInfo";
+import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviDevicesWithInfo";
 import RuuviDeviceList from "@energyapp/app/_components/Ruuvi/device-list";
 
 type Device = Awaited<

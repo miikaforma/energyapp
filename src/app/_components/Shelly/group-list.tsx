@@ -22,11 +22,15 @@ import { useRouter } from "next/navigation";
 import { type api } from "@energyapp/trpc/server";
 import RelativeTime from "../Helpers/relative-time";
 import dayjs from "dayjs";
+import ShellyGroup from "./group";
 
+type DeviceGroup = Awaited<
+  ReturnType<typeof api.shelly.getGroups.query>
+>[number];
 type Device = Awaited<
   ReturnType<typeof api.shelly.getDevicesWithInfo.query>
 >[number];
-type GroupedDevices = Record<string, Device[]>;
+type GroupedDevices = Map<DeviceGroup, Device[]>;
 
 const totalConsumption = (devices: Device[]) => {
   return devices.reduce((total, device) => {
@@ -44,6 +48,21 @@ export default function ShellyGroupList({
   groupedDevices: GroupedDevices;
 }) {
   const router = useRouter();
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
+        gap: 2,
+      }}
+    >
+      {Array.from(groupedDevices.entries()).map(([group, devices]) => (
+        <ShellyGroup key={group.id} group={group} devices={devices} />
+      ))}
+    </Box>
+  )
 
   return (
     <Box

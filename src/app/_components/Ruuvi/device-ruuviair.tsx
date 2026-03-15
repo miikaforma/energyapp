@@ -13,8 +13,8 @@ import { type api } from "@energyapp/trpc/server";
 import RelativeTime from "../Helpers/relative-time";
 import dayjs from "dayjs";
 import { getAirPressureString, getCO2String, getHumidityString, getIAQS, getNOxIndexString, getPictureUrl, getPM25String, getTemperatureC, getVocIndexString } from "@energyapp/utils/ruuviHelpers";
-import DeviceImage from "./device-image";
-import BigValue from "./progress-bar";
+import DeviceImage from "../DeviceComponents/device-image";
+import BigValue from "../DeviceComponents/progress-bar";
 import { isValueDefined } from "@energyapp/utils/valueHelpers";
 
 type Device = Awaited<

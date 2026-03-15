@@ -5,6 +5,11 @@ import { TimePeriod } from "@energyapp/shared/enums";
 import dayjs from "dayjs";
 import type { IRuuviChartResponse } from "@energyapp/app/_components/Charts/ruuvi-chart";
 import { isValueDefined } from "./valueHelpers";
+import { api } from "@energyapp/trpc/server";
+
+type DeviceGroup = Awaited<
+    ReturnType<typeof api.shelly.getGroups.query>
+>[number];
 
 // Get humidity as a percentage string
 export const getHumidityString = (value?: number | null) => {
@@ -33,11 +38,11 @@ export const getTemperatureC = (value?: number) => {
 };
 
 // Get picture URL from customData
-export const getPictureUrl = (customData?: JsonValue | null) => {
+export const getPictureUrl = (customData?: JsonValue | DeviceGroup | null) => {
   if (!customData) {
     return null;
   }
-
+  
   try {
     return (customData as any).picture || null;
   } catch (error) {

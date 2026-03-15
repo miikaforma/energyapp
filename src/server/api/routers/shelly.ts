@@ -15,6 +15,9 @@ import {
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
 import { Prisma, type shelly_historical_data } from "@energyapp/generated/client";
+import { env } from "@energyapp/env";
+import axios from "axios";
+import { parseCustomData } from "@energyapp/utils/dbHelpers";
 
 export type DatePickerRange = {
   min?: Dayjs;
@@ -47,102 +50,6 @@ const mapIntervalToSQL = (interval: TimePeriod): string => {
   }
 };
 
-const getAggregatedData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  interval: string,
-  deviceIds: string[],
-): Promise<ShellyConsumption[]> => {
-  // console.log("getAggregatedData", startTime, endTime, interval, deviceIds);
-
-  return ctx.db.$queryRaw<ShellyConsumption[]>`
-    SELECT
-        time_bucket(${Prisma.raw(`'${interval}'`)}, "time") AS time,
-        "device_id",
-        SUM("delta") AS consumption,
-        MAX("aenergy") - MIN("aenergy") AS consumption2,
-        AVG("temperature_c") AS avg_temperature_c,
-        AVG("temperature_f") AS avg_temperature_f,
-        AVG("apower") AS avg_apower,
-        AVG("voltage") AS avg_voltage,
-        AVG("freq") AS avg_freq,
-        AVG("current") AS avg_current
-    FROM 
-    (
-      SELECT
-        *,
-        -- GREATEST(aenergy - COALESCE(LAG(aenergy) OVER (PARTITION BY device_id ORDER BY time), aenergy), 0) AS delta
-        CASE 
-            WHEN EXTRACT(EPOCH FROM (time - LAG(time) OVER (PARTITION BY device_id ORDER BY time))) < 120 THEN 
-              GREATEST(aenergy - COALESCE(LAG(aenergy) OVER (PARTITION BY device_id ORDER BY time), aenergy), 0)
-            ELSE 
-              0 -- Reset delta if the interval is 2 minutes or more
-        END AS delta
-      FROM "shelly_historical_data"
-      WHERE "time" >= ${dayjs(startTime).subtract(1, "hour").toDate()}
-        AND "time" <= ${endTime}
-        AND "device_id" IN (${Prisma.join(deviceIds)})
-    ) AS delta_history
-    WHERE "time" >= ${startTime}
-      AND "time" <= ${endTime}
-      AND "device_id" IN (${Prisma.join(deviceIds)})
-    GROUP BY 1, "device_id"
-    ORDER BY 1, "device_id"
-  `;
-};
-
-const getAggregatedDataV2 = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  interval: TimePeriod,
-  deviceIds: string[],
-): Promise<ShellyConsumption[]> => {
-  const sqlInterval = mapIntervalToSQL(interval);
-
-  return ctx.db.$queryRaw<ShellyConsumption[]>`
-    WITH avg_measurements AS (
-        SELECT
-            device_id,
-            time_bucket(${Prisma.raw(
-              `'${sqlInterval}'`,
-            )}, "time") AS rounded_interval,
-            ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
-            ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
-            ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
-            ROUND(AVG(freq)::NUMERIC, 1) AS avg_freq,
-            ROUND(AVG(temperature_c)::NUMERIC, 1) AS avg_temp_c,
-            ROUND(AVG(temperature_f)::NUMERIC, 1) AS avg_temp_f
-        FROM shelly_historical_data
-        WHERE time >= ${startTime}
-          AND time <= ${endTime}
-          AND device_id IN (${Prisma.join(deviceIds)})
-        GROUP BY device_id, rounded_interval
-    )
-    SELECT
-        c.time AS time,
-        c.device_id,
-        c.energy_mw AS consumption,
-        m.avg_apower AS avg_apower,
-        m.avg_temp_c AS avg_temperature_c,
-        m.avg_temp_f AS avg_temperature_f,
-        m.avg_voltage AS avg_voltage,
-        m.avg_current AS avg_current,
-        m.avg_freq AS avg_freq
-    FROM shelly_historical_consumption_data c
-    LEFT JOIN avg_measurements m
-      ON m.device_id = c.device_id
-      AND m.rounded_interval = time_bucket(${Prisma.raw(
-        `'${sqlInterval}'`,
-      )}, c.time)
-    WHERE c.time >= ${startTime}
-      AND c.time <= ${endTime}
-      AND c.device_id IN (${Prisma.join(deviceIds)})
-    ORDER BY 1 DESC;
-  `;
-};
-
 const getAggregatedDataV3 = (
   ctx: IContext,
   startTime: Date,
@@ -159,8 +66,8 @@ const getAggregatedDataV3 = (
       WITH avg_measurements AS (
           SELECT
               time_bucket(${Prisma.raw(
-                `'${sqlInterval}'`,
-              )}, time) AS rounded_time,
+      `'${sqlInterval}'`,
+    )}, time) AS rounded_time,
               ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
               ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
               ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
@@ -176,8 +83,8 @@ const getAggregatedDataV3 = (
       consumption_data AS (
           SELECT
               time_bucket(${Prisma.raw(
-                `'${sqlInterval}'`,
-              )}, time) AS rounded_time,
+      `'${sqlInterval}'`,
+    )}, time) AS rounded_time,
               SUM(energy_mw) AS energy_mw
           FROM shelly_historical_consumption_data
           WHERE time >= ${startTime}
@@ -207,8 +114,8 @@ const getAggregatedDataV3 = (
         SELECT
             device_id,
             time_bucket(${Prisma.raw(
-              `'${sqlInterval}'`,
-            )}, time) AS rounded_time,
+    `'${sqlInterval}'`,
+  )}, time) AS rounded_time,
             ROUND(AVG(apower)::NUMERIC, 1) AS avg_apower,
             ROUND(AVG(voltage)::NUMERIC, 1) AS avg_voltage,
             ROUND(AVG(current)::NUMERIC, 1) AS avg_current,
@@ -225,8 +132,8 @@ const getAggregatedDataV3 = (
         SELECT
             device_id,
             time_bucket(${Prisma.raw(
-              `'${sqlInterval}'`,
-            )}, time) AS rounded_time,
+    `'${sqlInterval}'`,
+  )}, time) AS rounded_time,
             SUM(energy_mw) AS energy_mw
         FROM shelly_historical_consumption_data
         WHERE time >= ${startTime}
@@ -251,48 +158,6 @@ const getAggregatedDataV3 = (
     ORDER BY 1 DESC, 2 ASC;
   `;
 };
-
-// time_bucket(${Prisma.raw(`'${interval}'`)}, "time") AS time,
-// "device_id",
-// SUM("delta") AS consumption,
-// MAX("aenergy") - MIN("aenergy") AS consumption2,
-// AVG("temperature_c") AS avg_temperature_c,
-// AVG("temperature_f") AS avg_temperature_f,
-// AVG("apower") AS avg_apower,
-// AVG("voltage") AS avg_voltage,
-// AVG("freq") AS avg_freq,
-// AVG("current") AS avg_current
-
-const getAggregatedDayData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  deviceIds: string[],
-) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1D, deviceIds);
-const getAggregatedMonthData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  deviceIds: string[],
-) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1M, deviceIds);
-const getAggregatedYearData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  deviceIds: string[],
-) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.P1Y, deviceIds);
-const getAggregatedHourData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  deviceIds: string[],
-) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.PT1H, deviceIds);
-const getAggregated15MinutesData = (
-  ctx: IContext,
-  startTime: Date,
-  endTime: Date,
-  deviceIds: string[],
-) => getAggregatedDataV3(ctx, startTime, endTime, TimePeriod.PT15M, deviceIds);
 
 const getDevices = async (ctx: IContext) => {
   const userAccesses = await ctx.db.userAccess.findMany({
@@ -319,6 +184,45 @@ const getDevices = async (ctx: IContext) => {
   return userAccesses;
 };
 
+const checkDeviceAccess = async (ctx: IContext, deviceId: string) => {
+  const device = await ctx.db.serviceAccess.findFirst({
+    where: {
+      accessId: deviceId,
+      userAccesses: {
+        some: {
+          userId: ctx.session?.user?.id ?? "",
+          type: "SHELLY",
+        },
+      },
+    },
+    select: { accessId: true },
+  });
+  if (!device) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You don't have access to this device",
+    });
+  }
+  return device;
+};
+
+const checkGroupAccess = async (ctx: IContext, groupKey: string) => {
+  const group = await ctx.db.shellyGroup.findFirst({
+    where: {
+      groupKey,
+      userId: ctx.session?.user?.id ?? "",
+    },
+    select: { groupKey: true },
+  });
+  if (!group) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You don't have access to this group",
+    });
+  }
+  return group;
+};
+
 export const shellyRouter = createTRPCRouter({
   getDevices: protectedProcedure.query(async ({ ctx }) => {
     const devices = await getDevices(ctx);
@@ -326,18 +230,6 @@ export const shellyRouter = createTRPCRouter({
   }),
   getDevicesWithInfo: protectedProcedure.query(async ({ ctx }) => {
     const devices = await getDevices(ctx);
-
-    // Fetch the latest data for each device
-    // const latestData = await ctx.db.shelly_historical_data.findMany({
-    //   where: {
-    //     device_id: {
-    //       in: devices.map((device) => device.accessId),
-    //     },
-    //   },
-    //   orderBy: {
-    //     time: "desc",
-    //   },
-    // });
 
     const latestData = await ctx.db.$queryRaw<shelly_historical_data[]>`
       SELECT sd.*
@@ -349,8 +241,8 @@ export const shellyRouter = createTRPCRouter({
       ) latest
       ON sd.device_id = latest.device_id AND sd."time" = latest.max_time
       WHERE sd.device_id IN (${Prisma.join(
-        devices.map((device) => device.accessId),
-      )})
+      devices.map((device) => device.accessId),
+    )})
     `;
 
     // Map the latest data to the devices
@@ -365,6 +257,24 @@ export const shellyRouter = createTRPCRouter({
     });
 
     return devicesWithLatestData;
+  }),
+  getGroups: protectedProcedure.query(async ({ ctx }) => {
+    const groups = await ctx.db.shellyGroup.findMany({
+      where: {
+        userId: ctx.session?.user?.id ?? "",
+      },
+      include: {
+        devices: {
+          select: {
+            id: true,
+            accessId: true,
+            accessName: true
+          },
+        },
+      },
+    });
+
+    return groups;
   }),
   get: protectedProcedure
     .input(
@@ -382,6 +292,7 @@ export const shellyRouter = createTRPCRouter({
 
       const devices = await getDevices(ctx);
       let deviceIds = devices.map((device) => device.accessId);
+      let title = "";
 
       if (input.viewType === ShellyViewType.DEVICE) {
         if (!input.id) {
@@ -399,6 +310,7 @@ export const shellyRouter = createTRPCRouter({
         }
 
         deviceIds = [device.accessId];
+        title = device.serviceAccess.accessName ?? device.accessId;
       }
 
       if (input.viewType === ShellyViewType.GROUP) {
@@ -409,17 +321,32 @@ export const shellyRouter = createTRPCRouter({
           });
         }
 
-        const groupKey = decodeURIComponent(input.id);
-        deviceIds = devices
-          .filter((device) => {
-            const customData = device.serviceAccess.customData as {
-              groupKey?: string;
-            };
-            return customData?.groupKey === groupKey;
-          })
-          .map((device) => device.accessId);
+        const group = await ctx.db.shellyGroup.findFirst({
+          where: {
+            userId: ctx.session?.user?.id ?? "", // Permission check to ensure the group belongs to the user
+            groupKey: decodeURIComponent(input.id),
+          },
+          include: {
+            devices: {
+              select: {
+                id: true,
+                accessId: true,
+                accessName: true,
+              },
+            },
+          },
+        });
+
+        if (!group) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Group not found",
+          });
+        }
+
+        deviceIds = group.devices.map((device) => device.accessId);
+        title = group.name ?? "Unknown group";
       }
-      // const deviceIds = ['shellyplus1pm-a0dd6c2b81dc']
 
       return getAggregatedDataV3(
         ctx,
@@ -432,58 +359,100 @@ export const shellyRouter = createTRPCRouter({
           ? decodeURIComponent(input.id)
           : "",
       ).then((data) => {
-        return consumptionsToResponse(input.timePeriod, data, devices);
+        return consumptionsToResponse(title, input.timePeriod, data, devices);
       });
-
-      // switch (input.timePeriod) {
-      //   case TimePeriod.PT1H:
-      //     return getAggregatedHourData(ctx, startTime, endTime, deviceIds).then(
-      //       (data) => {
-      //         return consumptionsToResponse(input.timePeriod, data, devices);
-      //       },
-      //     );
-      //   case TimePeriod.P1D:
-      //     return getAggregatedDayData(ctx, startTime, endTime, deviceIds).then(
-      //       (data) => {
-      //         return consumptionsToResponse(input.timePeriod, data, devices);
-      //       },
-      //     );
-      //   case TimePeriod.P1M:
-      //     return getAggregatedMonthData(
-      //       ctx,
-      //       startTime,
-      //       endTime,
-      //       deviceIds,
-      //     ).then((data) => {
-      //       return consumptionsToResponse(input.timePeriod, data, devices);
-      //     });
-      //   case TimePeriod.P1Y:
-      //     return getAggregatedYearData(ctx, startTime, endTime, deviceIds).then(
-      //       (data) => {
-      //         return consumptionsToResponse(input.timePeriod, data, devices);
-      //       },
-      //     );
-      //   case TimePeriod.PT15M:
-      //     return getAggregated15MinutesData(
-      //       ctx,
-      //       startTime,
-      //       endTime,
-      //       deviceIds,
-      //     ).then((data) => {
-      //       return consumptionsToResponse(input.timePeriod, data, devices);
-      //     });
-      //   default:
-      //     return Promise.reject("Not implemented");
-      // }
     }),
-  // getCurrentPrice: publicProcedure
-  //   .query(({ ctx }) => {
-  //     return getCurrentSpotPrices(ctx)
-  //   }),
   getRange: protectedProcedure
     .input(z.object({ timePeriod: zodTimePeriod }))
     .query(({ input, ctx }) => {
       return getRange(ctx, input.timePeriod);
+    }),
+
+  uploadImage: protectedProcedure
+    .input(
+      z.object({
+        accessKey: z.string(),
+        viewType: zodShellyViewType,
+        image: z.string(), // base64 or file URL
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Permission check
+      switch (input.viewType) {
+        case ShellyViewType.DEVICE:
+          await checkDeviceAccess(ctx, input.accessKey);
+          break;
+        case ShellyViewType.GROUP:
+          await checkGroupAccess(ctx, input.accessKey);
+          break;
+        default:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid view type",
+          });
+      }
+
+      // Upload image to Cloudinary with Basic Auth, overwrite previous image
+      const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/image/upload`;
+      const uploadPreset = env.CLOUDINARY_UPLOAD_PRESET;
+      const formData = new FormData();
+      formData.append("file", input.image);
+      formData.append("upload_preset", uploadPreset);
+      // Set public_id to organize images in folders
+      formData.append("public_id", `shelly/${input.viewType}/${input.accessKey}`);
+
+      // Basic Auth credentials from env
+      const apiKey = env.CLOUDINARY_API_KEY;
+      const apiSecret = env.CLOUDINARY_API_SECRET;
+      const basicAuth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+
+      const response = await axios.post(cloudinaryUrl, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Basic ${basicAuth}`,
+        },
+      });
+      const imageUrl = response.data.secure_url;
+
+      switch (input.viewType) {
+        case ShellyViewType.DEVICE:
+          // Update serviceAccess.customData for the device while preserving other customData properties
+          const prev = await ctx.db.serviceAccess.findUnique({
+            where: { accessId: input.accessKey },
+            select: { customData: true },
+          });
+          await ctx.db.serviceAccess.update({
+            where: { accessId: input.accessKey },
+            data: {
+              customData: {
+                ...parseCustomData(prev?.customData),
+                picture: imageUrl,
+              },
+            },
+          });
+          break;
+        case ShellyViewType.GROUP:
+          // Update shellyGroup.picture for the group
+          await ctx.db.shellyGroup.update({
+            where: {
+              groupKey_userId: {
+                groupKey: input.accessKey,
+                userId: ctx.session?.user?.id ?? ""
+              }
+            },
+            data: {
+              picture: imageUrl,
+            },
+          });
+          break;
+        default:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid view type",
+          });
+      }
+
+      return { success: true, imageUrl };
     }),
 });
 
@@ -534,6 +503,7 @@ const getRange = async (
 };
 
 const consumptionsToResponse = (
+  title: string,
   timePeriod: TimePeriod,
   consumptions: ShellyConsumption[],
   devices: { accessId: string; serviceAccess: { accessName: string | null } }[],
@@ -564,6 +534,7 @@ const consumptionsToResponse = (
   } as ShellyConsumptionSummary;
 
   return {
+    title: title,
     timePeriod,
     summary,
     consumptions,

@@ -36,8 +36,8 @@ import { MonthDatePicker } from "@energyapp/app/_components/FormItems/antd-month
 import { useSession } from "next-auth/react";
 import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-year-range-datepicker";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import useGetShellyRange from "@energyapp/app/_hooks/queries/useGetShellyRange";
-import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/useGetShellyConsumptions";
+import useGetShellyRange from "@energyapp/app/_hooks/queries/shelly/useGetShellyRange";
+import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/shelly/useGetShellyConsumptions";
 import { Box, Fab } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
@@ -510,7 +510,7 @@ export default function ShellyConsumptionPage({
         pagination={false}
         loading={isLoading}
       >
-        <ColumnGroup title={decodeURIComponent(shellyConsumptions?.consumptions[0]?.device_name ?? shellyId ?? "")}>
+        <ColumnGroup title={shellyConsumptions?.title ?? ""}>
           <Column
             title=""
             dataIndex="time"

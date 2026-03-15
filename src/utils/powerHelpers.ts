@@ -1,3 +1,4 @@
+import { isValueDefined } from "./valueHelpers";
 import { formatNumberToFI } from "./wattivahtiHelpers";
 
 export const kwhOrWattsString = (value: number) => {

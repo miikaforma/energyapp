@@ -20,14 +20,14 @@ import timezone from "dayjs/plugin/timezone";
 import { TimePeriod } from "@energyapp/shared/enums";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import useGetRuuviRange from "@energyapp/app/_hooks/queries/useGetRuuviRange";
-import useGetRuuviDetails from "@energyapp/app/_hooks/queries/useGetRuuviDetails";
+import useGetRuuviRange from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviRange";
+import useGetRuuviDetails from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviDetails";
 import { Avatar, ButtonBase, Fab, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { DayRangeDatePicker } from "../FormItems/antd-day-range-datepicker";
 import RuuviChart from "../Charts/ruuvi-chart";
 import { getPictureUrl, transformRuuviDataToChartResponse } from "@energyapp/utils/ruuviHelpers";
-import useGetRuuviDevice from "@energyapp/app/_hooks/queries/useGetRuuviDevice";
+import useGetRuuviDevice from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviDevice";
 // import RuuviSummary from "../Descriptions/ruuvi-summary";
 
 dayjs.extend(isSameOrAfter);

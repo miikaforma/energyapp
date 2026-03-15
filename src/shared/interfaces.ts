@@ -2,6 +2,7 @@ import { type Dayjs } from "dayjs";
 import { type Currency, type TimePeriod } from "@energyapp/shared/enums";
 import { type PrismaClient } from "@energyapp/generated/client";
 import { type Session } from "next-auth";
+import { api } from "@energyapp/trpc/react";
 
 export interface IContext {
     session: Session | null;
@@ -227,6 +228,7 @@ export type SolarmanLatestProduction = {
 }
 
 export type ShellyConsumptionResponse = {
+    title: string;
     timePeriod: TimePeriod;
     summary?: ShellyConsumptionSummary;
     consumptions: ShellyConsumption[];

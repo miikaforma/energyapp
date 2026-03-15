@@ -26,7 +26,7 @@ import { TimePeriod } from "@energyapp/shared/enums";
 import { dateToShortSpotTimeString } from "@energyapp/utils/timeHelpers";
 import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
-import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/useGetRuuviDevicesWithInfo";
+import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviDevicesWithInfo";
 
 const getRelativeTimeStamp = (time: string | number | Date | Dayjs) => {
   if (!time) {

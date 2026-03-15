@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 import { Prisma, ruuvi_measurements } from "@energyapp/generated/client";
 import axios from "axios";
 import { env } from "@energyapp/env";
+import { parseCustomData } from "@energyapp/utils/dbHelpers";
 
 export type DatePickerRange = {
   min?: Dayjs;
@@ -360,11 +361,16 @@ export const ruuviRouter = createTRPCRouter({
       });
       const imageUrl = response.data.secure_url;
 
-      // Update serviceAccess.customData for the device
+      // Update serviceAccess.customData for the device while preserving other customData properties
+      const prev = await ctx.db.serviceAccess.findUnique({
+        where: { accessId: input.deviceId },
+        select: { customData: true },
+      });
       await ctx.db.serviceAccess.update({
         where: { accessId: input.deviceId },
         data: {
           customData: {
+            ...parseCustomData(prev?.customData),
             picture: imageUrl,
           },
         },

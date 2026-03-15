@@ -32,6 +32,7 @@ import ShellyImageUpload from "../ShellyImageUpload";
 import { ShellyViewType } from "@energyapp/shared/enums";
 import ShellyGroupDelete from '../Dialogs/ShellyGroupDelete';
 import useDeleteShellyGroup from "@energyapp/app/_hooks/mutations/Shelly/useDeleteShellyGroup";
+import { useMediaQuery } from '@mui/material';
 
 type DeviceGroup = Awaited<
     ReturnType<typeof api.shelly.getGroups.query>
@@ -46,6 +47,7 @@ export default function ShellyGroup({ group, devices }: { group: DeviceGroup, de
     const [showDots, setShowDots] = useState(false);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const isMobile = useMediaQuery('(max-width:600px)');
     const deleteGroupMutation = useDeleteShellyGroup({
         onSuccess: () => {
             setDeleteDialogOpen(false);
@@ -155,7 +157,7 @@ export default function ShellyGroup({ group, devices }: { group: DeviceGroup, de
                     onClick={handleClick}
                 />
                 {/* Three dots menu */}
-                {showDots && (
+                {(isMobile || showDots) && (
                     <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
                         <IconButton
                             size="small"

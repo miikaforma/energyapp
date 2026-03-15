@@ -23,6 +23,7 @@ import { formatMeasurement } from "@energyapp/utils/valueHelpers";
 import MeasurementValue from "../DeviceComponents/measurement-value";
 import { useRef, useState } from "react";
 import { ShellyViewType } from "@energyapp/shared/enums";
+import { useMediaQuery } from '@mui/material';
 
 type Device = Awaited<
     ReturnType<typeof api.shelly.getDevicesWithInfo.query>
@@ -33,6 +34,7 @@ export default function ShellyDevice({ device }: { device: Device }) {
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
     const [showDots, setShowDots] = useState(false);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const isMobile = useMediaQuery('(max-width:600px)');
 
     const handleClick = () => {
         router.push(`/consumptions/shelly/device/${device.accessId}`);
@@ -72,7 +74,7 @@ export default function ShellyDevice({ device }: { device: Device }) {
                 onClick={handleClick}
             />
             {/* Three dots menu */}
-            {showDots && (
+            {(isMobile || showDots) && (
                 <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
                     <IconButton
                         size="small"

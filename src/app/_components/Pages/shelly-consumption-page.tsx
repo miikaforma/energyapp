@@ -491,7 +491,10 @@ export default function ShellyConsumptionPage({
         variant="extended"
         size="small"
         color="primary"
-        href="/consumptions/shelly"
+        onClick={(e) => {
+          e.preventDefault();
+          router.push("/consumptions/shelly");
+        }}
         sx={{ position: "fixed", bottom: 69, right: 16 }}
       >
         <ArrowBackIcon sx={{ mr: 1 }} />

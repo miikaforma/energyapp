@@ -158,7 +158,10 @@ export default function RuuviDetailsPage({
         variant="extended"
         size="small"
         color="primary"
-        href="/statistics/ruuvi"
+        onClick={(e) => {
+          e.preventDefault();
+          router.push("/statistics/ruuvi");
+        }}
         sx={{ position: "fixed", bottom: 69, right: 16 }}
       >
         <ArrowBackIcon sx={{ mr: 1 }} />

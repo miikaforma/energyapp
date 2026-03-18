@@ -2,7 +2,7 @@ import { isValueDefined } from "./valueHelpers";
 import { formatNumberToFI } from "./wattivahtiHelpers";
 
 export const kwhOrWattsString = (value: number) => {
-  return value > 1000
+  return Math.abs(value) > 1000
     ? formatNumberToFI(value / 1000) + " kWh"
     : formatNumberToFI(value) + " W";
 };
@@ -13,7 +13,7 @@ export const convertWatts = (value?: number) => {
     return "Ei tiedossa";
   }
 
-  return value > 1000
+  return Math.abs(value) > 1000
     ? formatNumberToFI(value / 1000, 1) + " kW"
     : formatNumberToFI(value, 1) + " W";
 };
@@ -24,7 +24,7 @@ export const convertMilliwatts = (value?: number) => {
     return "Ei tiedossa";
   }
 
-  return value > 1000000
+  return Math.abs(value) > 1000000
     ? formatNumberToFI(value / 1000000, 1) + " kW"
     : formatNumberToFI(value / 1000, 1) + " W";
 };
@@ -35,7 +35,7 @@ export const convertVoltage = (value?: number) => {
     return "Ei tiedossa";
   }
 
-  return value > 1000
+  return Math.abs(value) > 1000
     ? formatNumberToFI(value / 1000, 1) + " kV"
     : formatNumberToFI(value, 1) + " V";
 };
@@ -45,7 +45,7 @@ export const convertFrequency = (value?: number) => {
   if (!value && value !== 0) {
     return "Ei tiedossa";
   }
-  return value > 1000
+  return Math.abs(value) > 1000
     ? formatNumberToFI(value / 1000, 1) + " kHz"
     : formatNumberToFI(value, 1) + " Hz";
 };
@@ -71,7 +71,7 @@ export const convertAmps = (value?: number) => {
   if (!value && value !== 0) {
     return "Ei tiedossa";
   }
-  return value > 1000
+  return Math.abs(value) > 1000
     ? formatNumberToFI(value / 1000, 1) + " kA"
     : formatNumberToFI(value, 1) + " A";
 };

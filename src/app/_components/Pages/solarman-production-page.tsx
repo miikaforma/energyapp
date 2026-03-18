@@ -102,8 +102,8 @@ export default function SolarmanProductionPage({
   const productions = response?.productions ?? [];
 
   // Update
-    const { mutate: updateProductions, isLoading: isUpdating } =
-      useUpdateSolarman();
+  const { mutate: updateProductions, isLoading: isUpdating } =
+    useUpdateSolarman();
 
   useEffect(() => {
     console.log('SolarmanProductionPage', { timePeriod, startDate, endDate });

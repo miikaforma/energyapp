@@ -38,7 +38,7 @@ import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-y
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetShellyRange from "@energyapp/app/_hooks/queries/shelly/useGetShellyRange";
 import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/shelly/useGetShellyConsumptions";
-import { Box, Fab } from "@mui/material";
+import { Box, CircularProgress, Fab, Grid } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
   convertAmps,
@@ -55,6 +55,8 @@ import useGetShellyGroup from "@energyapp/app/_hooks/queries/shelly/useGetShelly
 import useGetShellyDevicesWithInfo from "@energyapp/app/_hooks/queries/shelly/useGetShellyDevicesWithInfo";
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolarmanProductions";
+import { ProductionConsumptionDiffColumn } from "../ColumnRenders/production-consumption-diff";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -212,10 +214,28 @@ export default function ShellyConsumptionPage({
   const { data: group } = useGetShellyGroup({ groupKey: shellyId });
   const { data: devices } = useGetShellyDevicesWithInfo({ deviceIds: group?.devices.map((device) => device.accessId), enabled: viewType === ShellyViewType.GROUP });
 
+  // Get productions
+  const {
+    data: response,
+    isLoading: productionLoading,
+    prefetch: prefetchProductions,
+  } = useGetSolarmanProductions({
+    timePeriod: timePeriod,
+    startTime: startDate,
+    endTime: endDate,
+  });
+  const productions = response?.productions ?? [];
+
   // Prefetch consumptions when date changes
   useEffect(() => {
     if (enablePrefetch) {
       prefetchShellyConsumptions({
+        utils,
+        timePeriod: timePeriod,
+        startTime: startDate,
+        endTime: endDate,
+      });
+      prefetchProductions({
         utils,
         timePeriod: timePeriod,
         startTime: startDate,
@@ -234,6 +254,12 @@ export default function ShellyConsumptionPage({
         startTime: startDate,
         endTime: endDate,
       });
+      prefetchProductions({
+        utils,
+        timePeriod: timePeriod,
+        startTime: startDate,
+        endTime: endDate,
+      });
     }
 
     // Set an interval to check every 10 seconds if the hour has changed
@@ -245,6 +271,12 @@ export default function ShellyConsumptionPage({
         setCurrentHour(newHour);
         if (enablePrefetch) {
           prefetchShellyConsumptions({
+            utils,
+            timePeriod: timePeriod,
+            startTime: startDate,
+            endTime: endDate,
+          });
+          prefetchProductions({
             utils,
             timePeriod: timePeriod,
             startTime: startDate,
@@ -503,7 +535,7 @@ export default function ShellyConsumptionPage({
 
       {viewType === ShellyViewType.GROUP && devices && (
         <Accordion sx={{ mt: 2, backgroundImage: 'linear-gradient(to bottom right, var(--tw-gradient-stops))' }}>
-          <AccordionSummary sx={{ backgroundColor: '#1e1e1e'}} expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary sx={{ backgroundColor: '#1e1e1e' }} expandIcon={<ExpandMoreIcon />}>
             <span>Ryhmän laitteet</span>
           </AccordionSummary>
           <AccordionDetails sx={{ px: 0, py: 2 }}>
@@ -555,12 +587,60 @@ export default function ShellyConsumptionPage({
             title="Kulutus"
             dataIndex="consumption"
             key="consumption"
-            render={(data: number) => (
-              <span style={{ color: data === 0 ? gray[1] : "inherit" }}>
-                {convertMilliwatts(data)}
-              </span>
-            )}
+            render={(data: number, record: ShellyConsumption) => {
+              const getProductionNode = () => {
+                if (productionLoading) {
+                  return <CircularProgress />;
+                }
+
+                const production = productions.find((prod) =>
+                  dayjs(prod.time).isSame(dayjs(record.time))
+                );
+
+                return ProductionConsumptionDiffColumn({
+                  production: production?.production ?? 0,
+                  consumption: record.consumption,
+                  time: dayjs(production?.time ?? record.time),
+                  timePeriod,
+                });
+              };
+
+              return (
+                <Grid container rowSpacing={1} columns={{ xs: 1 }}>
+                  <Grid size={6}>
+                    <span style={{ color: data === 0 ? gray[1] : "inherit" }}>
+                      {convertMilliwatts(data)}
+                    </span>
+                  </Grid>
+                  <Grid size={6}>
+                    {getProductionNode()}
+                  </Grid>
+                </Grid>
+              )
+            }}
           />
+
+          {/* <Column
+            title="Tuotanto"
+            dataIndex="production"
+            key="production"
+            render={(data: number, record: ShellyConsumption) => {
+              if (productionLoading) {
+                return <CircularProgress />;
+              }
+
+              const production = productions.find((prod) =>
+                dayjs(prod.time).isSame(dayjs(record.time))
+              );
+
+              return ProductionConsumptionDiffColumn({
+                production: production?.production ?? 0,
+                consumption: record.consumption,
+                time: dayjs(production?.time ?? record.time),
+                timePeriod,
+              });
+            }}
+          /> */}
 
           {/* <Column
             title="Teho"

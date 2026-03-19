@@ -24,7 +24,6 @@ import timezone from "dayjs/plugin/timezone";
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { type ShellyConsumption } from "@energyapp/shared/interfaces";
 import {
-  dateToShellyTimeString,
   isCurrentDay,
   isCurrentHour,
   isCurrentMinute,
@@ -38,17 +37,15 @@ import { YearRangeDatePicker } from "@energyapp/app/_components/FormItems/antd-y
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetShellyRange from "@energyapp/app/_hooks/queries/shelly/useGetShellyRange";
 import useGetShellyConsumptions from "@energyapp/app/_hooks/queries/shelly/useGetShellyConsumptions";
-import { Box, CircularProgress, Fab, Grid } from "@mui/material";
+import { Box, CircularProgress, Fab } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
   convertAmps,
   convertFrequency,
-  convertMilliwatts,
   convertVoltage,
   convertWatts,
   getTemperatureC,
 } from "@energyapp/utils/powerHelpers";
-import { gray } from "@ant-design/colors";
 import ShellySummary from "../Descriptions/shelly-summary";
 import ShellyDeviceList from "../Shelly/device-list";
 import useGetShellyGroup from "@energyapp/app/_hooks/queries/shelly/useGetShellyGroup";
@@ -57,6 +54,7 @@ import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import useGetSolarmanProductions from "@energyapp/app/_hooks/queries/useGetSolarmanProductions";
 import { ProductionConsumptionDiffColumn } from "../ColumnRenders/production-consumption-diff";
+import { DateNoWrap } from "../ColumnRenders/date-nowrap";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -171,7 +169,6 @@ export default function ShellyConsumptionPage({
       : groupKey?.toString();
 
   const router = useRouter();
-  const enablePrefetch = false;
   const searchParams = useSearchParams();
   const dateQuery = searchParams.get("date");
 
@@ -184,6 +181,7 @@ export default function ShellyConsumptionPage({
   );
 
   const [showNonZero, setShowNonZero] = useState(true);
+  const [isAccordionExpanded, setAccordionExpanded] = useState(false);
 
   const utils = api.useUtils();
 
@@ -202,7 +200,6 @@ export default function ShellyConsumptionPage({
   const {
     data: shellyConsumptions,
     isLoading,
-    prefetch: prefetchShellyConsumptions,
   } = useGetShellyConsumptions({
     timePeriod: timePeriod,
     startTime: startDate,
@@ -212,13 +209,13 @@ export default function ShellyConsumptionPage({
   });
 
   const { data: group } = useGetShellyGroup({ groupKey: shellyId });
-  const { data: devices } = useGetShellyDevicesWithInfo({ deviceIds: group?.devices.map((device) => device.accessId), enabled: viewType === ShellyViewType.GROUP });
+  const { data: devices } = useGetShellyDevicesWithInfo({ deviceIds: group?.devices.map((device) => device.accessId), enabled: isAccordionExpanded && viewType === ShellyViewType.GROUP });
 
+  
   // Get productions
   const {
     data: response,
     isLoading: productionLoading,
-    prefetch: prefetchProductions,
   } = useGetSolarmanProductions({
     timePeriod: timePeriod,
     startTime: startDate,
@@ -228,40 +225,6 @@ export default function ShellyConsumptionPage({
 
   // Prefetch consumptions when date changes
   useEffect(() => {
-    if (enablePrefetch) {
-      prefetchShellyConsumptions({
-        utils,
-        timePeriod: timePeriod,
-        startTime: startDate,
-        endTime: endDate,
-      });
-      prefetchProductions({
-        utils,
-        timePeriod: timePeriod,
-        startTime: startDate,
-        endTime: endDate,
-      });
-    }
-  }, [startDate, endDate]);
-
-  // Prefetch consumptions when date changes
-  useEffect(() => {
-    // Call the function to refresh the data immediately when the component mounts
-    if (enablePrefetch) {
-      prefetchShellyConsumptions({
-        utils,
-        timePeriod: timePeriod,
-        startTime: startDate,
-        endTime: endDate,
-      });
-      prefetchProductions({
-        utils,
-        timePeriod: timePeriod,
-        startTime: startDate,
-        endTime: endDate,
-      });
-    }
-
     // Set an interval to check every 10 seconds if the hour has changed
     const intervalId = setInterval(() => {
       console.log("Checking if the hour has changed");
@@ -269,20 +232,6 @@ export default function ShellyConsumptionPage({
       if (newHour !== currentHour) {
         // If the hour has changed, update the state and refresh the data
         setCurrentHour(newHour);
-        if (enablePrefetch) {
-          prefetchShellyConsumptions({
-            utils,
-            timePeriod: timePeriod,
-            startTime: startDate,
-            endTime: endDate,
-          });
-          prefetchProductions({
-            utils,
-            timePeriod: timePeriod,
-            startTime: startDate,
-            endTime: endDate,
-          });
-        }
 
         // If the date has changed, change to the current date
         const currentDate = dayjs();
@@ -533,13 +482,16 @@ export default function ShellyConsumptionPage({
         Takaisin laitevalintaan
       </Fab>
 
-      {viewType === ShellyViewType.GROUP && devices && (
-        <Accordion sx={{ mt: 2, backgroundImage: 'linear-gradient(to bottom right, var(--tw-gradient-stops))' }}>
+      {viewType === ShellyViewType.GROUP && (
+        <Accordion
+          sx={{ mt: 2, backgroundImage: 'linear-gradient(to bottom right, var(--tw-gradient-stops))' }}
+          onChange={(event, expanded) => setAccordionExpanded(expanded)}
+        >
           <AccordionSummary sx={{ backgroundColor: '#1e1e1e' }} expandIcon={<ExpandMoreIcon />}>
             <span>Ryhmän laitteet</span>
           </AccordionSummary>
           <AccordionDetails sx={{ px: 0, py: 2 }}>
-            <ShellyDeviceList devices={devices} />
+            {isAccordionExpanded && devices && <ShellyDeviceList devices={devices} />}
           </AccordionDetails>
         </Accordion>
       )}
@@ -578,7 +530,7 @@ export default function ShellyConsumptionPage({
             title="Aika"
             dataIndex="time"
             key="time"
-            render={(data: Dayjs) => dateToShellyTimeString(data, timePeriod)}
+            render={(data: Dayjs) => <DateNoWrap date={data} timePeriod={timePeriod} />}
           />
 
           {/* <Column title="Laite" dataIndex="device_name" key="device_id" /> */}
@@ -605,18 +557,7 @@ export default function ShellyConsumptionPage({
                 });
               };
 
-              return (
-                <Grid container rowSpacing={1} columns={{ xs: 1 }}>
-                  <Grid size={6}>
-                    <span style={{ color: data === 0 ? gray[1] : "inherit" }}>
-                      {convertMilliwatts(data)}
-                    </span>
-                  </Grid>
-                  <Grid size={6}>
-                    {getProductionNode()}
-                  </Grid>
-                </Grid>
-              )
+              return getProductionNode()
             }}
           />
 

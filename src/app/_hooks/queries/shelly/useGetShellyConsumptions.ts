@@ -41,7 +41,7 @@ const useGetShellyConsumptions = ({
     {
       select: (data) => data,
       onSuccess: (_data) => {
-        // prefetchShellyConsumptions({ utils, timePeriod, startTime, endTime });
+        prefetchShellyConsumptions({ utils, timePeriod, startTime, endTime, viewType, id });
       },
       onError: (err: unknown) => {
         if (err instanceof TRPCClientError) {
@@ -64,6 +64,8 @@ const prefetchShellyConsumptions = ({
   timePeriod,
   startTime,
   endTime,
+  viewType,
+  id,
 }: PrefetchShellyConsumptions) => {
   let previousStart: Dayjs = dayjs();
   let previousEnd: Dayjs = dayjs();
@@ -104,6 +106,8 @@ const prefetchShellyConsumptions = ({
       timePeriod: timePeriod,
       startTime: previousStart.hour(0).minute(0).second(0).millisecond(0),
       endTime: previousEnd.hour(23).minute(59).second(59).millisecond(999),
+      viewType: viewType,
+      id: id,
     },
     {},
   );
@@ -113,6 +117,8 @@ const prefetchShellyConsumptions = ({
       timePeriod: timePeriod,
       startTime: nextStart.hour(0).minute(0).second(0).millisecond(0),
       endTime: nextEnd.hour(23).minute(59).second(59).millisecond(999),
+      viewType: viewType,
+      id: id,
     },
     {},
   );

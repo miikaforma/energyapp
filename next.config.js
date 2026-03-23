@@ -3,7 +3,7 @@
  * for Docker builds.
  */
 await import("./src/env.js");
-import withPWAInit from "@ducanh2912/next-pwa";
+import { withSerwist } from "@serwist/turbopack";
 
 /** @type {import("next").NextConfig} */
 
@@ -18,11 +18,5 @@ const config = {
     allowedDevOrigins: ["localhost", "10.0.5.97"], // Allow localhost for development
 };
 
-// Configuration object tells the next-pwa plugin 
-const withPWA = withPWAInit({
-    dest: "public", // Destination directory for the PWA files
-    // disable: process.env.NODE_ENV === "development", // Disable PWA in development mode
-    register: true, // Register the PWA service worker
-});
 
-export default withPWA(config);
+export default withSerwist(config);

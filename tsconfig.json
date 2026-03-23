@@ -16,7 +16,13 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "ES2023"
+      "ES2023",
+      "esnext",
+      "webworker"
+    ],
+    "types": [
+      // This allows Serwist to type `window.serwist`.
+      "@serwist/next/typings"
     ],
     "noEmit": true,
     "module": "ESNext",
@@ -52,7 +58,7 @@
   "exclude": [
     "node_modules",
     "public/sw.js",
-    "worker/**/*",
+    "public/worker/**/*",
     "public/workbox-*.js",
     "public/worker-*.js"
   ]

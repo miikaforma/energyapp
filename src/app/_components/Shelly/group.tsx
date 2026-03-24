@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import UploadIcon from '@mui/icons-material/Upload';
 import EditIcon from '@mui/icons-material/Edit';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { red } from '@mui/material/colors';
@@ -72,6 +73,11 @@ export default function ShellyGroup({ group, devices }: { group: DeviceGroup, de
     const handleEditGroup = () => {
         handleMenuClose();
         router.push(`/consumptions/shelly/group/edit/${group.groupKey}`);
+    };
+
+    const handleEditNotifications = () => {
+        handleMenuClose();
+        router.push(`/consumptions/shelly/group/notifications/${group.groupKey}`);
     };
 
     const handleDeleteGroup = () => {
@@ -183,6 +189,12 @@ export default function ShellyGroup({ group, devices }: { group: DeviceGroup, de
                                     <EditIcon fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText>Muokkaa ryhmää</ListItemText>
+                            </MenuItem>
+                            <MenuItem onClick={handleEditNotifications}>
+                                <ListItemIcon>
+                                    <NotificationsIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Muokkaa ilmoituksia</ListItemText>
                             </MenuItem>
                             <Divider />
                             <MenuItem onClick={handleDeleteGroup}>

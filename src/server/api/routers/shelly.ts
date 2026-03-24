@@ -14,7 +14,11 @@ import {
 } from "@energyapp/shared/interfaces";
 import { ShellyViewType, TimePeriod } from "@energyapp/shared/enums";
 import { TRPCError } from "@trpc/server";
-import { Prisma, type shelly_historical_data } from "@energyapp/generated/client";
+import {
+  Prisma,
+  shellyNotificationEventType,
+  type shelly_historical_data,
+} from "@energyapp/generated/client";
 import { env } from "@energyapp/env";
 import axios from "axios";
 import { parseCustomData } from "@energyapp/utils/dbHelpers";
@@ -32,6 +36,23 @@ const zodDay = z.custom<Dayjs>(
 );
 const zodTimePeriod = z.nativeEnum(TimePeriod);
 const zodShellyViewType = z.nativeEnum(ShellyViewType);
+const zodShellyNotificationEventType = z.nativeEnum(shellyNotificationEventType);
+
+const groupNotificationEventTypes = [
+  shellyNotificationEventType.GROUP_POWER_STARTED,
+  shellyNotificationEventType.GROUP_POWER_STOPPED,
+] as const;
+
+const deviceNotificationEventTypes = [
+  shellyNotificationEventType.DEVICE_OFFLINE,
+  shellyNotificationEventType.DEVICE_ONLINE,
+  shellyNotificationEventType.DEVICE_POWER_STARTED,
+  shellyNotificationEventType.DEVICE_POWER_STOPPED,
+] as const;
+
+const timeStringSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time");
 
 const mapIntervalToSQL = (interval: TimePeriod): string => {
   switch (interval) {
@@ -220,6 +241,34 @@ const checkGroupAccess = async (ctx: IContext, groupKey: string) => {
   return group;
 };
 
+const timeToString = (value: Date | null | undefined) => {
+  if (!value) {
+    return null;
+  }
+
+  return value.toISOString().slice(11, 16);
+};
+
+const timeStringToDate = (value: string | null | undefined) => {
+  if (!value) {
+    return null;
+  }
+
+  return new Date(`1970-01-01T${value}:00.000Z`);
+};
+
+type NotificationPreferenceRow = {
+  event_type: string;
+  enabled: boolean;
+  power_threshold_w: number | null;
+  offline_delay_seconds: number | null;
+  cooldown_seconds: number | null;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  timezone_id: string | null;
+};
+
 export const shellyRouter = createTRPCRouter({
   getDevices: protectedProcedure.query(async ({ ctx }) => {
     const devices = await getDevices(ctx);
@@ -304,6 +353,109 @@ export const shellyRouter = createTRPCRouter({
 
     return group;
   }),
+  getGroupNotificationPreferences: protectedProcedure
+    .input(
+      z.object({
+        groupKey: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      await checkGroupAccess(ctx, input.groupKey);
+
+      const userId = ctx.session?.user?.id ?? "";
+      const eventTypes = groupNotificationEventTypes.map(
+        (eventType) =>
+          Prisma.sql`${eventType}::shelly_notification_event_type`,
+      );
+      const existingPreferences = await ctx.db.$queryRaw<
+        NotificationPreferenceRow[]
+      >`
+        SELECT
+          event_type::text,
+          enabled,
+          power_threshold_w,
+          offline_delay_seconds,
+          cooldown_seconds,
+          quiet_hours_enabled,
+          TO_CHAR(quiet_hours_start, 'HH24:MI') AS quiet_hours_start,
+          TO_CHAR(quiet_hours_end, 'HH24:MI') AS quiet_hours_end,
+          timezone_id
+        FROM user_shelly_notification_preference
+        WHERE user_id = ${userId}
+          AND scope_type = 'GROUP'::shelly_notification_scope_type
+          AND group_key = ${input.groupKey}
+          AND event_type IN (${Prisma.join(eventTypes)})
+      `;
+
+      return groupNotificationEventTypes.map((eventType) => {
+        const preference = existingPreferences.find(
+          (item) => item.event_type === eventType,
+        );
+
+        return {
+          eventType,
+          enabled: preference?.enabled ?? false,
+          powerThresholdW: preference?.power_threshold_w ?? null,
+          cooldownSeconds: preference?.cooldown_seconds ?? null,
+          quietHoursEnabled: preference?.quiet_hours_enabled ?? false,
+          quietHoursStart: preference?.quiet_hours_start ?? null,
+          quietHoursEnd: preference?.quiet_hours_end ?? null,
+          timezoneId: preference?.timezone_id ?? null,
+        };
+      });
+    }),
+  getDeviceNotificationPreferences: protectedProcedure
+    .input(
+      z.object({
+        deviceId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      await checkDeviceAccess(ctx, input.deviceId);
+
+      const userId = ctx.session?.user?.id ?? "";
+      const eventTypes = deviceNotificationEventTypes.map(
+        (eventType) =>
+          Prisma.sql`${eventType}::shelly_notification_event_type`,
+      );
+      const existingPreferences = await ctx.db.$queryRaw<
+        NotificationPreferenceRow[]
+      >`
+        SELECT
+          event_type::text,
+          enabled,
+          power_threshold_w,
+          offline_delay_seconds,
+          cooldown_seconds,
+          quiet_hours_enabled,
+          TO_CHAR(quiet_hours_start, 'HH24:MI') AS quiet_hours_start,
+          TO_CHAR(quiet_hours_end, 'HH24:MI') AS quiet_hours_end,
+          timezone_id
+        FROM user_shelly_notification_preference
+        WHERE user_id = ${userId}
+          AND scope_type = 'DEVICE'::shelly_notification_scope_type
+          AND device_id = ${input.deviceId}
+          AND event_type IN (${Prisma.join(eventTypes)})
+      `;
+
+      return deviceNotificationEventTypes.map((eventType) => {
+        const preference = existingPreferences.find(
+          (item) => item.event_type === eventType,
+        );
+
+        return {
+          eventType,
+          enabled: preference?.enabled ?? false,
+          powerThresholdW: preference?.power_threshold_w ?? null,
+          offlineDelaySeconds: preference?.offline_delay_seconds ?? null,
+          cooldownSeconds: preference?.cooldown_seconds ?? null,
+          quietHoursEnabled: preference?.quiet_hours_enabled ?? false,
+          quietHoursStart: preference?.quiet_hours_start ?? null,
+          quietHoursEnd: preference?.quiet_hours_end ?? null,
+          timezoneId: preference?.timezone_id ?? null,
+        };
+      });
+    }),
   get: protectedProcedure
     .input(
       z.object({
@@ -442,6 +594,197 @@ export const shellyRouter = createTRPCRouter({
           },
         });
       }
+
+      return { success: true };
+    }),
+  upsertGroupNotificationPreferences: protectedProcedure
+    .input(
+      z.object({
+        groupKey: z.string(),
+        preferences: z
+          .array(
+            z.object({
+              eventType: zodShellyNotificationEventType,
+              enabled: z.boolean(),
+              powerThresholdW: z.number().nullable(),
+              cooldownSeconds: z.number().int().nullable(),
+              quietHoursEnabled: z.boolean(),
+              quietHoursStart: timeStringSchema.nullable(),
+              quietHoursEnd: timeStringSchema.nullable(),
+              timezoneId: z.string().nullable(),
+            }),
+          )
+          .min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await checkGroupAccess(ctx, input.groupKey);
+
+      const userId = ctx.session?.user?.id ?? "";
+      const updatedAt = new Date();
+
+      await ctx.db.$transaction(
+        input.preferences.map((preference) => {
+          if (
+            !groupNotificationEventTypes.some(
+              (eventType) => eventType === preference.eventType,
+            )
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Unsupported group notification event type",
+            });
+          }
+
+          return ctx.db.$executeRaw`
+            INSERT INTO user_shelly_notification_preference (
+              user_id,
+              scope_type,
+              device_id,
+              group_key,
+              event_type,
+              enabled,
+              power_threshold_w,
+              offline_delay_seconds,
+              cooldown_seconds,
+              quiet_hours_enabled,
+              quiet_hours_start,
+              quiet_hours_end,
+              timezone_id,
+              updated_at
+            )
+            VALUES (
+              ${userId},
+              'GROUP'::shelly_notification_scope_type,
+              NULL,
+              ${input.groupKey},
+              ${preference.eventType}::shelly_notification_event_type,
+              ${preference.enabled},
+              ${preference.powerThresholdW},
+              NULL,
+              ${preference.cooldownSeconds},
+              ${preference.quietHoursEnabled},
+              ${preference.quietHoursEnabled ? preference.quietHoursStart : null}::time,
+              ${preference.quietHoursEnabled ? preference.quietHoursEnd : null}::time,
+              ${preference.timezoneId},
+              ${updatedAt}
+            )
+            ON CONFLICT (
+              user_id,
+              scope_type,
+              COALESCE(device_id, ''),
+              COALESCE(group_key, ''),
+              event_type
+            )
+            DO UPDATE SET
+              enabled = EXCLUDED.enabled,
+              power_threshold_w = EXCLUDED.power_threshold_w,
+              offline_delay_seconds = EXCLUDED.offline_delay_seconds,
+              cooldown_seconds = EXCLUDED.cooldown_seconds,
+              quiet_hours_enabled = EXCLUDED.quiet_hours_enabled,
+              quiet_hours_start = EXCLUDED.quiet_hours_start,
+              quiet_hours_end = EXCLUDED.quiet_hours_end,
+              timezone_id = EXCLUDED.timezone_id,
+              updated_at = EXCLUDED.updated_at
+          `;
+        }),
+      );
+
+      return { success: true };
+    }),
+  upsertDeviceNotificationPreferences: protectedProcedure
+    .input(
+      z.object({
+        deviceId: z.string(),
+        preferences: z
+          .array(
+            z.object({
+              eventType: zodShellyNotificationEventType,
+              enabled: z.boolean(),
+              powerThresholdW: z.number().nullable(),
+              offlineDelaySeconds: z.number().int().nullable(),
+              cooldownSeconds: z.number().int().nullable(),
+              quietHoursEnabled: z.boolean(),
+              quietHoursStart: timeStringSchema.nullable(),
+              quietHoursEnd: timeStringSchema.nullable(),
+              timezoneId: z.string().nullable(),
+            }),
+          )
+          .min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await checkDeviceAccess(ctx, input.deviceId);
+
+      const userId = ctx.session?.user?.id ?? "";
+      const updatedAt = new Date();
+
+      await ctx.db.$transaction(
+        input.preferences.map((preference) => {
+          if (
+            !deviceNotificationEventTypes.some(
+              (eventType) => eventType === preference.eventType,
+            )
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Unsupported device notification event type",
+            });
+          }
+
+          return ctx.db.$executeRaw`
+            INSERT INTO user_shelly_notification_preference (
+              user_id,
+              scope_type,
+              device_id,
+              group_key,
+              event_type,
+              enabled,
+              power_threshold_w,
+              offline_delay_seconds,
+              cooldown_seconds,
+              quiet_hours_enabled,
+              quiet_hours_start,
+              quiet_hours_end,
+              timezone_id,
+              updated_at
+            )
+            VALUES (
+              ${userId},
+              'DEVICE'::shelly_notification_scope_type,
+              ${input.deviceId},
+              NULL,
+              ${preference.eventType}::shelly_notification_event_type,
+              ${preference.enabled},
+              ${preference.powerThresholdW},
+              ${preference.offlineDelaySeconds},
+              ${preference.cooldownSeconds},
+              ${preference.quietHoursEnabled},
+              ${preference.quietHoursEnabled ? preference.quietHoursStart : null}::time,
+              ${preference.quietHoursEnabled ? preference.quietHoursEnd : null}::time,
+              ${preference.timezoneId},
+              ${updatedAt}
+            )
+            ON CONFLICT (
+              user_id,
+              scope_type,
+              COALESCE(device_id, ''),
+              COALESCE(group_key, ''),
+              event_type
+            )
+            DO UPDATE SET
+              enabled = EXCLUDED.enabled,
+              power_threshold_w = EXCLUDED.power_threshold_w,
+              offline_delay_seconds = EXCLUDED.offline_delay_seconds,
+              cooldown_seconds = EXCLUDED.cooldown_seconds,
+              quiet_hours_enabled = EXCLUDED.quiet_hours_enabled,
+              quiet_hours_start = EXCLUDED.quiet_hours_start,
+              quiet_hours_end = EXCLUDED.quiet_hours_end,
+              timezone_id = EXCLUDED.timezone_id,
+              updated_at = EXCLUDED.updated_at
+          `;
+        }),
+      );
 
       return { success: true };
     }),
@@ -631,4 +974,3 @@ function generateGroupKey(): string {
   // Generate a unique group key, e.g., using a UUID or a similar approach
   return `group_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
-

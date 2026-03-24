@@ -68,7 +68,7 @@ export default function Shelly() {
             variant="outlined"
             color="primary"
             onClick={() => {
-              router.push(`/consumptions/shelly/group/edit`);
+              router.push(`/consumptions/shelly/group/create`);
             }}
             sx={{ whiteSpace: 'nowrap' }}
             startIcon={<AddIcon />}

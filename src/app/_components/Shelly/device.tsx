@@ -8,9 +8,13 @@ import {
     Typography,
     IconButton,
     Menu,
-    MenuItem
+    MenuItem,
+    ListItemIcon,
+    ListItemText
 } from "@mui/material";
+import UploadIcon from '@mui/icons-material/Upload';
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from "next/navigation";
 import { type api } from "@energyapp/trpc/server";
 import RelativeTime from "../Helpers/relative-time";
@@ -49,6 +53,11 @@ export default function ShellyDevice({ device }: { device: Device }) {
     const handleEditImage = () => {
         handleMenuClose();
         inputRef.current?.click();
+    };
+
+    const handleEditNotifications = () => {
+        handleMenuClose();
+        router.push(`/consumptions/shelly/device/notifications/${device.accessId}`);
     };
 
     const getConsumptionValue = () => {
@@ -91,7 +100,16 @@ export default function ShellyDevice({ device }: { device: Device }) {
                     >
                         <MenuItem
                             onClick={handleEditImage}
-                        >Vaihda kuva</MenuItem>
+                        >
+                            <ListItemIcon>
+                                <UploadIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Vaihda kuva</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={handleEditNotifications}>
+                            <NotificationsIcon fontSize="small" sx={{ mr: 1 }} />
+                            Muokkaa ilmoituksia
+                        </MenuItem>
                     </Menu>
                 </Box>
             )}

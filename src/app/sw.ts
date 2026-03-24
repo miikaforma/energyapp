@@ -4,7 +4,7 @@
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist } from "serwist";
-import { registerSpotPricePush } from "./sw/spot-price-push-sw";
+import { registerPushNotifications } from "./sw/push-notification-sw";
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -42,6 +42,6 @@ const serwist = new Serwist({
 });
 
 // register modular handlers
-registerSpotPricePush(self);
+registerPushNotifications(self);
 
 serwist.addEventListeners();

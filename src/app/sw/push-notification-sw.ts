@@ -1,4 +1,4 @@
-export function registerSpotPricePush(self: ServiceWorkerGlobalScope) {
+export function registerPushNotifications(self: ServiceWorkerGlobalScope) {
     self.addEventListener("push", (event) => {
         try {
             if (event.data) {
@@ -34,7 +34,7 @@ export function registerSpotPricePush(self: ServiceWorkerGlobalScope) {
 
     self.addEventListener("notificationclick", (event) => {
         event.notification.close();
-        const { type, date } = event.notification.data || {};
+        const { type, date, eventType, deviceId, groupKey } = event.notification.data || {};
 
         event.waitUntil(
             self.clients
@@ -47,16 +47,36 @@ export function registerSpotPricePush(self: ServiceWorkerGlobalScope) {
                                 client = clientItem;
                             }
                         }
+
                         if (client) {
                             if (type === "NewSpotPriceUpdate") {
                                 return client.focus().then(() => client.navigate(`/spotPrices/PT15M?date=${date}`));
                             }
+
+                            if (eventType && deviceId) {
+                                return client.focus().then(() => client.navigate(`/consumptions/shelly/${deviceId}`));
+                            }
+
+                            if (eventType && groupKey) {
+                                return client.focus().then(() => client.navigate(`/consumptions/shelly/group/${groupKey}`));
+                            }
+
                             return client.focus();
                         }
                     }
+
                     if (type === "NewSpotPriceUpdate") {
                         return self.clients.openWindow(`/spotPrices/PT15M?date=${date}`);
                     }
+
+                    if (eventType && deviceId) {
+                        return self.clients.openWindow(`/consumptions/shelly/${deviceId}`);
+                    }
+
+                    if (eventType && groupKey) {
+                        return self.clients.openWindow(`/consumptions/shelly/group/${groupKey}`);
+                    }
+
                     return self.clients.openWindow("/");
                 })
         );
@@ -75,6 +95,23 @@ export function registerSpotPricePush(self: ServiceWorkerGlobalScope) {
                 return `${new Date(data.date).toLocaleDateString('fi-FI')} - hinnat päivitetty`;
             }
         }
+
+        switch (data.eventType) {
+            case "DEVICE_OFFLINE":
+                return data.title ?? `${data.deviceName ?? "Laite"} offline`;
+            case "DEVICE_ONLINE":
+                return data.title ?? `${data.deviceName ?? "Laite"} online`;
+            case "DEVICE_POWER_STARTED":
+                return data.title ?? `${data.deviceName ?? "Laite"} kuluttaa`;
+            case "DEVICE_POWER_STOPPED":
+                return data.title ?? `${data.deviceName ?? "Laite"} kulutus loppui`;
+            case "GROUP_POWER_STARTED":
+                return data.title ?? `${data.deviceName ?? "Ryhmä"} kuluttaa`;
+            case "GROUP_POWER_STOPPED":
+                return data.title ?? `${data.deviceName ?? "Ryhmä"} kulutus loppui`;
+        }
+
+        return data.title;
     }
 
     function bodyBuilder(data) {
@@ -110,5 +147,17 @@ export function registerSpotPricePush(self: ServiceWorkerGlobalScope) {
                 return str;
             }
         }
+
+        switch (data.eventType) {
+            case "DEVICE_POWER_STARTED":
+            case "DEVICE_POWER_STOPPED":
+            case "DEVICE_OFFLINE":
+            case "DEVICE_ONLINE":
+            case "GROUP_POWER_STARTED":
+            case "GROUP_POWER_STOPPED":
+                return data.body;
+        }
+
+        return data.body ?? "";
     }
 }

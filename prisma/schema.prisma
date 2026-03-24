@@ -86,6 +86,7 @@ model user {
   accesses      userAccess[]
   subscriptions userPushSubscription[]
   shellyGroups  shellyGroup[]
+  shellyNotificationPreferences userShellyNotificationPreference[]
 }
 
 model verification_token {
@@ -1091,4 +1092,84 @@ enum accountingPointType {
 enum measurement_status {
   raw
   downsampled
+}
+
+enum shellyNotificationEventType {
+  DEVICE_OFFLINE
+  DEVICE_ONLINE
+  DEVICE_POWER_STARTED
+  DEVICE_POWER_STOPPED
+  GROUP_POWER_STARTED
+  GROUP_POWER_STOPPED
+}
+
+enum shellyNotificationScopeType {
+  DEVICE
+  GROUP
+}
+
+model shellyDeviceState {
+  deviceId           String   @id @map("device_id")
+  lastSeenAt         DateTime @db.Timestamptz(6) @map("last_seen_at")
+  isOnline           Boolean  @map("is_online")
+  onlineChangedAt    DateTime @db.Timestamptz(6) @map("online_changed_at")
+  lastPowerW         Float    @map("last_power_w")
+  isConsuming        Boolean  @map("is_consuming")
+  consumingChangedAt DateTime? @db.Timestamptz(6) @map("consuming_changed_at")
+  createdAt          DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt          DateTime @db.Timestamptz(6) @map("updated_at")
+
+  @@index([isOnline], map: "shelly_device_state_is_online_idx")
+  @@index([lastSeenAt], map: "shelly_device_state_last_seen_at_idx")
+  @@map("shelly_device_state")
+}
+
+model shellyGroupState {
+  groupKey           String    @id @map("group_key")
+  isConsuming        Boolean   @map("is_consuming")
+  consumingChangedAt DateTime? @db.Timestamptz(6) @map("consuming_changed_at")
+  createdAt          DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt          DateTime  @db.Timestamptz(6) @map("updated_at")
+
+  @@map("shelly_group_state")
+}
+
+model shellyNotificationEvent {
+  id          BigInt                      @id @default(autoincrement())
+  deviceId    String?                     @map("device_id")
+  groupKey    String?                     @map("group_key")
+  eventType   shellyNotificationEventType @map("event_type")
+  eventKey    String                      @unique @map("event_key")
+  triggeredAt DateTime                    @db.Timestamptz(6) @map("triggered_at")
+  payload     Json                        @default("{}")
+  processedAt DateTime?                   @db.Timestamptz(6) @map("processed_at")
+  createdAt   DateTime                    @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  @@index([deviceId], map: "shelly_notification_event_device_id_idx")
+  @@index([groupKey], map: "shelly_notification_event_group_key_idx")
+  @@index([processedAt], map: "shelly_notification_event_processed_at_idx")
+  @@map("shelly_notification_event")
+}
+
+model userShellyNotificationPreference {
+  id                BigInt                       @id @default(autoincrement())
+  userId            String                       @map("user_id")
+  scopeType         shellyNotificationScopeType  @map("scope_type")
+  deviceId          String?                      @map("device_id")
+  groupKey          String?                      @map("group_key")
+  eventType         shellyNotificationEventType  @map("event_type")
+  enabled           Boolean                      @default(true)
+  powerThresholdW   Float?                       @map("power_threshold_w")
+  offlineDelaySeconds Int?                      @map("offline_delay_seconds")
+  cooldownSeconds   Int?                         @map("cooldown_seconds")
+  quietHoursEnabled Boolean                      @default(false) @map("quiet_hours_enabled")
+  quietHoursStart   DateTime?                    @db.Time(6) @map("quiet_hours_start")
+  quietHoursEnd     DateTime?                    @db.Time(6) @map("quiet_hours_end")
+  timezoneId        String?                      @map("timezone_id")
+  createdAt         DateTime                     @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt         DateTime                     @db.Timestamptz(6) @map("updated_at")
+  user              user                         @relation(fields: [userId], references: [id])
+
+  @@unique([userId, scopeType, deviceId, groupKey, eventType], map: "user_shelly_notification_preference_unique_idx")
+  @@map("user_shelly_notification_preference")
 }

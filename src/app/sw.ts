@@ -28,7 +28,17 @@ const serwist = new Serwist({
         // If you are using Next.js versions older than 15.0.0, add the
         // `nextConfig` option to the `createSerwistRoute` call in `src/app/serwist/[path]/route.ts` so that Serwist can configure the service worker according to your options. Serwist 10 and newer will only support Next.js 15.0.0 and above.
         // "next.config.mjs",
-    ]
+    ],
+    // fallbacks: {
+    //     entries: [
+    //         {
+    //             url: "/~offline",
+    //             matcher({ request }) {
+    //                 return request.destination === "document";
+    //             },
+    //         },
+    //     ],
+    // },
 });
 
 // register modular handlers

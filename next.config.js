@@ -16,6 +16,14 @@ const config = {
     output: "standalone", // Output PWA as a standalone app (no browser chrome)
     turbopack: {}, // Added for Next.js 16 to silence Turbopack/webpack warning
     allowedDevOrigins: ["localhost", "10.0.5.97"], // Allow localhost for development
+    async rewrites() {
+        return [
+            {
+                source: "/sw.js",
+                destination: "/serwist/sw.js",
+            },
+        ];
+    },
 };
 
 

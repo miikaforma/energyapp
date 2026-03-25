@@ -96,7 +96,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} dark`}>
-        <SerwistProvider swUrl="/serwist/sw.js">
+        <SerwistProvider swUrl="/sw.js">
           <TRPCReactProvider cookies={(await cookies()).toString()}>
             <AppRouterCacheProvider>
               <AntdRegistry>

@@ -3,7 +3,7 @@
  * for Docker builds.
  */
 await import("./src/env.js");
-import withPWAInit from "@ducanh2912/next-pwa";
+import { withSerwist } from "@serwist/turbopack";
 
 /** @type {import("next").NextConfig} */
 
@@ -16,13 +16,15 @@ const config = {
     output: "standalone", // Output PWA as a standalone app (no browser chrome)
     turbopack: {}, // Added for Next.js 16 to silence Turbopack/webpack warning
     allowedDevOrigins: ["localhost", "10.0.5.97"], // Allow localhost for development
+    async rewrites() {
+        return [
+            {
+                source: "/sw.js",
+                destination: "/serwist/sw.js",
+            },
+        ];
+    },
 };
 
-// Configuration object tells the next-pwa plugin 
-const withPWA = withPWAInit({
-    dest: "public", // Destination directory for the PWA files
-    // disable: process.env.NODE_ENV === "development", // Disable PWA in development mode
-    register: true, // Register the PWA service worker
-});
 
-export default withPWA(config);
+export default withSerwist(config);

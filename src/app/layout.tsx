@@ -1,5 +1,6 @@
 import "@energyapp/styles/globals.css";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
+import { SerwistProvider } from "./serwist";
 
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
@@ -29,12 +30,46 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+const APP_NAME = "EnergyApp";
+const APP_DEFAULT_TITLE = "EnergyApp";
+const APP_TITLE_TEMPLATE = "%s - EnergyApp";
+const APP_DESCRIPTION = "Sovellus spottihintojen, RuuviTagien, sähkönkulutuksen ja sähköntuotannon seurantaan.";
+
 export const metadata: Metadata = {
-  title: "EnergyApp",
-  description: "Sovellus spottihintojen, sähkönkulutuksen ja sähköntuotannon seurantaan.",
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
   icons: [{ rel: "icon", type: "image/svg+xml", url: "/electricity-icon.svg" }],
-  generator: "Next.js",
-  manifest: "/manifest.json",
   keywords: ["energyapp", "spottihinnat", "tuntihinnat", "sähkönkulutus", "sähköntuotanto", "seuranta"],
   authors: [
     { name: "Miika" },
@@ -61,31 +96,33 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} dark`}>
-        <TRPCReactProvider cookies={(await cookies()).toString()}>
-          <AppRouterCacheProvider>
-            <AntdRegistry>
-              <AntdTheme>
-                <ThemeRegistry>
-                  <SessionProvider>
-                    <CssBaseline />
-                    <Toaster position="bottom-left" toastOptions={{
-                      style: {
-                        background: '#333',
-                        color: '#fff',
-                      },
-                    }} />
-                    <AuthUpdater />
-                    <PushSubscriber applicationServerKey={env.VAPID_PUBLIC_KEY} />
-                    <MenuAppBar session={session} userAccesses={userAccesses} />
-                    <BottomNav session={session} userAccesses={userAccesses}>
-                      {children}
-                    </BottomNav>
-                  </SessionProvider>
-                </ThemeRegistry>
-              </AntdTheme>
-            </AntdRegistry>
-          </AppRouterCacheProvider>
-        </TRPCReactProvider>
+        <SerwistProvider swUrl="/sw.js">
+          <TRPCReactProvider cookies={(await cookies()).toString()}>
+            <AppRouterCacheProvider>
+              <AntdRegistry>
+                <AntdTheme>
+                  <ThemeRegistry>
+                    <SessionProvider>
+                      <CssBaseline />
+                      <Toaster position="bottom-left" toastOptions={{
+                        style: {
+                          background: '#333',
+                          color: '#fff',
+                        },
+                      }} />
+                      <AuthUpdater />
+                      <PushSubscriber applicationServerKey={env.VAPID_PUBLIC_KEY} />
+                      <MenuAppBar session={session} userAccesses={userAccesses} />
+                      <BottomNav session={session} userAccesses={userAccesses}>
+                        {children}
+                      </BottomNav>
+                    </SessionProvider>
+                  </ThemeRegistry>
+                </AntdTheme>
+              </AntdRegistry>
+            </AppRouterCacheProvider>
+          </TRPCReactProvider>
+        </SerwistProvider>
       </body>
     </html >
   );

@@ -1075,6 +1075,7 @@ enum accessType {
   MELCLOUD
   SHELLY
   RUUVI
+  HOMEWIZARD
 }
 
 enum dayAheadState {
@@ -1172,4 +1173,49 @@ model userShellyNotificationPreference {
 
   @@unique([userId, scopeType, deviceId, groupKey, eventType], map: "user_shelly_notification_preference_unique_idx")
   @@map("user_shelly_notification_preference")
+}
+
+model homewizard_measurements {
+  id                        String   @id @default(cuid())
+  unique_id                 String?
+  protocol_version          Float?
+  meter_model               String?
+  timestamp                 DateTime @db.Timestamptz(6)
+  tariff                    Float?
+  energy_import_kwh         Float?
+  energy_import_t1_kwh      Float?
+  energy_import_t2_kwh      Float?
+  energy_import_t3_kwh      Float?
+  energy_import_t4_kwh      Float?
+  energy_export_kwh         Float?
+  energy_export_t1_kwh      Float?
+  energy_export_t2_kwh      Float?
+  energy_export_t3_kwh      Float?
+  energy_export_t4_kwh      Float?
+  power_w                   Float?
+  power_l1_w                Float?
+  power_l2_w                Float?
+  power_l3_w                Float?
+  voltage_v                 Float?
+  voltage_l1_v              Float?
+  voltage_l2_v              Float?
+  voltage_l3_v              Float?
+  current_a                 Float?
+  current_l1_a              Float?
+  current_l2_a              Float?
+  current_l3_a              Float?
+  frequency_hz              Float?
+  voltage_sag_l1_count      Float?
+  voltage_sag_l2_count      Float?
+  voltage_sag_l3_count      Float?
+  voltage_swell_l1_count    Float?
+  voltage_swell_l2_count    Float?
+  voltage_swell_l3_count    Float?
+  any_power_fail_count      Float?
+  long_power_fail_count     Float?
+  average_power_15m_w       Float?
+  monthly_power_peak_w      Float?
+  monthly_power_peak_timestamp DateTime? @db.Timestamptz(6)
+
+  @@unique([timestamp, unique_id])
 }

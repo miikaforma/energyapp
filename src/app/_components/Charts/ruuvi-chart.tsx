@@ -543,17 +543,17 @@ const mapper = ({ data, timePeriod, metricType }: { data: IRuuviMeasurement[], t
     let stepSize;
     
     if (range > 100) {
-        stepSize = 20;
-    } else if (range > 50) {
         stepSize = 10;
-    } else if (range > 20) {
+    } else if (range > 50) {
         stepSize = 5;
-    } else if (range > 10) {
+    } else if (range > 20) {
         stepSize = 2;
+    } else if (range > 10) {
+        stepSize = 1;
     } else if (range > 5) {
         stepSize = 1;
     } else {
-        stepSize = 0.5;
+        stepSize = 1;
     }
     
     // Round min DOWN to nearest multiple of stepSize, max UP to nearest multiple

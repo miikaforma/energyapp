@@ -5,6 +5,7 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import KeycloakProvider from 'next-auth/providers/keycloak';
+import { type Session } from "next-auth";
 
 import { env } from "@energyapp/env";
 import { db } from "@energyapp/server/db";
@@ -32,6 +33,9 @@ declare module "next-auth" {
 }
 
 const prismaAdapter = PrismaAdapter(db);
+const keycloakProviderFactory =
+  (KeycloakProvider as unknown as { default?: typeof KeycloakProvider }).default ??
+  KeycloakProvider;
 
 const CustomPrismaAdapter: Adapter = {
   ...prismaAdapter,
@@ -104,7 +108,7 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: CustomPrismaAdapter,
   providers: [
-    KeycloakProvider({
+    keycloakProviderFactory({
       clientId: env.KEYCLOAK_CLIENT_ID,
       clientSecret: env.KEYCLOAK_CLIENT_SECRET,
       issuer: env.KEYCLOAK_ISSUER,
@@ -128,6 +132,66 @@ export const authOptions: NextAuthOptions = {
  * @see https://next-auth.js.org/configuration/nextjs
  */
 export const getServerAuthSession = () => getServerSession(authOptions);
+
+const getSessionTokenFromCookieHeader = (cookieHeader: string | null) => {
+  if (!cookieHeader) {
+    return null;
+  }
+
+  for (const cookie of cookieHeader.split(";")) {
+    const trimmedCookie = cookie.trim();
+
+    if (trimmedCookie.startsWith("__Secure-next-auth.session-token=")) {
+      return decodeURIComponent(trimmedCookie.slice("__Secure-next-auth.session-token=".length));
+    }
+
+    if (trimmedCookie.startsWith("next-auth.session-token=")) {
+      return decodeURIComponent(trimmedCookie.slice("next-auth.session-token=".length));
+    }
+  }
+
+  return null;
+};
+
+export const getSessionFromHeaders = async (
+  headers: Headers,
+): Promise<Session | null> => {
+  const sessionToken = getSessionTokenFromCookieHeader(headers.get("cookie"));
+
+  if (!sessionToken) {
+    return null;
+  }
+
+  const dbSession = await db.session.findUnique({
+    where: {
+      sessionToken,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  if (!dbSession || dbSession.expires <= new Date()) {
+    return null;
+  }
+
+  return {
+    user: {
+      id: dbSession.user.id,
+      name: dbSession.user.name,
+      email: dbSession.user.email,
+      image: dbSession.user.image,
+    },
+    expires: dbSession.expires.toISOString(),
+  };
+};
 
 const updateUserAccesses = async (userId: string, token?: string) => {
   if (!token) { return; }

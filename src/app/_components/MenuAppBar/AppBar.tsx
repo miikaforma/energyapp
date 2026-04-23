@@ -13,13 +13,13 @@ import { type Session } from "next-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useGetLatestSolarmanProduction from "@energyapp/app/_hooks/queries/useGetLatestSolarmanProduction";
-import { Flex, Tag, Tooltip } from "antd";
+import { Tag, Tooltip } from "antd";
 import EuroIcon from "@mui/icons-material/Euro";
 import SolarPowerIcon from "@mui/icons-material/SolarPower";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
 import useGetCurrentSpotPrice from "@energyapp/app/_hooks/queries/useGetCurrentSpotPrice";
 import useHomewizardSubscription from "@energyapp/app/_hooks/subscriptions/useHomewizardSubscription";
-import { Grid, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import { getColorForTotalPower, getTagColorForWatts, getTemperatureC, kwhOrWattsShortString, kwhOrWattsString } from "@energyapp/utils/powerHelpers";
 import RelativeTime from "@energyapp/app/_components/Helpers/relative-time";
 import { type Dayjs } from "dayjs";
@@ -29,6 +29,8 @@ import { formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { type IUserAccessResponse } from "@energyapp/shared/interfaces";
 import useGetRuuviDevicesWithInfo from "@energyapp/app/_hooks/queries/ruuvi/useGetRuuviDevicesWithInfo";
 import { type homewizard_measurements } from "@energyapp/generated/client";
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const getRelativeTimeStamp = (time: string | number | Date | Dayjs) => {
   if (!time) {
@@ -115,223 +117,145 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
           : "red"
     : "default";
 
+  const getPowerDirectionIcon = (power: number | null | undefined, isMobile: boolean) => {
+    if (power === null || power === undefined) {
+      return null;
+    }
+
+    if (isMobile) {
+      return power < 0 ? <ArrowUpwardIcon sx={{ fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ fontSize: 16 }} />;
+    }
+
+    return power < 0 ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />;
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
-        <Toolbar>
-          {/* <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
+        <Toolbar
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: 1,
+            py: 1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: "1 1 0",
+              minWidth: 0,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              justifyContent: {
+                xs: "center",
+                md: "flex-start",
+              },
+              alignItems: "flex-start",
+            }}
           >
-            <MenuIcon />
-          </IconButton> */}
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1 }}
-          ></Typography>
-          <Flex gap="4px 0" style={{ flexGrow: 1 }}>
-            <Grid container rowSpacing={1} columnSpacing={{ xs: 0 }}>
-              <Grid size="auto">
-                {currentSpotPrice && (
-                  <Box sx={{ userSelect: "none" }}>
-                    <Tag color={spotPriceColor}>
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <EuroIcon fontSize="small" />
-                        <Tooltip
-                          placement={"left"}
-                          title={`${formatNumberToFI(currentSpotPrice.price) ?? "0"
-                            } c/kWh`}
-                          trigger={"click"}
-                        // style={tooltipStyles}
-                        >
-                          <Typography variant="body1">
-                            {formatNumberToFI(currentSpotPrice.price_with_tax)}{" "}
-                            c/kWh
-                          </Typography>
-                        </Tooltip>
-                      </Stack>
-                    </Tag>
-                    <Box
-                      sx={{
-                        fontStyle: "italic",
-                        color: "gray",
-                        whiteSpace: "nowrap",
-                        fontSize: 12,
-                        textAlign: "center",
-                      }}
-                    >
-                      {dateToShortSpotTimeString(
-                        currentSpotPrice.time,
-                        TimePeriod.PT15M,
-                      )}
-                    </Box>
-                  </Box>
-                )}
-              </Grid>
-              <Grid size="grow" textAlign="center">
-                {hasSolarman && latestProduction && (
-                  <Box onClick={() => router.push(`/productions/solarman/${TimePeriod.PT15M}`)} sx={{ cursor: "pointer", userSelect: "none" }}>
-                    <Tag color={latestProductionColor}>
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <SolarPowerIcon fontSize="small" />
-                        <Typography variant="body1">
-                          {kwhOrWattsString(latestProduction.output_power_active)}
-                        </Typography>
-                      </Stack>
-                    </Tag>
-                    <Box
-                      sx={{
-                        fontStyle: "italic",
-                        color: "gray",
-                        whiteSpace: "nowrap",
-                        fontSize: 12,
-                        textAlign: "center",
-                      }}
-                    >
-                      {getRelativeTimeStamp(latestProduction.time)}
-                    </Box>
-                  </Box>
-                )}
-              </Grid>
-              <Grid size="grow" textAlign="center">
-                {
-                  hasRuuvi && ruuviAir && ruuviAir.latestData && (
-                    <Box onClick={() => router.push("/statistics/ruuvi")} sx={{ cursor: "pointer", userSelect: "none" }}>
-                      <Tag color={latestTemperatureColor}>
-                        <Stack direction="row" alignItems="center" gap={1}>
-                          <ThermostatIcon fontSize="small" />
-                          <Typography variant="body1">
-                            {getTemperatureC(ruuviAir.latestData.temperature ?? undefined)}
-                          </Typography>
-                        </Stack>
-                      </Tag>
-                      <Box
-                        sx={{
-                          fontStyle: "italic",
-                          color: "gray",
-                          whiteSpace: "nowrap",
-                          fontSize: 12,
-                          textAlign: "center",
-                        }}
+            {currentSpotPrice && (
+              <Box
+                sx={{
+                  flex: { xs: "1 1 calc(33.333% - 8px)", sm: "0 0 auto" },
+                  minWidth: { xs: 92, sm: "auto" },
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <Box sx={{ userSelect: "none" }}>
+                  <Tag color={spotPriceColor}>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <EuroIcon fontSize="small" />
+                      <Tooltip
+                        placement={"left"}
+                        title={`${formatNumberToFI(currentSpotPrice.price) ?? "0"
+                          } c/kWh`}
+                        trigger={"click"}
                       >
-                        {getRelativeTimeStamp(ruuviAir.latestData.time)}
-                      </Box>
-                    </Box>
-                  )
-                }
-              </Grid>
-              {hasHomewizard && homewizardData && (
-                <Grid size="auto">
-                  <Box>
-                    <Tag color={getTagColorForWatts(homewizardData.power_l1_w)} variant="outlined">
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <Typography variant="body2">
-                          L1: {kwhOrWattsShortString(homewizardData.power_l1_w)}
+                        <Typography variant="body1">
+                          {formatNumberToFI(currentSpotPrice.price_with_tax)} c/kWh
                         </Typography>
-                      </Stack>
-                    </Tag>
-                    <Tag color={getTagColorForWatts(homewizardData.power_l2_w)} variant="outlined">
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <Typography variant="body2">
-                          L2: {kwhOrWattsShortString(homewizardData.power_l2_w)}
-                        </Typography>
-                      </Stack>
-                    </Tag>
-                    <Tag color={getTagColorForWatts(homewizardData.power_l3_w)} variant="outlined">
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <Typography variant="body2">
-                          L3: {kwhOrWattsShortString(homewizardData.power_l3_w)}
-                        </Typography>
-                      </Stack>
-                    </Tag>
+                      </Tooltip>
+                    </Stack>
+                  </Tag>
+                  <Box
+                    sx={{
+                      fontStyle: "italic",
+                      color: "gray",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    {dateToShortSpotTimeString(
+                      currentSpotPrice.time,
+                      TimePeriod.PT15M
+                    )}
                   </Box>
-                </Grid>
-              )}
-              {hasHomewizard && homewizardData && (
-                <Grid size="grow" textAlign="end">
-                  <Box>
-                    <Tag color={getColorForTotalPower(homewizardData.power_w)} variant="outlined">
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        {/* <BoltIcon fontSize="small" /> */}
-                        <Typography variant="body2">
-                          {(homewizardData?.power_w ?? 0) < 0 ? "↓" : "↑"} {kwhOrWattsString(homewizardData.power_w)}
-                        </Typography>
-                      </Stack>
-                    </Tag>
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
-            {/* {currentSpotPrice && (
-              <Box sx={{ userSelect: "none" }}>
-                <Tag color={spotPriceColor}>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <EuroIcon fontSize="small" />
-                    <Tooltip
-                      placement={"left"}
-                      title={`${formatNumberToFI(currentSpotPrice.price) ?? "0"
-                        } c/kWh`}
-                      trigger={"click"}
-                    // style={tooltipStyles}
-                    >
-                      <Typography variant="body1">
-                        {formatNumberToFI(currentSpotPrice.price_with_tax)}{" "}
-                        c/kWh
-                      </Typography>
-                    </Tooltip>
-                  </Stack>
-                </Tag>
-                <Box
-                  sx={{
-                    fontStyle: "italic",
-                    color: "gray",
-                    whiteSpace: "nowrap",
-                    fontSize: 12,
-                    textAlign: "center",
-                  }}
-                >
-                  {dateToShortSpotTimeString(
-                    currentSpotPrice.time,
-                    TimePeriod.PT15M,
-                  )}
                 </Box>
               </Box>
             )}
+
             {hasSolarman && latestProduction && (
-              <Box onClick={() => router.push(`/productions/solarman/${TimePeriod.PT15M}`)} sx={{ cursor: "pointer", userSelect: "none" }}>
-                <Tag color={latestProductionColor}>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <SolarPowerIcon fontSize="small" />
-                    <Typography variant="body1">
-                      {kwhOrWattsString(latestProduction.output_power_active)}
-                    </Typography>
-                  </Stack>
-                </Tag>
+              <Box
+                sx={{
+                  flex: { xs: "1 1 calc(33.333% - 8px)", sm: "0 0 auto" },
+                  minWidth: { xs: 92, sm: "auto" },
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
                 <Box
-                  sx={{
-                    fontStyle: "italic",
-                    color: "gray",
-                    whiteSpace: "nowrap",
-                    fontSize: 12,
-                    textAlign: "center",
-                  }}
+                  onClick={() =>
+                    router.push(`/productions/solarman/${TimePeriod.PT15M}`)
+                  }
+                  sx={{ cursor: "pointer", userSelect: "none" }}
                 >
-                  {getRelativeTimeStamp(latestProduction.time)}
+                  <Tag color={latestProductionColor}>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <SolarPowerIcon fontSize="small" />
+                      <Typography variant="body1">
+                        {kwhOrWattsString(latestProduction.output_power_active)}
+                      </Typography>
+                    </Stack>
+                  </Tag>
+                  <Box
+                    sx={{
+                      fontStyle: "italic",
+                      color: "gray",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    {getRelativeTimeStamp(latestProduction.time)}
+                  </Box>
                 </Box>
               </Box>
             )}
-            {
-              hasRuuvi && ruuviAir && ruuviAir.latestData && (
-                <Box onClick={() => router.push("/statistics/ruuvi")} sx={{ cursor: "pointer", userSelect: "none" }}>
+
+            {hasRuuvi && ruuviAir && ruuviAir.latestData && (
+              <Box
+                sx={{
+                  flex: { xs: "1 1 calc(33.333% - 8px)", sm: "0 0 auto" },
+                  minWidth: { xs: 92, sm: "auto" },
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <Box
+                  onClick={() => router.push("/statistics/ruuvi")}
+                  sx={{ cursor: "pointer", userSelect: "none" }}
+                >
                   <Tag color={latestTemperatureColor}>
                     <Stack direction="row" alignItems="center" gap={1}>
                       <ThermostatIcon fontSize="small" />
                       <Typography variant="body1">
-                        {getTemperatureC(ruuviAir.latestData.temperature ?? undefined)}
+                        {getTemperatureC(
+                          ruuviAir.latestData.temperature ?? undefined
+                        )}
                       </Typography>
                     </Stack>
                   </Tag>
@@ -347,65 +271,313 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                     {getRelativeTimeStamp(ruuviAir.latestData.time)}
                   </Box>
                 </Box>
-              )
-            } */}
-
-            {/* {hasHomewizard && homewizardData && (
-              <Box sx={{ userSelect: "none", display: "flex", flexDirection: "row", gap: 1 }}>
-                {[1, 2, 3].map((vaihe) => {
-                  const value = homewizardData[`power_l${vaihe}_w`];
-                  if (typeof value !== "number") return null;
-                  return (
-                    <Tag key={vaihe} color={value >= 0 ? "green" : "red"}>
-                      <Typography variant="body2">
-                        Vaihe {vaihe}: {value} W
-                      </Typography>
-                    </Tag>
-                  );
-                })}
               </Box>
-            )} */}
-          </Flex>
-          {!session && (
-            <Link
-              href={session ? "/api/auth/signout" : "/api/auth/signin"}
-              className="rounded-md bg-white/10 px-5 py-1 font-semibold no-underline transition hover:bg-white/20"
-            >
-              {session ? "Kirjaudu ulos" : "Kirjaudu sisään"}
-            </Link>
-          )}
-          {session && (
-            <div>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
+            )}
+
+            {hasHomewizard && homewizardData && (
+              <>
+                {/* Mobile: compact 4-item row */}
+                <Box
+                  sx={{
+                    display: { xs: "flex", sm: "none" },
+                    width: "100%",
+                    gap: 0.5,
+                    justifyContent: "center",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                      <Tag color={getTagColorForWatts(homewizardData.power_l1_w)}>
+                        <Stack direction="row" alignItems="center" gap={0.5}>
+                          {getPowerDirectionIcon(homewizardData.power_l1_w, true)}
+                          <Typography variant="body2">
+                            {kwhOrWattsShortString(homewizardData.power_l1_w)}
+                          </Typography>
+                        </Stack>
+                      </Tag>
+                      <Box
+                        sx={{
+                          fontStyle: "italic",
+                          color: "gray",
+                          whiteSpace: "nowrap",
+                          fontSize: 11,
+                          textAlign: "center",
+                        }}
+                      >
+                        L1
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                      <Tag color={getTagColorForWatts(homewizardData.power_l2_w)}>
+                        <Stack direction="row" alignItems="center" gap={0.5}>
+                          {getPowerDirectionIcon(homewizardData.power_l2_w, true)}
+                          <Typography variant="body2">
+                            {kwhOrWattsShortString(homewizardData.power_l2_w)}
+                          </Typography>
+                        </Stack>
+                      </Tag>
+                      <Box
+                        sx={{
+                          fontStyle: "italic",
+                          color: "gray",
+                          whiteSpace: "nowrap",
+                          fontSize: 11,
+                          textAlign: "center",
+                        }}
+                      >
+                        L2
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                      <Tag color={getTagColorForWatts(homewizardData.power_l3_w)}>
+                        <Stack direction="row" alignItems="center" gap={0.5}>
+                          {getPowerDirectionIcon(homewizardData.power_l3_w, true)}
+                          <Typography variant="body2">
+                            {kwhOrWattsShortString(homewizardData.power_l3_w)}
+                          </Typography>
+                        </Stack>
+                      </Tag>
+                      <Box
+                        sx={{
+                          fontStyle: "italic",
+                          color: "gray",
+                          whiteSpace: "nowrap",
+                          fontSize: 11,
+                          textAlign: "center",
+                        }}
+                      >
+                        L3
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                      <Tag color={getColorForTotalPower(homewizardData.power_w)}>
+                        <Stack direction="row" alignItems="center" gap={0.5}>
+                          {getPowerDirectionIcon(homewizardData.power_w, true)}
+                          <Typography variant="body2">
+                            {kwhOrWattsShortString(homewizardData.power_w)}
+                          </Typography>
+                        </Stack>
+                      </Tag>
+                      <Box
+                        sx={{
+                          fontStyle: "italic",
+                          color: "gray",
+                          whiteSpace: "nowrap",
+                          fontSize: 11,
+                          textAlign: "center",
+                        }}
+                      >
+                        {getRelativeTimeStamp(homewizardData.timestamp)}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Desktop/tablet: separate items */}
+                <Box
+                  sx={{
+                    display: { xs: "none", sm: "flex" },
+                    flex: "0 0 auto",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                    <Tag color={getTagColorForWatts(homewizardData.power_l1_w)}>
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        {getPowerDirectionIcon(homewizardData.power_l1_w, false)}
+                        <Typography variant="body1">
+                          {kwhOrWattsShortString(homewizardData.power_l1_w)}
+                        </Typography>
+                      </Stack>
+                    </Tag>
+                    <Box
+                      sx={{
+                        fontStyle: "italic",
+                        color: "gray",
+                        whiteSpace: "nowrap",
+                        fontSize: 12,
+                        textAlign: "center",
+                      }}
+                    >
+                      L1
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: { xs: "none", sm: "flex" },
+                    flex: "0 0 auto",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                    <Tag color={getTagColorForWatts(homewizardData.power_l2_w)}>
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        {getPowerDirectionIcon(homewizardData.power_l2_w, false)}
+                        <Typography variant="body1">
+                          {kwhOrWattsShortString(homewizardData.power_l2_w)}
+                        </Typography>
+                      </Stack>
+                    </Tag>
+                    <Box
+                      sx={{
+                        fontStyle: "italic",
+                        color: "gray",
+                        whiteSpace: "nowrap",
+                        fontSize: 12,
+                        textAlign: "center",
+                      }}
+                    >
+                      L2
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: { xs: "none", sm: "flex" },
+                    flex: "0 0 auto",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box sx={{ cursor: "pointer", userSelect: "none" }}>
+                    <Tag color={getTagColorForWatts(homewizardData.power_l3_w)}>
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        {getPowerDirectionIcon(homewizardData.power_l3_w, false)}
+                        <Typography variant="body1">
+                          {kwhOrWattsShortString(homewizardData.power_l3_w)}
+                        </Typography>
+                      </Stack>
+                    </Tag>
+                    <Box
+                      sx={{
+                        fontStyle: "italic",
+                        color: "gray",
+                        whiteSpace: "nowrap",
+                        fontSize: 12,
+                        textAlign: "center",
+                      }}
+                    >
+                      L3
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: { xs: "none", sm: "flex" },
+                    flex: "0 0 auto",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box sx={{ userSelect: "none" }}>
+                    <Tag
+                      color={getColorForTotalPower(homewizardData.power_w)}
+                      variant="outlined"
+                    >
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        <Typography variant="body1">
+                          {getPowerDirectionIcon(homewizardData.power_w, false)}{" "}
+                          {kwhOrWattsString(homewizardData.power_w)}
+                        </Typography>
+                      </Stack>
+                    </Tag>
+                  </Box>
+                </Box>
+              </>
+            )}
+          </Box>
+
+          <Box
+            sx={{
+              flex: "0 0 auto",
+              ml: "auto",
+              display: "flex",
+              alignItems: "center",
+              alignSelf: "flex-start",
+            }}
+          >
+            {!session && (
+              <Link
+                href={session ? "/api/auth/signout" : "/api/auth/signin"}
+                className="rounded-md bg-white/10 px-5 py-1 font-semibold no-underline transition hover:bg-white/20"
               >
-                <AccountCircle />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleLogout}>Kirjaudu ulos</MenuItem>
-                {/* <MenuItem onClick={handleClose}>My account</MenuItem> */}
-              </Menu>
-            </div>
-          )}
+                {session ? "Kirjaudu ulos" : "Kirjaudu sisään"}
+              </Link>
+            )}
+
+            {session && (
+              <div>
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleMenu}
+                  color="inherit"
+                >
+                  <AccountCircle />
+                </IconButton>
+
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorEl}
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  <MenuItem onClick={handleLogout}>Kirjaudu ulos</MenuItem>
+                </Menu>
+              </div>
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
     </Box>

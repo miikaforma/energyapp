@@ -17,8 +17,8 @@ export const kwhOrWattsShortString = (value?: number | null) => {
   }
 
   return Math.abs(value) > 1000
-    ? formatNumberToFI(value / 1000, 0, 0) + " kWh"
-    : formatNumberToFI(value, 0, 0) + " W";
+    ? formatNumberToFI(Math.abs(value) / 1000, 2, 2) + " kWh"
+    : formatNumberToFI(Math.abs(value), 0, 0) + " W";
 };
 
 // Convert watts to kilowatts

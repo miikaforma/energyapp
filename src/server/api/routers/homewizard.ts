@@ -89,4 +89,32 @@ export const homewizardRouter = createTRPCRouter({
         return () => notificationEmitter.off('homewizard_measurements_insert', handler);
       });
     }),
+  getLatest: protectedProcedure
+    .input(z.object({ deviceId: z.string().optional() }).optional())
+    .query(async ({ input, ctx }) => {
+      let deviceId = input?.deviceId;
+      if (!deviceId) {
+        const firstDevice = await getFirstDevice(ctx);
+        if (!firstDevice) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No devices found for this user",
+          });
+        }
+        deviceId = firstDevice.accessId;
+      } else {
+        await checkDeviceAccess(ctx, deviceId);
+      }
+      const latestMeasurement = await ctx.db.homewizard_measurements.findFirst({
+        where: { unique_id: deviceId },
+        orderBy: { timestamp: "desc" },
+      });
+      if (!latestMeasurement) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No measurements found for this device",
+        });
+      }
+      return latestMeasurement;
+    }),
 });

@@ -20,7 +20,7 @@ import ThermostatIcon from "@mui/icons-material/Thermostat";
 import useGetCurrentSpotPrice from "@energyapp/app/_hooks/queries/useGetCurrentSpotPrice";
 import useHomewizardSubscription from "@energyapp/app/_hooks/subscriptions/useHomewizardSubscription";
 import { Stack } from "@mui/material";
-import { getColorForTotalPower, getTagColorForWatts, getTemperatureC, kwhOrWattsShortString, kwhOrWattsString } from "@energyapp/utils/powerHelpers";
+import { getColorForTotalPower, getTagColorForWatts, getTemperatureC, kwhOrWattsShortString, kwhOrWattsString, wattsString } from "@energyapp/utils/powerHelpers";
 import RelativeTime from "@energyapp/app/_components/Helpers/relative-time";
 import { type Dayjs } from "dayjs";
 import { TimePeriod } from "@energyapp/shared/enums";
@@ -50,7 +50,7 @@ const getRelativeTimeStamp = (time: string | number | Date | Dayjs) => {
   );
 };
 
-export default function MenuAppBar({ session, userAccesses }: { session: Session | null, userAccesses: IUserAccessResponse[]; }) {
+export default function MenuAppBar({ session, userAccesses, homeWizardData }: { session: Session | null, userAccesses: IUserAccessResponse[]; homeWizardData: homewizard_measurements | null; }) {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -69,7 +69,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
   const ruuviAir = devices?.find(device => device.latestData?.mac?.includes("C6D1A71DE3F8"));
 
   // Homewizard subscription for latest measurement
-  const [homewizardData, setHomewizardData] = React.useState<homewizard_measurements | null>(null);
+  const [homewizardData, setHomewizardData] = React.useState<homewizard_measurements | null>(homeWizardData);
   useHomewizardSubscription((data) => setHomewizardData(data));
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -299,7 +299,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                         <Stack direction="row" alignItems="center" gap={0.5}>
                           {getPowerDirectionIcon(homewizardData.power_l1_w, true)}
                           <Typography variant="body2">
-                            {kwhOrWattsShortString(homewizardData.power_l1_w)}
+                            {wattsString(homewizardData.power_l1_w)}
                           </Typography>
                         </Stack>
                       </Tag>
@@ -330,7 +330,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                         <Stack direction="row" alignItems="center" gap={0.5}>
                           {getPowerDirectionIcon(homewizardData.power_l2_w, true)}
                           <Typography variant="body2">
-                            {kwhOrWattsShortString(homewizardData.power_l2_w)}
+                            {wattsString(homewizardData.power_l2_w)}
                           </Typography>
                         </Stack>
                       </Tag>
@@ -361,7 +361,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                         <Stack direction="row" alignItems="center" gap={0.5}>
                           {getPowerDirectionIcon(homewizardData.power_l3_w, true)}
                           <Typography variant="body2">
-                            {kwhOrWattsShortString(homewizardData.power_l3_w)}
+                            {wattsString(homewizardData.power_l3_w)}
                           </Typography>
                         </Stack>
                       </Tag>
@@ -392,7 +392,7 @@ export default function MenuAppBar({ session, userAccesses }: { session: Session
                         <Stack direction="row" alignItems="center" gap={0.5}>
                           {getPowerDirectionIcon(homewizardData.power_w, true)}
                           <Typography variant="body2">
-                            {kwhOrWattsShortString(homewizardData.power_w)}
+                            {wattsString(homewizardData.power_w)}
                           </Typography>
                         </Stack>
                       </Tag>

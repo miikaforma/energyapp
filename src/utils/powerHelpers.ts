@@ -21,6 +21,14 @@ export const kwhOrWattsShortString = (value?: number | null) => {
     : formatNumberToFI(Math.abs(value), 0, 0) + " W";
 };
 
+export const wattsString = (value?: number | null) => {
+  if (!isValueDefined(value)) {
+    return "N/A";
+  }
+
+  return Math.abs(value) + " W";
+};
+
 // Convert watts to kilowatts
 export const convertWatts = (value?: number) => {
   if (!value && value !== 0) {

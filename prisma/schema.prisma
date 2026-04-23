@@ -1176,8 +1176,7 @@ model userShellyNotificationPreference {
 }
 
 model homewizard_measurements {
-  id                        String   @id @default(cuid())
-  unique_id                 String?
+  unique_id                 String
   protocol_version          Float?
   meter_model               String?
   timestamp                 DateTime @db.Timestamptz(6)
@@ -1217,5 +1216,6 @@ model homewizard_measurements {
   monthly_power_peak_w      Float?
   monthly_power_peak_timestamp DateTime? @db.Timestamptz(6)
 
+  @@id([timestamp, unique_id])
   @@unique([timestamp, unique_id])
 }

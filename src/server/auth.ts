@@ -212,6 +212,10 @@ const updateUserAccesses = async (userId: string, token?: string) => {
 
   // Delete the userAccess rows that are not in accessIds
   for (const userAccess of userAccesses) {
+    if (userAccess.type === 'METERING_POINT') {
+      continue;
+    }
+
     if (!accessIdSet.has(`${userAccess.accessId}-${userAccess.type}`)) {
       await db.userAccess.delete({
         where: {

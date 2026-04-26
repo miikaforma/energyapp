@@ -140,6 +140,54 @@ export const contractRouter = createTRPCRouter({
       return meteringPoint;
     }),
 
+  getMeteringPointUserAccesses: protectedProcedure
+    .input(z.object({ metering_point_ean: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await checkMeteringPointAccess(ctx, input.metering_point_ean);
+
+      const accesses = await ctx.db.userAccess.findMany({
+        where: {
+          accessId: input.metering_point_ean,
+          type: "METERING_POINT",
+        },
+        select: {
+          id: true,
+          userId: true,
+          createdAt: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+        distinct: ["userId"],
+        orderBy: [
+          { user: { email: "asc" } },
+          { createdAt: "asc" },
+        ],
+      });
+
+      return accesses;
+    }),
+
+  getMeteringPointAccessUsers: protectedProcedure
+    .query(async ({ ctx }) => {
+      const users = await ctx.db.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+        orderBy: [
+          { email: "asc" },
+          { name: "asc" },
+        ],
+      });
+
+      return users;
+    }),
+
   getContracts: protectedProcedure
     .input(z.object({ metering_point_ean: z.string() }))
     .query(async ({ input, ctx }) => {
@@ -257,6 +305,72 @@ export const contractRouter = createTRPCRouter({
           },
         });
       }
+      return { success: true };
+    }),
+
+  setMeteringPointUserAccesses: protectedProcedure
+    .input(
+      z.object({
+        metering_point_ean: z.string(),
+        userIds: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await checkMeteringPointAccess(ctx, input.metering_point_ean);
+
+      const currentUserId = ctx.session?.user?.id ?? "";
+      const targetUserIds = Array.from(new Set([...input.userIds, currentUserId]));
+
+      const users = await ctx.db.user.findMany({
+        where: {
+          id: { in: targetUserIds },
+        },
+        select: { id: true },
+      });
+
+      if (users.length !== targetUserIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid user selection",
+        });
+      }
+
+      const existingAccesses = await ctx.db.userAccess.findMany({
+        where: {
+          accessId: input.metering_point_ean,
+          type: "METERING_POINT",
+        },
+        select: { id: true, userId: true },
+      });
+
+      const existingUserIds = new Set(existingAccesses.map((access) => access.userId));
+      const userIdsToAdd = targetUserIds.filter((userId) => !existingUserIds.has(userId));
+      const userIdsToRemove = existingAccesses
+        .map((access) => access.userId)
+        .filter((userId) => !targetUserIds.includes(userId));
+
+      await ctx.db.$transaction(async (tx) => {
+        if (userIdsToRemove.length > 0) {
+          await tx.userAccess.deleteMany({
+            where: {
+              accessId: input.metering_point_ean,
+              type: "METERING_POINT",
+              userId: { in: userIdsToRemove },
+            },
+          });
+        }
+
+        if (userIdsToAdd.length > 0) {
+          await tx.userAccess.createMany({
+            data: userIdsToAdd.map((userId) => ({
+              accessId: input.metering_point_ean,
+              type: "METERING_POINT",
+              userId,
+            })),
+          });
+        }
+      });
+
       return { success: true };
     }),
 

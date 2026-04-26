@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
     Box,
@@ -11,11 +11,20 @@ import {
     Stack,
     CircularProgress,
     ButtonGroup,
+    Divider,
+    FormControl,
+    InputLabel,
+    Select,
+    Checkbox,
+    ListItemText,
 } from '@mui/material';
 import { useForm } from '@tanstack/react-form';
 import { accountingPointType } from '@energyapp/generated/enums';
 import useUpsertMeteringPoint from '@energyapp/app/_hooks/mutations/contract/useUpsertMeteringPoint';
 import useGetMeteringPoint from '@energyapp/app/_hooks/queries/contract/useGetMeteringPoint';
+import useGetMeteringPointUserAccesses from '@energyapp/app/_hooks/queries/contract/useGetMeteringPointUserAccesses';
+import useGetMeteringPointAccessUsers from '@energyapp/app/_hooks/queries/contract/useGetMeteringPointAccessUsers';
+import useSetMeteringPointUserAccesses from '@energyapp/app/_hooks/mutations/contract/useSetMeteringPointUserAccesses';
 import { type meteringPoint as MeteringPointType } from "@energyapp/generated/client";
 import dayjs from 'dayjs';
 
@@ -27,11 +36,22 @@ const accountingPointTypeLabels: Record<string, string> = {
 export default function MeteringPointForm() {
     const router = useRouter();
     const params = useParams();
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
     const meteringPointId = Array.isArray(params.meteringPointId) ? params.meteringPointId[0] : params.meteringPointId;
     const isEdit = Boolean(meteringPointId);
 
     // Fetch metering point data if editing
     const { data: meteringPoint, isLoading: isMeteringPointLoading } = useGetMeteringPoint({ meteringPointId });
+    const { data: userAccesses } = useGetMeteringPointUserAccesses({ meteringPointId });
+    const { data: users } = useGetMeteringPointAccessUsers();
+
+    const setUserAccesses = useSetMeteringPointUserAccesses();
+
+    useEffect(() => {
+        if (!isEdit || !userAccesses) return;
+        setSelectedUserIds(userAccesses.map((access) => access.userId));
+    }, [isEdit, userAccesses]);
+
     const upsert = useUpsertMeteringPoint({
         onSuccess: () => {
             // onSuccess?.();
@@ -204,6 +224,62 @@ export default function MeteringPointForm() {
                             />
                         )}
                     </form.Field>
+
+                    {isEdit && (
+                        <>
+                            <Divider />
+                            <Typography variant="subtitle1">Käyttöoikeudet</Typography>
+                            <FormControl fullWidth>
+                                <InputLabel id="metering-point-users-label">Käyttäjät</InputLabel>
+                                <Select
+                                    labelId="metering-point-users-label"
+                                    multiple
+                                    value={selectedUserIds}
+                                    label="Käyttäjät"
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSelectedUserIds(typeof value === 'string' ? value.split(',') : value);
+                                    }}
+                                    renderValue={(selected) => {
+                                        const selectedIds = selected as string[];
+                                        const labels = selectedIds
+                                            .map((id) => {
+                                                const user = users?.find((u) => u.id === id);
+                                                return user?.email ?? user?.name ?? id;
+                                            })
+                                            .filter(Boolean);
+                                        return labels.join(', ');
+                                    }}
+                                >
+                                    {(users ?? []).map((user) => {
+                                        const label = user.email ?? user.name ?? user.id;
+                                        return (
+                                            <MenuItem key={user.id} value={user.id}>
+                                                <Checkbox checked={selectedUserIds.includes(user.id)} />
+                                                <ListItemText primary={label} />
+                                            </MenuItem>
+                                        );
+                                    })}
+                                </Select>
+                            </FormControl>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                <Button
+                                    type="button"
+                                    variant="outlined"
+                                    disabled={!meteringPointId || setUserAccesses.isLoading}
+                                    onClick={async () => {
+                                        if (!meteringPointId) return;
+                                        await setUserAccesses.mutateAsync({
+                                            metering_point_ean: meteringPointId,
+                                            userIds: selectedUserIds,
+                                        });
+                                    }}
+                                >
+                                    Tallenna käyttöoikeudet
+                                </Button>
+                            </Stack>
+                        </>
+                    )}
 
                     <ButtonGroup variant="contained" aria-label="Action button group" sx={{ width: '100%' }}>
                         <Button

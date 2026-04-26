@@ -2,8 +2,6 @@
 
 import { useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import { formDevtoolsPlugin } from '@tanstack/react-form-devtools'
 import { useForm } from '@tanstack/react-form'
 import {
     Typography,

@@ -1076,6 +1076,7 @@ enum accessType {
   SHELLY
   RUUVI
   HOMEWIZARD
+  METERING_POINT
 }
 
 enum dayAheadState {

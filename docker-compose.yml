@@ -3,11 +3,13 @@ version: "3"
 services:
   energyapp:
     hostname: '0.0.0.0'
-    image: miikaforma/energyapp:latest
+    image: miikaforma/energyapp:dev
     env_file:
       - .env.docker.local
     ports:
       - 5247:3000
+      - 5248:3001
+    restart: unless-stopped
     # deploy:
     #   restart_policy:
     #     condition: any

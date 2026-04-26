@@ -11,6 +11,7 @@ import { pushSubscriptionRouter } from "@energyapp/server/api/routers/pushSubscr
 import { shellyRouter } from "@energyapp/server/api/routers/shelly";
 import { tankilleRouter } from "@energyapp/server/api/routers/tankille";
 import { ruuviRouter } from "@energyapp/server/api/routers/ruuvi";
+import { contractRouter } from "@energyapp/server/api/routers/contract";
 
 /**
  * This is the primary router for your server.
@@ -30,6 +31,7 @@ export const appRouter = createTRPCRouter({
   tankille: tankilleRouter,
   ruuvi: ruuviRouter,
   homewizard: homewizardRouter,
+  contract: contractRouter,
 });
 
 // export type definition of API

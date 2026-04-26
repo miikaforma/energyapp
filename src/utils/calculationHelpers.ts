@@ -62,6 +62,14 @@ export function addTax(time: Dayjs | Date, price: number, addTax: boolean) {
   // If the price is after 01.09.2024, the tax is 25,5%, otherwise 24%
   const priceDateTime = dayjs(time);
   const tax = priceDateTime.isAfter('2024-08-31T20:59:59.999Z') ? 1.255 : 1.24;
+
+  // The strategic stockpile fee included in the electricity tax is 2.253 c/kWh as of 1.9.2024
+  let baseElectricityTax = 2.253;
+
+  // If the price is after 31.3.2026, the strategic stockpile fee is increased to 2.325 c/kWh
+  if (priceDateTime.isAfter('2026-03-31T20:59:59.999Z')) {
+    baseElectricityTax = 2.325; // Adjust the base electricity tax for the new VAT rate
+  }
   
-  return price + (2.253 * tax); //2.79372;
+  return price + (baseElectricityTax * tax); //2.79372;
 }

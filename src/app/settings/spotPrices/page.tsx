@@ -199,6 +199,10 @@ export default function Settings() {
               <Text type="secondary">
                 2,827515 c/kWh (sis. alv. 25,5 % ja huoltovarmuusmaksun)
               </Text>
+              <Text type="secondary">01.04.2026 alkaen 0,072 c/kWh korotus</Text>
+              <Text type="secondary">
+                2,917875 c/kWh (sis. alv. 25,5 % ja huoltovarmuusmaksun)
+              </Text>
             </Space.Compact>
           }
           rules={[validator]}

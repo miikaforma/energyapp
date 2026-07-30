@@ -252,3 +252,23 @@ export type ShellyConsumption = {
     avg_freq: number;
     avg_current: number;
 }
+
+export type HomewizardMeasurementDirection = 'import' | 'export' | 'balanced';
+
+export type HomewizardMeasurement = {
+    bucket: Dayjs;
+    unique_id: string;
+    grid_import_kwh: number;
+    grid_export_kwh: number;
+    net_kwh: number;
+    direction: HomewizardMeasurementDirection;
+    power_avg_w: number | null;
+    peak_import_power_w: number | null;
+    peak_export_power_w: number | null;
+    sample_count: number;
+}
+
+export type HomewizardResponse = {
+    timePeriod: TimePeriod;
+    measurements: HomewizardMeasurement[];
+}

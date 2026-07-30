@@ -70,7 +70,7 @@ export default function MenuAppBar({ session, userAccesses, homeWizardData }: { 
 
   // Homewizard subscription for latest measurement
   const [homewizardData, setHomewizardData] = React.useState<homewizard_measurements | null>(homeWizardData);
-  useHomewizardSubscription((data) => setHomewizardData(data));
+  useHomewizardSubscription((data) => setHomewizardData(data), hasHomewizard);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -278,6 +278,7 @@ export default function MenuAppBar({ session, userAccesses, homeWizardData }: { 
               <>
                 {/* Mobile: compact 4-item row */}
                 <Box
+                  onClick={() => router.push("/homewizard")}
                   sx={{
                     display: { xs: "flex", sm: "none" },
                     width: "100%",
@@ -413,6 +414,7 @@ export default function MenuAppBar({ session, userAccesses, homeWizardData }: { 
 
                 {/* Desktop/tablet: separate items */}
                 <Box
+                  onClick={() => router.push("/homewizard")}
                   sx={{
                     display: { xs: "none", sm: "flex" },
                     flex: "0 0 auto",

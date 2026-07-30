@@ -25,7 +25,7 @@ export function DateNoWrap({ date, timePeriod }: { date: Date | dayjs.Dayjs | nu
                 .toString()
                 .padStart(2, "0")}</span>;
         case TimePeriod.PT15M:
-            return <span style={{ whiteSpace: "nowrap" }}>klo {time.format("HH:mm")} - {time
+            return <span style={{ whiteSpace: "nowrap" }}>{time.format("HH:mm")} - {time
                 .add(15, "minute")
                 .format("HH:mm")}</span>;
     }

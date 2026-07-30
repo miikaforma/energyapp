@@ -1068,6 +1068,81 @@ view solarman_production_total {
   @@unique([plant_id, device_id])
 }
 
+view homewizard_pt15m {
+  unique_id              String
+  bucket                 DateTime  @db.Timestamptz(6)
+  grid_import_kwh        Float?
+  grid_export_kwh        Float?
+  power_avg_w            Float?
+  power_min_w            Float?
+  power_max_w            Float?
+  peak_import_power_w    Float?
+  peak_export_power_w    Float?
+  sample_count           BigInt?
+
+  @@unique([unique_id, bucket])
+}
+
+view homewizard_pt1h {
+  unique_id              String
+  bucket                 DateTime  @db.Timestamptz(6)
+  grid_import_kwh        Float?
+  grid_export_kwh        Float?
+  power_avg_w            Float?
+  power_min_w            Float?
+  power_max_w            Float?
+  peak_import_power_w    Float?
+  peak_export_power_w    Float?
+  sample_count           BigInt?
+
+  @@unique([unique_id, bucket])
+}
+
+view homewizard_p1d {
+  unique_id              String
+  bucket                 DateTime  @db.Timestamptz(6)
+  grid_import_kwh        Float?
+  grid_export_kwh        Float?
+  power_avg_w            Float?
+  power_min_w            Float?
+  power_max_w            Float?
+  peak_import_power_w    Float?
+  peak_export_power_w    Float?
+  sample_count           BigInt?
+
+  @@unique([unique_id, bucket])
+}
+
+view homewizard_p1m {
+  unique_id              String
+  bucket                 DateTime  @db.Timestamptz(6)
+  grid_import_kwh        Float?
+  grid_export_kwh        Float?
+  power_avg_w            Float?
+  power_min_w            Float?
+  power_max_w            Float?
+  peak_import_power_w    Float?
+  peak_export_power_w    Float?
+  sample_count           BigInt?
+
+  @@unique([unique_id, bucket])
+}
+
+view homewizard_p1y {
+  unique_id              String
+  bucket                 DateTime  @db.Timestamptz(6)
+  grid_import_kwh        Float?
+  grid_export_kwh        Float?
+  power_avg_w            Float?
+  power_min_w            Float?
+  power_max_w            Float?
+  peak_import_power_w    Float?
+  peak_export_power_w    Float?
+  sample_count           BigInt?
+
+  @@unique([unique_id, bucket])
+}
+
 enum accessType {
   WATTIVAHTI_CONSUMPTION
   WATTIVAHTI_PRODUCTION

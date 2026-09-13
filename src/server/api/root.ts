@@ -3,6 +3,7 @@ import { createTRPCRouter } from "@energyapp/server/api/trpc";
 import { spotPriceRouter } from "@energyapp/server/api/routers/spotPrice";
 import { melcloudRouter } from "@energyapp/server/api/routers/melcloud";
 import { wattivahtiRouter } from "@energyapp/server/api/routers/wattivahti";
+import { homewizardRouter } from "@energyapp/server/api/routers/homewizard";
 import { cbaseRouter } from "@energyapp/server/api/routers/cbase";
 import { solarmanRouter } from "@energyapp/server/api/routers/solarman";
 import { fingridRouter } from "@energyapp/server/api/routers/fingrid";
@@ -10,6 +11,7 @@ import { pushSubscriptionRouter } from "@energyapp/server/api/routers/pushSubscr
 import { shellyRouter } from "@energyapp/server/api/routers/shelly";
 import { tankilleRouter } from "@energyapp/server/api/routers/tankille";
 import { ruuviRouter } from "@energyapp/server/api/routers/ruuvi";
+import { contractRouter } from "@energyapp/server/api/routers/contract";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +30,8 @@ export const appRouter = createTRPCRouter({
   shelly: shellyRouter,
   tankille: tankilleRouter,
   ruuvi: ruuviRouter,
+  homewizard: homewizardRouter,
+  contract: contractRouter,
 });
 
 // export type definition of API

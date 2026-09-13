@@ -93,11 +93,18 @@ export default async function RootLayout({
   const userAccesses: IUserAccessResponse[] = session ? await api.access.getUserAccesses.query()
     .catch(() => []) : [];
 
+  const hasHomewizardAccess = userAccesses.some(access => access.type === "HOMEWIZARD");
+  const homeWizardData = hasHomewizardAccess ? await api.homewizard.getLatest.query() : null;
+
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} dark`}>
         <SerwistProvider swUrl="/sw.js">
-          <TRPCReactProvider cookies={(await cookies()).toString()}>
+          <TRPCReactProvider
+            cookies={(await cookies()).toString()}
+            wsUrlOverride={process.env.TRPC_WS_URL}
+            wsPortOverride={process.env.TRPC_WS_PUBLIC_PORT}
+          >
             <AppRouterCacheProvider>
               <AntdRegistry>
                 <AntdTheme>
@@ -112,7 +119,7 @@ export default async function RootLayout({
                       }} />
                       <AuthUpdater />
                       <PushSubscriber applicationServerKey={env.VAPID_PUBLIC_KEY} />
-                      <MenuAppBar session={session} userAccesses={userAccesses} />
+                      <MenuAppBar session={session} userAccesses={userAccesses} homeWizardData={homeWizardData} />
                       <BottomNav session={session} userAccesses={userAccesses}>
                         {children}
                       </BottomNav>

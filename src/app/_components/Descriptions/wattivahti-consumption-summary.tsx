@@ -1,19 +1,49 @@
-import { Col, Descriptions, Row, Space, Tooltip, Tag } from "antd";
+import { Col, Descriptions, Row, Space, Tooltip, Tag, Switch } from "antd";
 import { InfoCircleFilled } from "@ant-design/icons";
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 import BoltIcon from '@mui/icons-material/Bolt';
-import { type IWattiVahtiConsumption } from "@energyapp/shared/interfaces";
+import { type IWattiVahtiConsumption, type IWattiVahtiConsumptionEffectResponse } from "@energyapp/shared/interfaces";
 import { formatNumberToEuros, formatNumberToFI } from "@energyapp/utils/wattivahtiHelpers";
 import { TimePeriod } from "@energyapp/shared/enums";
 import dayjs from "dayjs";
 import ConsumptionDescriptionSkeleton from "@energyapp/app/_components/Skeletons/consumption-description-skeleton";
 import { useSettingsStore } from "@energyapp/app/_stores/settings/settings";
+import { useState } from "react";
 
-export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLoading, hasHybridConsumption, hasFixedConsumption, showSpot }: { timePeriod: TimePeriod, summary?: IWattiVahtiConsumption | null, isLoading: boolean, hasHybridConsumption?: boolean, hasFixedConsumption?: boolean, showSpot?: boolean }) {
+export default function WattiVahtiConsumptionSummary({
+    timePeriod,
+    summary,
+    consumptionEffect,
+    isLoading,
+    hasHybridConsumption,
+    hasFixedConsumption,
+    showSpot
+}: {
+    timePeriod: TimePeriod;
+    summary?: IWattiVahtiConsumption | null;
+    consumptionEffect?: IWattiVahtiConsumptionEffectResponse;
+    isLoading: boolean;
+    hasHybridConsumption?: boolean;
+    hasFixedConsumption?: boolean;
+    showSpot?: boolean;
+}) {
+    const [showHybridConsumptionEffect, setShowHybridConsumptionEffect] = useState<boolean>(true);
+
     const settingsStore = useSettingsStore();
     const settings = settingsStore.settings;
-    
+
+    const canToggleConsumptionEffect =
+        !!consumptionEffect?.wholePeriod &&
+        !!consumptionEffect?.hybridPeriod &&
+        consumptionEffect.hybridPeriod.energyConsumption !==
+        consumptionEffect.wholePeriod.energyConsumption;
+
+    const consumptionEffectSummary =
+        showHybridConsumptionEffect && canToggleConsumptionEffect
+            ? consumptionEffect?.hybridPeriod
+            : consumptionEffect?.wholePeriod;
+
     if (isLoading || !summary) {
         return <ConsumptionDescriptionSkeleton isPulsing={isLoading} />
     }
@@ -177,18 +207,41 @@ export default function WattiVahtiConsumptionSummary({ timePeriod, summary, isLo
     }
 
     const getConsumptionEffect = () => {
-        const consumptionEffect = (summary?.energy_fee_spot_no_margin - summary?.energy_consumption * summary?.spot_price_with_tax) / summary?.energy_consumption
-        const color = consumptionEffect > 0 ? 'red' : 'green'
+        if (!consumptionEffectSummary) {
+            return null;
+        }
+
+        const consumptionEffectVal = consumptionEffectSummary.consumptionEffect;
+        const color = consumptionEffectVal > 0 ? 'red' : 'green'
+
         return (
-            <Descriptions.Item key='consumptionsEffect' label={'Omavaikutus'} style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
+            <Descriptions.Item key='consumptionsEffect' label={<div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%'
+                }}
+            >
+                <span>Omavaikutus</span>
+
+                {canToggleConsumptionEffect && (
+                    <Switch
+                        checked={showHybridConsumptionEffect}
+                        onChange={setShowHybridConsumptionEffect}
+                        checkedChildren="Sopimuskausi"
+                        unCheckedChildren="Koko ajanjakso"
+                    />
+                )}
+            </div>} style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
                 <Row align="middle">
-                    <Col span={8}><Tooltip title={`A = tuntikohtaisen sähkönkulutuksen (kWh) ja tuntikohtaisten pörssisähkön hintojen (c/kWh) tulojen summa`} trigger={'click'}><Space align="center"><strong>A</strong>{formatNumberToEuros(summary?.energy_fee_spot_no_margin)} €</Space></Tooltip></Col>
-                    <Col span={8}><Tooltip title={`B = Kuukauden sähkönkulutus (kWh) * pörssisähkön (painottamaton) keskiarvohinta koko kuukaudelta (c/kWh)`} trigger={'click'}><Space align="center"><strong>B</strong>{formatNumberToEuros((summary?.energy_consumption) * summary?.spot_price_with_tax)} €</Space></Tooltip></Col>
+                    <Col span={8}><Tooltip title={`A = Pörssisähkön hinnan (snt/kWh) ja käyttöpaikan kulutuksen (kWh) tulojen summa`} trigger={'click'}><Space align="center"><strong>A</strong>{formatNumberToEuros(consumptionEffectSummary.energyFeeSpotNoMargin)} €</Space></Tooltip></Col>
+                    <Col span={8}><Tooltip title={`B = Kuukauden sähkönkulutus (kWh) x pörssisähkön painottamaton kuukausikeskiarvo (c/kWh)`} trigger={'click'}><Space align="center"><strong>B</strong>{formatNumberToEuros((consumptionEffectSummary.energyConsumption) * consumptionEffectSummary.spotPriceWithTax)} €</Space></Tooltip></Col>
                     <Col span={8}>
-                        <Tooltip title={<>Omavaikutus = (A - B) / E<br/><br/>E = Kuukauden sähkönkulutus (kWh)</>} trigger={'click'}>
+                        <Tooltip title={<>Omavaikutus = (A - B) / E<br /><br />E = Kuukauden sähkönkulutus (kWh)</>} trigger={'click'}>
                             <Space align="center">
                                 <Tag color={color} key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
-                                    {formatNumberToFI(consumptionEffect)} c/kWh
+                                    {formatNumberToFI(consumptionEffectVal)} c/kWh
                                 </Tag>
                             </Space>
                         </Tooltip>

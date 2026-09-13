@@ -71,6 +71,7 @@ export interface IWattiVahtiConsumptionResponse {
     timePeriod: TimePeriod;
     summary: IWattiVahtiConsumption;
     consumptions: IWattiVahtiConsumption[];
+    consumptionEffect: IWattiVahtiConsumptionEffectResponse;
 }
 
 export interface IWattiVahtiConsumption {
@@ -113,6 +114,18 @@ export interface IWattiVahtiConsumption {
     price_avg: number;
     energy_fee_spot_no_margin: number;
     price_spot_no_margin: number;
+}
+
+export interface IWattiVahtiConsumptionEffect {
+    energyConsumption: number;
+    energyFeeSpotNoMargin: number;
+    spotPriceWithTax: number;
+    consumptionEffect: number;
+}
+
+export interface IWattiVahtiConsumptionEffectResponse {
+    wholePeriod: IWattiVahtiConsumptionEffect | null;
+    hybridPeriod: IWattiVahtiConsumptionEffect | null;
 }
 
 // Wattivahti productions
@@ -251,4 +264,24 @@ export type ShellyConsumption = {
     avg_voltage: number;
     avg_freq: number;
     avg_current: number;
+}
+
+export type HomewizardMeasurementDirection = 'import' | 'export' | 'balanced';
+
+export type HomewizardMeasurement = {
+    bucket: Dayjs;
+    unique_id: string;
+    grid_import_kwh: number;
+    grid_export_kwh: number;
+    net_kwh: number;
+    direction: HomewizardMeasurementDirection;
+    power_avg_w: number | null;
+    peak_import_power_w: number | null;
+    peak_export_power_w: number | null;
+    sample_count: number;
+}
+
+export type HomewizardResponse = {
+    timePeriod: TimePeriod;
+    measurements: HomewizardMeasurement[];
 }

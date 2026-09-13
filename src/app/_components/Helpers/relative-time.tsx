@@ -58,7 +58,10 @@ interface RelativeTimeProps {
 }
 
 const RelativeTime: FC<RelativeTimeProps> = ({ timestamp }) => {
+  const [mounted, setMounted] = useState(false);
   useForceUpdate(1_000); // force update every 1 second
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
   const relativeTimestamp = dayjs().to(dayjs(timestamp));
   return <span>{relativeTimestamp}</span>;
 };

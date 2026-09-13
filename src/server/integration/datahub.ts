@@ -241,23 +241,34 @@ export const addEnergiesToDb = async (data: energies[]/*, pointTypes: Set<string
   //     skipDuplicates: true,
   //   });
 
-  const upsertPromises = data.map((energy) =>
-    db.energies.upsert({
-      where: {
-        time_metering_point_code_measure_type_resolution_duration: {
-          time: energy.time,
-          metering_point_code: energy.metering_point_code,
-          measure_type: energy.measure_type,
-          resolution_duration: energy.resolution_duration,
-        },
-      },
-      update: energy,
-      create: energy,
-    }),
-  );
+  if (data.length === 0) {
+    return;
+  }
 
-  await db.$transaction(upsertPromises);
-  // await Promise.all(upsertPromises);
+  // Avoid a single giant transaction here: under load Prisma can fail to acquire
+  // a transaction connection (P2028). Run upserts in small concurrent chunks instead.
+  const chunkSize = 50;
+
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+
+    await Promise.all(
+      chunk.map(async (energy) => {
+        await db.energies.upsert({
+          where: {
+            time_metering_point_code_measure_type_resolution_duration: {
+              time: energy.time,
+              metering_point_code: energy.metering_point_code,
+              measure_type: energy.measure_type,
+              resolution_duration: energy.resolution_duration,
+            },
+          },
+          update: energy,
+          create: energy,
+        });
+      }),
+    );
+  }
 
   // Refresh the continuous aggregates
   // if (pointTypes.has("AG01")) {

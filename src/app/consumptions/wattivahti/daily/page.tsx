@@ -202,6 +202,7 @@ export default function Page() {
       <WattiVahtiConsumptionSummary
         timePeriod={timePeriod}
         summary={consumptionResponse?.summary}
+        consumptionEffect={consumptionResponse?.consumptionEffect}
         isLoading={isLoading}
         hasFixedConsumption={hasFixedConsumption}
         hasHybridConsumption={hasHybridConsumption}

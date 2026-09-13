@@ -23,6 +23,7 @@ GRANT SELECT ON TABLE public.ruuvi_measurements_downsampled_15min TO remote_sync
 GRANT SELECT ON TABLE public.shelly_historical_consumption_data TO remote_sync_reader;
 GRANT SELECT ON TABLE public.shelly_historical_data TO remote_sync_reader;
 GRANT SELECT ON TABLE public.solarman_inverter_data TO remote_sync_reader;
+GRANT SELECT ON TABLE public.homewizard_measurements TO remote_sync_reader;
 
 -- Run in local
 CREATE USER MAPPING FOR CURRENT_USER
@@ -43,7 +44,8 @@ LIMIT TO (
   ruuvi_measurements_downsampled_15min,
   shelly_historical_consumption_data,
   shelly_historical_data,
-  solarman_inverter_data
+  solarman_inverter_data,
+  homewizard_measurements
 )
 FROM SERVER prod_server
 INTO prod_fdw;
@@ -76,8 +78,29 @@ WHERE p."time" > (
 )
 ON CONFLICT ("time", "device_id") DO NOTHING;
 
+SET statement_timeout = 0;
+INSERT INTO public.ruuvi_measurements
+SELECT *
+FROM prod_fdw.ruuvi_measurements
+WHERE time >= '2026-04-01'
+  AND time < '2026-04-07'
+ON CONFLICT DO NOTHING;
 
+SET statement_timeout = 0;
+INSERT INTO public.ruuvi_measurements_downsampled_5min
+SELECT *
+FROM prod_fdw.ruuvi_measurements_downsampled_5min
+WHERE time >= '2026-04-01'
+  AND time < '2026-04-07'
+ON CONFLICT DO NOTHING;
 
+SET statement_timeout = 0;
+INSERT INTO public.ruuvi_measurements_downsampled_15min
+SELECT *
+FROM prod_fdw.ruuvi_measurements_downsampled_15min
+WHERE time >= '2026-04-01'
+  AND time < '2026-04-07'
+ON CONFLICT DO NOTHING;
 
 -- If adding a new table in the future
 

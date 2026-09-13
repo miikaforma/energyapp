@@ -19,6 +19,22 @@ export const wattivahtiRouter = createTRPCRouter({
     .input(z.object({ timePeriod: zodTimePeriod, startTime: zodDay, endTime: zodDay }))
     .query(async ({ input, ctx }) => {
 
+      const [consumptionEffectWholePeriod, consumptionEffectHybridPeriod] =
+        await Promise.all([
+          getConsumptionEffectSummary(
+            ctx,
+            dayjs(input.startTime).toDate(),
+            dayjs(input.endTime).toDate(),
+            false
+          ),
+          getConsumptionEffectSummary(
+            ctx,
+            dayjs(input.startTime).toDate(),
+            dayjs(input.endTime).toDate(),
+            true
+          ),
+        ]);
+
       switch (input.timePeriod) {
         case TimePeriod.PT15M: {
           const [consumptions, summary] = await Promise.all([
@@ -30,6 +46,10 @@ export const wattivahtiRouter = createTRPCRouter({
             timePeriod: input.timePeriod,
             summary,
             consumptions,
+            consumptionEffect: {
+              wholePeriod: consumptionEffectWholePeriod,
+              hybridPeriod: consumptionEffectHybridPeriod,
+            },
           } as IWattiVahtiConsumptionResponse;
         }
         case TimePeriod.PT1H: {
@@ -42,6 +62,10 @@ export const wattivahtiRouter = createTRPCRouter({
             timePeriod: input.timePeriod,
             summary,
             consumptions,
+            consumptionEffect: {
+              wholePeriod: consumptionEffectWholePeriod,
+              hybridPeriod: consumptionEffectHybridPeriod,
+            },
           } as IWattiVahtiConsumptionResponse;
         }
         case TimePeriod.P1D: {
@@ -54,6 +78,10 @@ export const wattivahtiRouter = createTRPCRouter({
             timePeriod: input.timePeriod,
             summary,
             consumptions,
+            consumptionEffect: {
+              wholePeriod: consumptionEffectWholePeriod,
+              hybridPeriod: consumptionEffectHybridPeriod,
+            },
           } as IWattiVahtiConsumptionResponse;
         }
         case TimePeriod.P1M: {
@@ -66,6 +94,10 @@ export const wattivahtiRouter = createTRPCRouter({
             timePeriod: input.timePeriod,
             summary,
             consumptions,
+            consumptionEffect: {
+              wholePeriod: consumptionEffectWholePeriod,
+              hybridPeriod: consumptionEffectHybridPeriod,
+            },
           } as IWattiVahtiConsumptionResponse;
         }
         /* Not implemented fully, the summary is tricky */
@@ -517,4 +549,58 @@ const getYearlyProductionSummary = (ctx: IContext, startTime: Date, endTime: Dat
     } as IWattiVahtiProduction;
   })
 }
+
+const getConsumptionEffectSummary = async (
+  ctx: IContext,
+  startTime: Date,
+  endTime: Date,
+  hybridOnly: boolean
+) => {
+  console.log("Fetching consumption effect summary from", startTime, "to", endTime, "hybridOnly:", hybridOnly);
+  
+  const rows = await ctx.db.energies_consumption_15min_by_15min.findMany({
+    where: {
+      time: {
+        gte: startTime,
+        lte: endTime,
+      },
+      ...(hybridOnly ? { contract_type: 4 } : {}),
+    },
+  });
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const energyConsumption = rows.reduce(
+    (sum, row) => sum + (row.energy_consumption ?? 0),
+    0
+  );
+
+  const energyFeeSpotNoMargin = rows.reduce(
+    (sum, row) => sum + (row.energy_fee_spot_no_margin ?? 0),
+    0
+  );
+
+  const spotPriceWithTax =
+    rows.reduce(
+      (sum, row) => sum + (row.spot_price_with_tax ?? 0),
+      0
+    ) / rows.length;
+
+  const consumptionEffect =
+    energyConsumption !== 0
+      ? (
+        energyFeeSpotNoMargin -
+        energyConsumption * spotPriceWithTax
+      ) / energyConsumption
+      : 0;
+
+  return {
+    energyConsumption,
+    energyFeeSpotNoMargin,
+    spotPriceWithTax,
+    consumptionEffect,
+  };
+};
 

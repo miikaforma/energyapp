@@ -7,13 +7,18 @@
     "build": "next build",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "dev": "next dev -p 3010",
+    "dev": "concurrently -k -n next,ws -c auto \"npm:dev:next\" \"npm:dev:ws\"",
+    "dev:next": "next dev -p 3010",
+    "dev:ws": "tsx watch src/server/ws-entry.ts",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "concurrently -k -n next,ws -c auto \"npm:start:next\" \"npm:start:ws\"",
+    "start:next": "node server.js",
+    "start:ws": "tsx src/server/ws-entry.ts"
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.0",
+    "@auth/core": "^0.34.3",
     "@auth/prisma-adapter": "^2.11.1",
     "@ducanh2912/next-pwa": "^10.2.2",
     "@emotion/cache": "^11.11.0",
@@ -60,6 +65,7 @@
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "web-push": "^3.6.7",
+    "ws": "^8.18.3",
     "zod": "^3.22.4",
     "zustand": "^4.5.2"
   },
@@ -77,6 +83,7 @@
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "autoprefixer": "^10.4.14",
+    "concurrently": "^9.2.1",
     "dotenv": "^17.3.1",
     "esbuild": "^0.27.4",
     "eslint": "^8.54.0",

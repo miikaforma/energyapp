@@ -1,4 +1,4 @@
-import { JsonValue } from "next-auth/adapters";
+import type { Prisma } from "@energyapp/generated/client";
 import { formatNumberToFI } from "./wattivahtiHelpers";
 import { ruuvi_measurements, ruuvi_measurements_downsampled_15min, ruuvi_measurements_downsampled_5min } from "@energyapp/generated/client";
 import { TimePeriod } from "@energyapp/shared/enums";
@@ -38,7 +38,7 @@ export const getTemperatureC = (value?: number) => {
 };
 
 // Get picture URL from customData
-export const getPictureUrl = (customData?: JsonValue | DeviceGroup | null) => {
+export const getPictureUrl = (customData?: Prisma.JsonValue | DeviceGroup | null) => {
   if (!customData) {
     return null;
   }

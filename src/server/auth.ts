@@ -1,4 +1,4 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import {
   getServerSession,
   type DefaultSession,
@@ -9,7 +9,7 @@ import { type Session } from "next-auth";
 
 import { env } from "@energyapp/env";
 import { db } from "@energyapp/server/db";
-import { type Adapter, type AdapterAccount } from "@auth/core/adapters";
+import { type Adapter } from "next-auth/adapters";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -39,10 +39,21 @@ const keycloakProviderFactory =
 
 const CustomPrismaAdapter: Adapter = {
   ...prismaAdapter,
-  linkAccount: (account: AdapterAccount) => {
-    const mutableAccount = { ...account };
+
+  async linkAccount(account) {
+    const mutableAccount = {
+      ...account,
+    } as typeof account & {
+      "not-before-policy"?: unknown;
+    };
+
     delete mutableAccount["not-before-policy"];
-    return prismaAdapter.linkAccount?.(mutableAccount);
+
+    if (!prismaAdapter.linkAccount) {
+      return;
+    }
+
+    await prismaAdapter.linkAccount(mutableAccount);
   },
 };
 

@@ -53,7 +53,7 @@
     "energyapp": "file:",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
-    "next": "16.1.7",
+    "next": "^16.3.3",
     "next-auth": "^4.24.13",
     "next-cloudinary": "^6.17.5",
     "react": "19.2.4",
@@ -70,7 +70,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "16.1.6",
+    "@next/eslint-plugin-next": "^16.3.4",
     "@serwist/turbopack": "^9.5.7",
     "@tanstack/react-devtools": "^0.10.0",
     "@tanstack/react-form-devtools": "^0.2.19",

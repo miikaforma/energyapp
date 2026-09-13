@@ -71,6 +71,7 @@ export interface IWattiVahtiConsumptionResponse {
     timePeriod: TimePeriod;
     summary: IWattiVahtiConsumption;
     consumptions: IWattiVahtiConsumption[];
+    consumptionEffect: IWattiVahtiConsumptionEffectResponse;
 }
 
 export interface IWattiVahtiConsumption {
@@ -113,6 +114,18 @@ export interface IWattiVahtiConsumption {
     price_avg: number;
     energy_fee_spot_no_margin: number;
     price_spot_no_margin: number;
+}
+
+export interface IWattiVahtiConsumptionEffect {
+    energyConsumption: number;
+    energyFeeSpotNoMargin: number;
+    spotPriceWithTax: number;
+    consumptionEffect: number;
+}
+
+export interface IWattiVahtiConsumptionEffectResponse {
+    wholePeriod: IWattiVahtiConsumptionEffect | null;
+    hybridPeriod: IWattiVahtiConsumptionEffect | null;
 }
 
 // Wattivahti productions

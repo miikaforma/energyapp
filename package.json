@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.0",
-    "@auth/core": "^0.34.3",
+    "@auth/core": "^0.41.3",
     "@auth/prisma-adapter": "^2.11.1",
     "@ducanh2912/next-pwa": "^10.2.2",
     "@emotion/cache": "^11.11.0",

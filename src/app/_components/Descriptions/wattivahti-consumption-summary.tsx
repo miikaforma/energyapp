@@ -235,8 +235,18 @@ export default function WattiVahtiConsumptionSummary({
                 )}
             </div>} style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
                 <Row align="middle">
-                    <Col span={8}><Tooltip title={`A = Pörssisähkön hinnan (snt/kWh) ja käyttöpaikan kulutuksen (kWh) tulojen summa`} trigger={'click'}><Space align="center"><strong>A</strong>{formatNumberToEuros(consumptionEffectSummary.energyFeeSpotNoMargin)} €</Space></Tooltip></Col>
-                    <Col span={8}><Tooltip title={`B = Kuukauden sähkönkulutus (kWh) x pörssisähkön painottamaton kuukausikeskiarvo (c/kWh)`} trigger={'click'}><Space align="center"><strong>B</strong>{formatNumberToEuros((consumptionEffectSummary.energyConsumption) * consumptionEffectSummary.spotPriceWithTax)} €</Space></Tooltip></Col>
+                    <Col span={8}><Tooltip title={<>
+                        <span>A = Pörssisähkön hinnan (snt/kWh) ja käyttöpaikan kulutuksen (kWh) tulojen summa</span>
+                        <Tag color="" key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
+                            {formatNumberToFI(consumptionEffectSummary.spotPriceWithTax + consumptionEffectVal)} c/kWh
+                        </Tag>
+                    </>} trigger={'click'}><Space align="center"><strong>A</strong>{formatNumberToEuros(consumptionEffectSummary.energyFeeSpotNoMargin)} €</Space></Tooltip></Col>
+                    <Col span={8}><Tooltip title={<>
+                        <span>B = Kuukauden sähkönkulutus (kWh) x pörssisähkön painottamaton kuukausikeskiarvo (c/kWh)</span>
+                        <Tag color="" key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
+                            {formatNumberToFI(consumptionEffectSummary.spotPriceWithTax)} c/kWh
+                        </Tag>
+                    </>} trigger={'click'}><Space align="center"><strong>B</strong>{formatNumberToEuros((consumptionEffectSummary.energyConsumption) * consumptionEffectSummary.spotPriceWithTax)} €</Space></Tooltip></Col>
                     <Col span={8}>
                         <Tooltip title={<>Omavaikutus = (A - B) / E<br /><br />E = Kuukauden sähkönkulutus (kWh)</>} trigger={'click'}>
                             <Space align="center">

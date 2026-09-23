@@ -242,13 +242,20 @@ export default function WattiVahtiConsumptionSummary({
                         </Tag>
                     </>} trigger={'click'}><Space align="center"><strong>A</strong>{formatNumberToEuros(consumptionEffectSummary.energyFeeSpotNoMargin)} €</Space></Tooltip></Col>
                     <Col span={8}><Tooltip title={<>
-                        <span>B = Kuukauden sähkönkulutus (kWh) x pörssisähkön painottamaton kuukausikeskiarvo (c/kWh)</span>
+                        <span>B = Sähkönkulutus (kWh) x pörssisähkön painottamaton keskiarvo (c/kWh)</span>
                         <Tag color="" key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
                             {formatNumberToFI(consumptionEffectSummary.spotPriceWithTax)} c/kWh
                         </Tag>
                     </>} trigger={'click'}><Space align="center"><strong>B</strong>{formatNumberToEuros((consumptionEffectSummary.energyConsumption) * consumptionEffectSummary.spotPriceWithTax)} €</Space></Tooltip></Col>
                     <Col span={8}>
-                        <Tooltip title={<>Omavaikutus = (A - B) / E<br /><br />E = Kuukauden sähkönkulutus (kWh)</>} trigger={'click'}>
+                        <Tooltip title={<>
+                            <span>Omavaikutus = (A - B) / E<br /><br />A = Toteutunut spot-kustannus<br />B = Keskimääräisellä kustannuksella<br />E = Sähkönkulutus (kWh)</span>
+                            <Tag color="" key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
+                                A | {formatNumberToFI(consumptionEffectSummary.spotPriceWithTax + consumptionEffectVal)} c/kWh * {formatNumberToFI((consumptionEffectSummary.energyConsumption))} kWh = {formatNumberToEuros(consumptionEffectSummary.energyFeeSpotNoMargin)} €<br />
+                                B | {formatNumberToFI(consumptionEffectSummary.spotPriceWithTax)} c/kWh * {formatNumberToFI((consumptionEffectSummary.energyConsumption))} kWh = {formatNumberToEuros((consumptionEffectSummary.energyConsumption) * consumptionEffectSummary.spotPriceWithTax)} €<br />
+                                E | {formatNumberToFI((consumptionEffectSummary.energyConsumption))} kWh
+                            </Tag>
+                        </>} trigger={'click'}>
                             <Space align="center">
                                 <Tag color={color} key='total' style={{ display: 'flex', alignItems: 'center', paddingTop: '4px', paddingBottom: '4px', marginRight: 0 }}>
                                     {formatNumberToFI(consumptionEffectVal)} c/kWh

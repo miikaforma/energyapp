@@ -51,7 +51,7 @@
     "energyapp": "file:",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
-    "next": "^16.3.3",
+    "next": "^16.4.1",
     "next-auth": "^4.24.15",
     "next-cloudinary": "^6.17.5",
     "react": "19.2.4",
